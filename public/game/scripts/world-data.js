@@ -102,9 +102,9 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
 const terraceShift={
- 1:{High:190,Middle:175,Low:-45},
- 2:{High:605,Middle:280,Low:195},
- 3:{High:315,Middle:195,Low:-15}
+ 1:{High:190,Middle:200,Low:-45},
+ 2:{High:605,Middle:375,Low:195},
+ 3:{High:315,Middle:255,Low:-15}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
 function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
