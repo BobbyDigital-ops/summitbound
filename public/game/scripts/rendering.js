@@ -492,14 +492,14 @@ function drawIcePicks(){
  if(!p.climb || !p.climb.isIce)return;
  // Continuous alternation tied to actual climbing distance; release Up and
  // the cycle freezes, so there's no perpetual flailing when resting.
- const beat=p.climb.climbBeat*Math.PI;
+ const beat=p.climb.climbBeat*Math.PI*.72;
  const wall=icePositionAt(p.climb.spire,p.y,p.climb.tierIndex)?.x ?? p.x;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  for(const side of [-1,1]){
   const phase=beat+(side===1?Math.PI:0);
-  const reach=Math.sin(phase);
+  const reach=Math.sin(phase)*.72;
   const hx=p.x+side*12, hy=p.y-24-reach*3;
-  const tx=wall+side*7, ty=p.y-47-reach*11;
+  const tx=wall+side*5, ty=p.y-42-reach*9;
   // Glove follows the shaft; tip is embedded in the ice band.
   ctx.strokeStyle='#24343c';ctx.lineWidth=3.6;
   ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(tx,ty);ctx.stroke();
@@ -508,7 +508,7 @@ function drawIcePicks(){
   ctx.quadraticCurveTo(tx+side*3,ty-9,tx+side*9,ty+2);ctx.stroke();
   ctx.fillStyle='#1d262e';ctx.beginPath();ctx.arc(hx,hy,3.1,0,PI*2);ctx.fill();
   // Alternating boots and ice-crampon spikes actually touch the wall.
-  const footY=p.y+12+reach*6, footX=wall+side*(9+reach*1.8);
+  const footY=p.y+12+reach*5, footX=wall+side*(9+reach);
   ctx.strokeStyle='#17232d';ctx.lineWidth=6;
   ctx.beginPath();ctx.moveTo(p.x+side*8,p.y+2);
   ctx.lineTo(footX,footY);ctx.stroke();
@@ -737,7 +737,13 @@ function draw(){
   paintWoodenStaff(shaft,36/cfg.poleLength);
  }
  
- const pose = p.state === 'STEP_OFF' ? (Math.floor(sec * 10) % 8) : p.state === 'CLIMBING' ? (Math.floor((p.climb?.climbBeat || 0) / 2) % 2 ? 12 : 11) : p.vault ? 9 : (p.state === 'AIRBORNE' || p.state === 'FALLING') ? 10 : Math.abs(p.vx) > 18 ? Math.floor((p.runDistance || 0) / 45) % 8 : 8;
+ // Stable slow stride cycle, with limited neighbouring-frame interpolation.
+ const running=isGround() && Math.abs(p.vx)>30;
+ const step=(p.runDistance||0)/55;
+ const phase=Math.floor(step)%8;
+ const pose=p.state==='STEP_OFF' ? 11 : p.state==='CLIMBING' ? 11
+  : p.vault?9:(p.state==='AIRBORNE'||p.state==='FALLING')?10
+  :running?phase:8;
  if(climberSheet.complete && climberSheet.naturalWidth){
   ctx.save(); ctx.translate(p.x, p.y + 22); ctx.scale(p.facingDir < 0 ? -1 : 1, 1);
   const athletic = p.state === 'RUNNING' && Math.abs(p.vx)>90;
@@ -747,7 +753,16 @@ function draw(){
    ctx.translate(Math.sin(phase)*1.5,Math.cos(phase)*.7);
    ctx.rotate(Math.sin(phase)*.018);
   }
-  ctx.drawImage(climberSheet, pose * 200, 0, 200, 256, -39, -93, 78, 100); ctx.restore();
+  ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
+  if(running && !p.vault){
+   const part=step-Math.floor(step), alpha=Math.min(.42,Math.max(0,(part-.58)/.42*.42));
+   if(alpha>0){
+    ctx.globalAlpha=alpha;
+    ctx.drawImage(climberSheet, ((pose+1)%8)*200,0,200,256,-39,-93,78,100);
+    ctx.globalAlpha=1;
+   }
+  }
+  ctx.restore();
  } else {
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);
  }
