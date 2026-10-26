@@ -9,8 +9,8 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
  {name:'The Broken Tooth',summit:[1770,2570,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3460,4270,825,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[5220,6080,740,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'The Windward Spire',summit:[3575,4385,910,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[5145,6005,670,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
  {name:'Firespine Cavern',summit:[7100,7910,645,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
 ];
 
@@ -84,13 +84,19 @@ const caveLayouts = [
  {left:6840,right:7080,floor:900,ceiling:760}
 ];
 
+// Each leap has its own traversal profile without changing the pole physics.
+// The second destination is farther and lower; the third is nearer but higher.
+// The last is a long, precision cave entry rather than another terrace.
+const leapTitles = ['OPENING CHASM','WINDWARD DROP','STEEP ICE CRUX','CAVERN APPROACH'];
+const stageOffsets=[{dx:0,dy:0},{dx:0,dy:0},{dx:115,dy:85},{dx:-75,dy:-70},{dx:0,dy:0}];
 let routeSeed = 0;
 
 function applyRoute(seed) {
  routeSeed = ((seed % 9) + 9) % 9;
  const routeGroup = ledgeLayouts[routeSeed];
  for(let i = 1; i < spires.length - 1; i++) {
-  spires[i].ledges = routeGroup[i-1].map(a => a.slice());
+  const d=stageOffsets[i];
+  spires[i].ledges = routeGroup[i-1].map(a => [a[0]+d.dx,a[1]+d.dx,a[2]+d.dy,a[3],a[4]]);
  }
  spires[4].cave = {...caveLayouts[routeSeed]};
  
