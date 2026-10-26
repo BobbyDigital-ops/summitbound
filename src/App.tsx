@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.2 - Mobile Rendering */
+/** Summitbound v0.9.3 - Distributed Landings */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.2: Mobile Rendering';
+    document.title = 'Summitbound — v0.9.3: Distributed Landings';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
