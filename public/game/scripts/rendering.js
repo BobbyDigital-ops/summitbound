@@ -3,6 +3,10 @@
 // deposits instead of stacked symmetric triangle/Christmas-tree sprites.
 function pine(cx,ground,s,paintCtx=ctx){
  paintCtx.save();paintCtx.translate(cx,ground);paintCtx.scale(s,s);
+ if(alpineFirSprite.complete&&alpineFirSprite.naturalWidth){
+  paintCtx.drawImage(alpineFirSprite,-35,-130,70,130);
+  paintCtx.restore();return;
+ }
  const seed=Math.sin(cx*.093+ground*.025)*31;
  const lean=Math.sin(cx*.033)*7;
  paintCtx.strokeStyle='#292b30';paintCtx.lineWidth=3.5;paintCtx.lineCap='round';
@@ -82,6 +86,12 @@ function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
    paintCtx.beginPath();paintCtx.moveTo(x+5,h+11);
    paintCtx.bezierCurveTo(x+3,h+25,x+11,h+47,x+7,h+57);
    paintCtx.stroke();
+  }
+ }
+ if(alpineScrubSprite.complete&&alpineScrubSprite.naturalWidth){
+  for(const f of [.22,.49,.76]){
+   const x=L+(R-L)*f,y=T+210+f*380;
+   paintCtx.drawImage(alpineScrubSprite,x-38,y-25,76,36);
   }
  }
  paintCtx.restore();
