@@ -285,6 +285,50 @@ function decorate(i){
  for(const [j, x] of positions.entries()){pine(x, top - 8, j % 2 ? 2.35 : 3.1)}
 }
 
+// Hand-carried shepherd's staff: same material length as the planted pole.
+// The small backward tail means it reads as a full wooden stick, not a yellow spear.
+function restingStaffEnds(gripX, gripY, direction, materialLength) {
+ const tilt = 0.15, rear = 36, dx = (direction < 0 ? -1 : 1) * Math.cos(tilt), dy = -Math.sin(tilt);
+ return {
+  start: {x:gripX - dx * rear, y:gripY - dy * rear},
+  end: {x:gripX + dx * (materialLength - rear), y:gripY + dy * (materialLength - rear}
+ };
+}
+
+// Consistent weathered wooden shaft for both the carried and the bending state.
+// Only paints the existing points; vault motion, reach and spring physics are untouched.
+function paintWoodenStaff(points, gripFraction) {
+ if(points.length < 2) return;
+ ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+ const sections=points.length-1;
+ for(let k=1;k<=sections;k++){
+  const from=points[k-1], to=points[k], t=(k-.5)/sections;
+  const thickness=6.5-1.7*t+0.2*Math.sin(t*27);
+  ctx.beginPath(); ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
+  ctx.strokeStyle='#463226';ctx.lineWidth=thickness+1.3;ctx.stroke();
+  ctx.strokeStyle=k%7===0?'#876144':'#a17a55';
+  ctx.lineWidth=thickness;ctx.stroke();
+  ctx.strokeStyle='#d7b48a90';ctx.lineWidth=Math.max(0.9,thickness*.19);ctx.stroke();
+ }
+ // Subtle grain follows the shaft and never looks like repeated bright yellow bands.
+ for(let k=3;k<sections-2;k+=5){
+  const a=points[k], b=points[Math.min(sections,k+2)];
+  ctx.strokeStyle=k%3===0?'#5238298c':'#d3aa7c80'; ctx.lineWidth=.95;
+  ctx.beginPath();ctx.moveTo(a.x,a.y-1.4);ctx.lineTo(b.x,b.y-1.4);ctx.stroke();
+ }
+ // A short, worn leather hand-grip reinforces the shepherd's-staff appearance.
+ const pos=Math.max(1,Math.min(sections-2,Math.round(sections*gripFraction)));
+ for(let z=-1;z<=1;z++){
+  const at=pos+z, a=points[Math.max(0,at-1)], b=points[Math.min(sections,at+1)];
+  const t=points[at], d=Math.hypot(b.x-a.x,b.y-a.y)||1;
+  const nx=-(b.y-a.y)/d, ny=(b.x-a.x)/d;
+  ctx.strokeStyle=z===0?'#4b3529':'#674637';ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(t.x-nx*3.3,t.y-ny*3.3);
+  ctx.lineTo(t.x+nx*3.3,t.y+ny*3.3);ctx.stroke();
+ }
+ ctx.restore();
+}
+
 function draw(){
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
@@ -364,21 +408,26 @@ function draw(){
    if(curveLen(mid) > L) high = mid; else low = mid;
   }
   const bend = (low + high) / 2, cx1 = ax + (px - ax) * .28 + nx * bend, cy1 = ay + (py - ay) * .28 + ny * bend, cx2 = ax + (px - ax) * .72 + nx * bend, cy2 = ay + (py - ay) * .72 + ny * bend;
-  ctx.lineCap = 'round'; let lastX = ax, lastY = ay;
-  for(let q = 1; q <= 30; q++){
-   const t = q / 30, r = 1 - t;
-   const curX = r * r * r * ax + 3 * r * r * t * cx1 + 3 * r * t * t * cx2 + t * t * t * px;
-   const curY = r * r * r * ay + 3 * r * r * t * cy1 + 3 * r * t * t * cy2 + t * t * t * py;
-   ctx.strokeStyle = q % 6 === 0 ? '#876043' : '#b98752'; ctx.lineWidth = 6.6 - t * 3.2;
-   ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(curX, curY); ctx.stroke();
-   ctx.strokeStyle = '#e3c19a8c'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(lastX - .5, lastY - .9); ctx.lineTo(curX - .5, curY - .9); ctx.stroke();
-   lastX = curX; lastY = curY;
+  const shaft=[{x:ax,y:ay}];
+  for(let q=1;q<=30;q++){
+   const t=q/30, r=1-t;
+   shaft.push({
+    x:r*r*r*ax+3*r*r*t*cx1+3*r*t*t*cx2+t*t*t*px,
+    y:r*r*r*ay+3*r*r*t*cy1+3*r*t*t*cy2+t*t*t*py
+   });
   }
+  paintWoodenStaff(shaft,.88);
   ctx.fillStyle = '#293b43'; ctx.beginPath(); ctx.arc(ax, ay, 5.2, 0, PI * 2); ctx.fill();
  } else if(p.state !== 'CLIMBING'){
-  ctx.strokeStyle = '#ac7b4e'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(p.x - 8, p.y - 5); ctx.lineTo(p.x + p.facingDir * 154, p.y - 26); ctx.stroke();
-  ctx.strokeStyle = '#e0b88a'; ctx.lineWidth = 1.4; ctx.stroke();
+  // Match the 195-world-unit pole used by the physics engine at rest.
+  const ends=restingStaffEnds(p.x,p.y-13,p.facingDir,cfg.poleLength);
+  const shaft=[];
+  for(let q=0;q<=24;q++){
+   const t=q/24;
+   shaft.push({x:ends.start.x+(ends.end.x-ends.start.x)*t,
+               y:ends.start.y+(ends.end.y-ends.start.y)*t});
+  }
+  paintWoodenStaff(shaft,36/cfg.poleLength);
  }
  
  const pose = p.state === 'STEP_OFF' ? (Math.floor(sec * 10) % 8) : p.state === 'CLIMBING' ? (Math.floor(p.climb?.climbBeat || 0) % 2 ? 12 : 11) : p.vault ? 9 : (p.state === 'AIRBORNE' || p.state === 'FALLING') ? 10 : Math.abs(p.vx) > 18 ? Math.floor(sec * Math.max(7, Math.abs(p.vx) / 23)) % 8 : 8;

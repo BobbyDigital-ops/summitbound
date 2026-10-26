@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.8.6 - Carved Cliffs */
+/** Summitbound v0.8.7 - Long Wooden Staff */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.8.6: Carved Cliffs';
+    document.title = 'Summitbound — v0.8.7: Long Wooden Staff';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

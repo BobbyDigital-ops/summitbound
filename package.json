@@ -8,6 +8,7 @@
     "build": "vite build",
     "test:ice": "node --test tests/ice-route.test.cjs",
     "test:cliff": "node --test tests/cliff-contour.test.cjs",
+    "test:staff": "node --test tests/staff-length.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
