@@ -291,7 +291,7 @@ function restingStaffEnds(gripX, gripY, direction, materialLength) {
  const tilt = 0.15, rear = 36, dx = (direction < 0 ? -1 : 1) * Math.cos(tilt), dy = -Math.sin(tilt);
  return {
   start: {x:gripX - dx * rear, y:gripY - dy * rear},
-  end: {x:gripX + dx * (materialLength - rear), y:gripY + dy * (materialLength - rear}
+  end: {x:gripX + dx * (materialLength - rear), y:gripY + dy * (materialLength - rear)}
  };
 }
 
