@@ -1,0 +1,23 @@
+name: Extract Summit Leap project
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-project.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack uploaded project
+        run: |
+          unzip -o summit-leap-v083-clean-foundation.zip -d .
+          git add --all
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract Summit Leap v0.8.3 source files"
+            git push
+          fi
