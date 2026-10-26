@@ -235,10 +235,9 @@ function drawSpire(i){
   }
  }
  ctx.restore();
- ctx.restore();
-
- // Small natural crags rooted directly into the rock, not collision shelves.
+ // Small crags remain clipped to the mountain rock face, never in the chasm.
  cliffMicroTerrain(i,L,R,T);
+ ctx.restore();
 
  // Snow is adhered to real landing surfaces, not perched on detached slabs.
  const all = [[L, R, T], ...tiers.map(t=>[t[0],t[1],t[2]])];
@@ -650,7 +649,8 @@ function draw(){
  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-camera.x, -camera.y);
  for(let i = 0; i < spires.length; i++){
   const s = spires[i].summit;
-  if((s[1] - camera.x) * zoom < -180 || (s[0] - camera.x) * zoom > w + 180) continue;
+  const artLeft=i===4 ? Math.min(s[0],spires[4].cave.left-155) : s[0];
+  if((s[1] - camera.x) * zoom < -180 || (artLeft - camera.x) * zoom > w + 180) continue;
   drawSpire(i);
  }
  if((spires[4].cave.right - camera.x) * zoom > -200 && (spires[4].cave.left - camera.x) * zoom < w + 200) drawCave();

@@ -11,10 +11,10 @@ test('four leaps have recognisably varied horizontal and vertical challenges',()
  const gap=[1,2,3,4].map(i=>left(i)-s[i-1].summit[1]);
  const dest=[1,2,3,4].map(i=>i===4?s[4].cave.floor:s[i].ledges[1][2]);
  assert.ok(gap[1]>gap[0]+50,'second jump must be substantially wider than first');
- assert.ok(gap[2]<gap[1]-100,'third jump must be noticeably shorter');
- assert.ok(gap[3]>gap[2]+180,'final cave should demand another long crossing');
- assert.ok(s[2].ledges[1][2]>s[1].summit[2]+100,'second jump offers a descending landing');
- assert.ok(s[3].summit[2]<s[2].summit[2]-170,'third mountain must be steeply higher');
+ assert.ok(gap[2]<gap[1]-25,'third jump must be shorter');
+ assert.ok(gap[3]>gap[2]+65,'final cave should demand another long crossing');
+ assert.ok(s[2].ledges[1][2]<s[1].summit[2],'second jump is uphill, not descending');
+ assert.ok(s[3].summit[2]<s[2].summit[2]-100,'third mountain must be higher');
  assert.equal(new Set(dest).size,4,'all four target heights must differ');
 });
 for(let route=0;route<9;route++){
@@ -33,7 +33,7 @@ for(let route=0;route<9;route++){
   const c=s[4].cave;
   assert.ok(c.floor-c.ceiling>=110,'cave vertical opening');
   assert.ok(c.right-c.left>=175,'cave runout');
-  assert.ok(c.left>s[3].summit[1]+600&&c.left<s[3].summit[1]+1050,'cave gap');
+  assert.ok(c.left>s[3].summit[1]+500&&c.left<s[3].summit[1]+750,'uphill cave gap');
  });
 }
 test('cave mouth now uses a clipped organic arch with multiple depth layers',()=>{

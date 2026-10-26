@@ -8,10 +8,10 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
- {name:'The Broken Tooth',summit:[1770,2570,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3575,4385,830,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[5145,6005,710,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
- {name:'Firespine Cavern',summit:[7100,7910,420,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
+ {name:'The Broken Tooth',summit:[1580,2480,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
+ {name:'The Windward Spire',summit:[3150,3980,830,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[4680,5540,710,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'Firespine Cavern',summit:[6290,7100,420,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
 ];
 
 // 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
@@ -88,7 +88,7 @@ const caveLayouts = [
 // The second destination is farther and lower; the third is nearer but higher.
 // The last is a long, precision cave entry rather than another terrace.
 const leapTitles = ['OPENING CHASM','WINDWARD DROP','STEEP ICE CRUX','CAVERN APPROACH'];
-const stageOffsets=[{dx:0,dy:0},{dx:0,dy:0},{dx:115,dy:85},{dx:-75,dy:-70},{dx:0,dy:0}];
+const stageOffsets=[{dx:0,dy:0},{dx:-190,dy:0},{dx:-425,dy:0},{dx:-485,dy:0},{dx:0,dy:0}];
 let routeSeed = 0;
 
 // Stage-specific upward targets. Every playable landing is ABOVE the prior
@@ -102,9 +102,9 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
 const terraceShift={
- 1:{High:70,Middle:90,Low:-65},
- 2:{High:110,Middle:120,Low:65},
- 3:{High:80,Middle:85,Low:95}
+ 1:{High:20,Middle:65,Low:60},
+ 2:{High:275,Middle:260,Low:350},
+ 3:{High:65,Middle:60,Low:55}
 };
 
 // Deterministic per-route shifts keep natural variety without changing gaps
@@ -129,7 +129,7 @@ function applyRoute(seed) {
  // massif. Both cave ceiling and floor must remain real collision surfaces.
  const original=caveLayouts[routeSeed];
  const floor=680+Math.round((original.floor-892)*.28);
- const left=original.left-170;
+ const left=original.left-700;
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};
 
