@@ -30,7 +30,7 @@ test('natural snow gulley, frozen falls and dwarfed ledge pines',()=>{
  assert.match(render,/ledge\[0\]\+19/);
 });
 test('running frames advance by travelled distance, not timer',()=>{
- assert.match(render,/Math\.floor\(\(p\.runDistance \|\| 0\) \/ 45\)/);
+ assert.match(render,/const step=\(p\.runDistance\|\|0\)\/55/);
  assert.match(state,/runDistance:0/);
  assert.match(sim,/p\.runDistance=\(p\.runDistance\|\|0\)\+Math\.abs\(p\.vx\*dt\)/);
 });
