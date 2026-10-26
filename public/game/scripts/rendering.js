@@ -370,6 +370,50 @@ function decorate(i){
  }
 }
 
+// Hand-carried shepherd's staff: same material length as the planted pole.
+// The small backward tail means it reads as a full wooden stick, not a yellow spear.
+function restingStaffEnds(gripX, gripY, direction, materialLength) {
+ const tilt = 0.15, rear = 36, dx = (direction < 0 ? -1 : 1) * Math.cos(tilt), dy = -Math.sin(tilt);
+ return {
+  start: {x:gripX - dx * rear, y:gripY - dy * rear},
+  end: {x:gripX + dx * (materialLength - rear), y:gripY + dy * (materialLength - rear)}
+ };
+}
+
+// Consistent weathered wooden shaft for both the carried and the bending state.
+// Only paints the existing points; vault motion, reach and spring physics are untouched.
+function paintWoodenStaff(points, gripFraction) {
+ if(points.length < 2) return;
+ ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+ const sections=points.length-1;
+ for(let k=1;k<=sections;k++){
+  const from=points[k-1], to=points[k], t=(k-.5)/sections;
+  const thickness=6.5-1.7*t+0.2*Math.sin(t*27);
+  ctx.beginPath(); ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
+  ctx.strokeStyle='#463226';ctx.lineWidth=thickness+1.3;ctx.stroke();
+  ctx.strokeStyle=k%7===0?'#876144':'#a17a55';
+  ctx.lineWidth=thickness;ctx.stroke();
+  ctx.strokeStyle='#d7b48a90';ctx.lineWidth=Math.max(0.9,thickness*.19);ctx.stroke();
+ }
+ // Subtle grain follows the shaft and never looks like repeated bright yellow bands.
+ for(let k=3;k<sections-2;k+=5){
+  const a=points[k], b=points[Math.min(sections,k+2)];
+  ctx.strokeStyle=k%3===0?'#5238298c':'#d3aa7c80'; ctx.lineWidth=.95;
+  ctx.beginPath();ctx.moveTo(a.x,a.y-1.4);ctx.lineTo(b.x,b.y-1.4);ctx.stroke();
+ }
+ // A short, worn leather hand-grip reinforces the shepherd's-staff appearance.
+ const pos=Math.max(1,Math.min(sections-2,Math.round(sections*gripFraction)));
+ for(let z=-1;z<=1;z++){
+  const at=pos+z, a=points[Math.max(0,at-1)], b=points[Math.min(sections,at+1)];
+  const t=points[at], d=Math.hypot(b.x-a.x,b.y-a.y)||1;
+  const nx=-(b.y-a.y)/d, ny=(b.x-a.x)/d;
+  ctx.strokeStyle=z===0?'#4b3529':'#674637';ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(t.x-nx*3.3,t.y-ny*3.3);
+  ctx.lineTo(t.x+nx*3.3,t.y+ny*3.3);ctx.stroke();
+ }
+ ctx.restore();
+}
+
 function draw(){
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
