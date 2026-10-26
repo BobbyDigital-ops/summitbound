@@ -17,9 +17,9 @@
  * 12. Energy conservation: No unexplained kinetic energy spike on release.
  */
 
-import { DEFAULT_PHYSICS_CONFIG, PhysicsConfig, PlatformDef } from '../src/types/game';
-import { PlayerEntity } from '../src/entities/Player';
-import { PolePhysicsEngine } from '../src/physics/PolePhysics';
+import { DEFAULT_PHYSICS_CONFIG, PhysicsConfig, PlatformDef } from '../src/legacy/types/game';
+import { PlayerEntity } from '../src/legacy/entities/Player';
+import { PolePhysicsEngine } from '../src/legacy/physics/PolePhysics';
 
 function runOverhaulVerification() {
   console.log('================================================================');
