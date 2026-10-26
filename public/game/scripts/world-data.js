@@ -148,3 +148,39 @@ function climbEntryX(platform) {
  if (!platform) return -999;
  return platform.kind === 'cave' ? spires[4].cave.right - 25 : platform.right - 30;
 }
+
+/**
+ * Geologically continuous left-hand cliff boundary. At each ledge height it
+ * passes just outside the real physics landing edge (tier[0]); all other rock
+ * follows interpolated cliff face. No separate platforms or collision edits.
+ */
+function mountainContourNodes(index) {
+ const mountain=spires[index], top=mountain.summit;
+ const nodes=[{x:top[0]-12,y:top[2]+2}];
+ if(mountain.ledges.length) {
+  for(const tier of [...mountain.ledges].sort((a,b)=>a[2]-b[2])) {
+   nodes.push({x:tier[0]-10,y:tier[2]+3});
+  }
+ } else if(mountain.cave) {
+  nodes.push({x:mountain.cave.left-42,y:mountain.cave.ceiling-16});
+  nodes.push({x:mountain.cave.left-55,y:mountain.cave.floor+75});
+ } else {
+  nodes.push({x:top[0]-55,y:top[2]+240});
+ }
+ const lowest=mountain.ledges.length ? Math.min(...mountain.ledges.map(v=>v[0])) : (mountain.cave ? mountain.cave.left : top[0]);
+ nodes.push({x:lowest-85,y:2100});
+ return nodes;
+}
+function mountainContourX(index,y){
+ const nodes=mountainContourNodes(index);
+ if(y<=nodes[0].y) return nodes[0].x;
+ for(let i=0;i<nodes.length-1;i++){
+  const a=nodes[i],b=nodes[i+1];
+  if(y<=b.y){
+   const t=Math.max(0,Math.min(1,(y-a.y)/(b.y-a.y)));
+   const jag=Math.sin(Math.PI*t)*(Math.sin(y*.071+index*2.2)*4-7);
+   return a.x+(b.x-a.x)*t+jag;
+  }
+ }
+ return nodes[nodes.length-1].x;
+}

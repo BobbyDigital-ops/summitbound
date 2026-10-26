@@ -15,4 +15,5 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npm run test:ice
+      - run: npm run test:cliff
       - run: npm run build

@@ -24,39 +24,25 @@ function drawSpire(i){
  const s = spires[i], L = s.summit[0], R = s.summit[1], T = s.summit[2], tiers = s.ledges;
  const bottom = 2100;
  ctx.save();
+ // One continuous canyon-side contour, sampled from upper summit through
+ // high / middle / low shelves. The face never detaches from a landing lip.
  ctx.beginPath();
- ctx.moveTo(L, T - 9);
- ctx.bezierCurveTo(L + (R - L) * .25, T - 17, R - 90, T - 15, R - 4, T + 17);
- ctx.lineTo(R + 65, bottom);
- ctx.lineTo(i === 4 ? s.cave.left - 145 : L - 170, bottom);
-
- // Stepped cliff contours integrated into a single continuous mountain body
- if(i === 4){
-  const c = s.cave;
-  ctx.lineTo(c.left - 15, c.floor + 100);
-  ctx.lineTo(c.left - 20, c.floor + 18);
-  ctx.lineTo(c.left - 25, c.ceiling - 10);
-  ctx.lineTo(L - 20, T + 55);
- } else if(tiers.length){
-  const low = tiers[2], mid = tiers[1], high = tiers[0];
-  ctx.lineTo(low[0] + 16, low[2] + 48);
-  ctx.lineTo(low[0] + 19, low[2] + 18);
-  ctx.quadraticCurveTo(low[0] - 12, low[2] + 12, low[0] - 8, low[2] + 1);
-  ctx.lineTo(low[1] + 10, low[2] + 1);
-  ctx.lineTo(L - 12, (low[2] + mid[2]) / 2);
-  ctx.lineTo(mid[0] + 20, mid[2] + 40);
-  ctx.lineTo(mid[0] + 16, mid[2] + 18);
-  ctx.quadraticCurveTo(mid[0] - 11, mid[2] + 13, mid[0] - 8, mid[2] + 1);
-  ctx.lineTo(mid[1] + 6, mid[2] + 1);
-  ctx.lineTo(L - 8, (mid[2] + high[2]) / 2);
-  ctx.lineTo(high[0] + 21, high[2] + 40);
-  ctx.lineTo(high[0] + 14, high[2] + 15);
-  ctx.quadraticCurveTo(high[0] - 14, high[2] + 9, high[0] - 6, high[2] + 1);
-  ctx.lineTo(high[1] + 8, high[2] + 1);
-  ctx.lineTo(L - 4, T + 45);
- } else {
-  ctx.lineTo(L - 14, T + 105);
+ ctx.moveTo(mountainContourX(i,T+2),T+2);
+ const crestSteps=Math.max(10,Math.round((R-L)/28));
+ for(let n=1;n<=crestSteps;n++){
+  const f=n/crestSteps, x=L+(R-L)*f;
+  const uneven=2.2*Math.sin(f*19+i*2.3)+1.1*Math.sin(f*43+i);
+  ctx.lineTo(x,T-2+uneven);
  }
+ // Wind-cut rear face: no artificial vertical grey rectangle wall.
+ for(let y=T+23;y<bottom;y+=27){
+  const depth=y-T;
+  const flank=R+8+Math.sin(depth*.013+i)*19+Math.sin(depth*.041+i*2)*7+Math.min(38,depth*.022);
+  ctx.lineTo(flank,y);
+ }
+ ctx.lineTo(R+41,bottom);
+ ctx.lineTo(mountainContourX(i,bottom),bottom);
+ for(let y=bottom-16;y>T+2;y-=14)ctx.lineTo(mountainContourX(i,y),y);
  ctx.closePath();
  ctx.clip();
 
@@ -83,36 +69,64 @@ function drawSpire(i){
   ctx.strokeStyle = rnd() > .4 ? '#091d2c66' : '#b2c5d031'; ctx.lineWidth = 1 + rnd() * 2;
   ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 7 + rnd() * 22, y + 18 + rnd() * 45); ctx.lineTo(x - 16 + rnd() * 24, y + 48 + rnd() * 40); ctx.stroke();
  }
+ // Broad rock buttresses and fracture bands follow the continuous cliff mass.
+ ctx.save();
+ for(let n=0;n<6;n++){
+  const y0=T+85+n*169, x0=mountainContourX(i,y0)+32;
+  ctx.strokeStyle=n%2===0?'#132c3b44':'#b6c7ca25';
+  ctx.lineWidth=8+n%3*4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x0,y0);
+  ctx.bezierCurveTo(x0+34,y0+50,x0+12,y0+105,x0+53,y0+145);
+  ctx.stroke();
+ }
+ ctx.restore();
  ctx.restore();
 
- // Surface snow integrated into the cliff contour
- const all = [[L, R, T], ...tiers.map(t => [t[0], t[1], t[2]])];
- for(const [a, b, y] of all){
-  ctx.beginPath(); ctx.moveTo(a - 5, y - 2); ctx.bezierCurveTo(a + 23, y - 15, b - 32, y - 11, b + 4, y - 5);
-  ctx.lineTo(b + 3, y + 3); ctx.quadraticCurveTo(b - 16, y + 11, b - 31, y + 5);
-  ctx.lineTo(a + 15, y + 7); ctx.closePath(); ctx.fillStyle = '#e1edf1'; ctx.fill();
-  ctx.strokeStyle = '#fcffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a, y - 5); ctx.quadraticCurveTo((a + b) / 2, y - 12, b, y - 7); ctx.stroke();
-  for(let t = 0; t < Math.min(12, Math.floor((b - a) / 26)); t++){
-   const px = a + 15 + t * 27; ctx.fillStyle = '#bbdce3aa'; ctx.beginPath(); ctx.moveTo(px, y + 5); ctx.lineTo(px + 3, y + 5); ctx.lineTo(px + 1, y + 12 + (t % 4) * 3); ctx.fill();
-  }
- }
- // Thin overhanging snow lips and darker fractured rock directly beneath landing surfaces.
- // Rendering-only detail: platform bounds, terrain collision, and vault physics are unchanged.
- for(const [a, b, y] of all){
+ // Snow is adhered to real landing surfaces, not perched on detached slabs.
+ const all = [[L, R, T], ...tiers.map(t=>[t[0],t[1],t[2]])];
+ for(const [a,b,y] of all){
+  const isSummit=Math.abs(y-T)<.01;
+  const width=b-a;
   ctx.save();
-  ctx.strokeStyle = '#263c4c99'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(a + 5, y + 10);
-  ctx.quadraticCurveTo((a + b) / 2, y + 17, b - 5, y + 8); ctx.stroke();
-  ctx.strokeStyle = '#f5fbffb8'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(a + 10, y - 3);
-  ctx.quadraticCurveTo((a + b) / 2, y - 9, b - 12, y - 5); ctx.stroke();
-  const count = Math.max(2, Math.floor((b - a) / 75));
-  for(let n = 1; n <= count; n++){
-   const x = a + (b - a) * n / (count + 1);
-   ctx.strokeStyle = '#152b3c7d'; ctx.lineWidth = 2;
-   ctx.beginPath(); ctx.moveTo(x, y + 17);
-   ctx.lineTo(x + 7, y + 33 + (n % 3) * 6);
-   ctx.lineTo(x + 2, y + 46 + (n % 2) * 6); ctx.stroke();
+  // Low-relief sedimentary stone immediately beneath the snow.
+  ctx.fillStyle='#142b3c9b';
+  ctx.beginPath();ctx.moveTo(a+3,y+4);
+  ctx.quadraticCurveTo(a+width*.5,y+12,b-4,y+6);
+  ctx.quadraticCurveTo(b-width*.18,y+19,a+width*.21,y+33);
+  ctx.lineTo(a+5,y+12);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#74909d8c';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(a+14,y+24);
+  ctx.quadraticCurveTo(a+width*.35,y+34,b-width*.21,y+15);ctx.stroke();
+
+  const cap=ctx.createLinearGradient(a,y-12,a,y+13);
+  cap.addColorStop(0,'#ffffff');cap.addColorStop(.55,'#eaf5f9');
+  cap.addColorStop(1,'#a1c5d2');
+  ctx.fillStyle=cap;ctx.beginPath();
+  ctx.moveTo(a-3,y-2);
+  const steps=Math.max(6,Math.ceil(width/18));
+  for(let q=0;q<=steps;q++){
+   const f=q/steps, x=a+f*width;
+   const drift=-6+(Math.sin(f*18+i*2.6)+Math.sin(f*37+i*3.1))*(isSummit?2:1.5);
+   ctx.lineTo(x,y+drift);
+  }
+  ctx.lineTo(b+2,y+2);
+  for(let q=steps;q>=0;q--){
+   const f=q/steps, x=a+f*width;
+   const base=5+Math.sin(f*13+i)*1.6+(isSummit?1:0);
+   ctx.lineTo(x,y+base);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#faffffcc';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(a+4,y-6);ctx.quadraticCurveTo((a+b)/2,y-9,b-6,y-5);ctx.stroke();
+  // Isolated naturally spaced icicles rather than an even picket fence.
+  const icicles=Math.max(1,Math.floor(width/68));
+  for(let q=0;q<icicles;q++){
+   const f=(q+.29+Math.sin(q*2.7+i)*.16)/icicles;
+   const x=a+f*width;
+   const length=5+(q*7+i*3)%12;
+   ctx.fillStyle='#bedee5b7';ctx.beginPath();
+   ctx.moveTo(x-2,y+5);ctx.lineTo(x+2,y+5);
+   ctx.lineTo(x,y+5+length);ctx.closePath();ctx.fill();
   }
   ctx.restore();
  }
