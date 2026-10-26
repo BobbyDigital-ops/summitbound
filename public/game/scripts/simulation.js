@@ -120,6 +120,7 @@ function tick(dt){
    trail.push({x:p.x, y:p.y}); if(trail.length > 52) trail.shift();
   }
  } else {
+  if(ground && Math.abs(p.vx)>18) p.runDistance=(p.runDistance||0)+Math.abs(p.vx*dt);
   p.x += p.vx * dt;
   if(p.x < 12){ p.x = 12; p.vx = 0; }
  }

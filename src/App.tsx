@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.8.8 - Cavern and Varied Leaps */
+/** Summitbound v0.9.0 - Alpine Art Pass */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.8.8: Cavern and Varied Leaps';
+    document.title = 'Summitbound — v0.9.0: Alpine Art Pass';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

@@ -18,4 +18,5 @@ jobs:
       - run: npm run test:cliff
       - run: npm run test:staff
       - run: npm run test:leaps
+      - run: npm run test:art
       - run: npm run build

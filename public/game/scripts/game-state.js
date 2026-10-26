@@ -24,7 +24,7 @@ function hint(txt, duration=2.4){lastMessage=txt;messageTimeout=duration;notice.
 
 function spawn(stage=0, keepTime=false){
  let pl = platforms.find(x=>x.id==='s'+stage), x = stage===0?150:pl.left+95;
- p = {x, y:pl.top-22, vx:0, vy:0, state:'GROUNDED', surface:'snow', facingDir:1, vault:null, anchorX:0, anchorY:0, bend:0, groundedFor:.5, standingOn:pl.id, climb:null};
+ p = {x, y:pl.top-22, vx:0, vy:0, state:'GROUNDED', surface:'snow', facingDir:1, runDistance:0, vault:null, anchorX:0, anchorY:0, bend:0, groundedFor:.5, standingOn:pl.id, climb:null};
  if(!keepTime) elapsed=0;
  if(stage===0) caveActivated=false;
  atStage=stage; lastSafeStage=stage; completed=false; trail=[]; acc=0; peakBuzz=false; fingers.vault=null; fingers.up.clear();
