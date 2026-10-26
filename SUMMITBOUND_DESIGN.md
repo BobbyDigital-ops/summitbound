@@ -1,5 +1,5 @@
 # SUMMITBOUND — active design brief
-**Current build:** v0.8.6 Carved Cliffs — pending real-player visual review.
+**Current build:** v0.8.8 Cavern & Varied Leaps — CI build and route tests passed; awaiting real-player visual and vault-reachability review. Includes v0.8.7 full-length wooden staff rendering.
 **Canonical outstanding backlog:** https://github.com/BobbyDigital-ops/summitbound/issues/1
 
 ## Game promise
@@ -20,3 +20,10 @@ Long realistic running strides instead of rapid skipping; proper sprite-based cl
 
 ## Collaboration / release rule
 Every release: (1) assess whether Gemini would outperform direct GitHub edits; default to direct edits and narrow Gemini prompts only where justified, (2) small, reversible GitHub changes, (3) meaningful tests, (4) **visible HUD version number and subtitle** plus updated title, (5) human preview/playtest before considering visuals approved, (6) update GitHub issue #1 as tasks are implemented. AI Studio pulls from GitHub; Gemini modifications sync to GitHub first. A passing build is not a gameplay test.
+
+## Current traversal identities (v0.8.8)
+- Leap 1: Opening Chasm — introductory canyon to first set of terraces.
+- Leap 2: Windward Drop — a wider horizontal crossing with lower ledge landings.
+- Leap 3: Steep Ice Crux — shorter crossing but a markedly higher destination spire.
+- Leap 4: Cavern Approach — longer precision entry into a jagged recessed cave with a warm campfire, keeping the sheltered metal ladder.
+These are fixed authored profiles shared by nine deterministic ledge-layout seeds; they must be judged for reachability with actual in-game vaults, not only numeric geometry tests. The v0.9 asset pass must further differentiate foreground silhouette/texture and improve cave depth.
