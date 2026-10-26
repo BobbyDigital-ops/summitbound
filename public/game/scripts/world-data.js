@@ -85,9 +85,9 @@ const caveLayouts = [
 ];
 
 // Each leap has its own traversal profile without changing the pole physics.
-// The second destination is farther and lower; the third is nearer but higher.
-// The last is a long, precision cave entry rather than another terrace.
-const leapTitles = ['OPENING CHASM','WINDWARD DROP','STEEP ICE CRUX','CAVERN APPROACH'];
+// Every destination gains altitude; the second emphasises distance, the
+// third a short steep ascent, and the final targets a high side-cave mouth.
+const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','CAVERN APPROACH'];
 const stageOffsets=[{dx:0,dy:0},{dx:-190,dy:0},{dx:-425,dy:0},{dx:-485,dy:0},{dx:0,dy:0}];
 let routeSeed = 0;
 
