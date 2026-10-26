@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summit Leap v0.8.1 - Natural Mountain Geometry & Level Design */
+/** Summit Leap v0.8.4 - Terrain Edge Polish */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summit Leap — v0.8.1: Natural Mountain Geometry & Level Design';
+    document.title = 'Summit Leap — v0.8.4: Terrain Edge Polish';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
