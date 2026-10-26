@@ -113,3 +113,38 @@ function applyRoute(seed) {
 }
 
 
+
+/**
+ * A single shared ice route per outdoor spire, passing through the existing
+ * ledge entry points. Route geometry follows seeded ledges; it never modifies
+ * collision platforms or vault parameters.
+ */
+function iceClimbPoints(spireIndex) {
+ const s = spires[spireIndex];
+ if (!s || spireIndex === 0 || s.cave) return [];
+ const points = s.ledges.map((ledge, index) => ({
+  x: ledge[1] - 30, y: ledge[2] - 22, tierIndex: index
+ })).sort((a, b) => b.y - a.y);
+ points.push({x:s.summit[0] + 40, y:s.summit[2] - 22, tierIndex:-1});
+ return points;
+}
+
+function icePositionAt(spireIndex, y) {
+ const path = iceClimbPoints(spireIndex);
+ if (!path.length) return null;
+ if (y >= path[0].y) return {x:path[0].x, y};
+ for (let i = 0; i < path.length - 1; i++) {
+  const lower = path[i], upper = path[i + 1];
+  if (y >= upper.y) {
+   const linear = Math.max(0, Math.min(1, (lower.y - y) / (lower.y - upper.y)));
+   const smooth = linear * linear * (3 - 2 * linear);
+   return {x:lower.x + (upper.x - lower.x) * smooth, y};
+  }
+ }
+ return {x:path[path.length - 1].x, y};
+}
+
+function climbEntryX(platform) {
+ if (!platform) return -999;
+ return platform.kind === 'cave' ? spires[4].cave.right - 25 : platform.right - 30;
+}

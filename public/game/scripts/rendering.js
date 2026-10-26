@@ -153,25 +153,115 @@ function drawCave(){
  ctx.restore();
 }
 
-// 4. Inboard Ladders for Landing & Access Clearance
-function drawLadders(i){
- if(i === 0) return;
- const sp = spires[i], goalY = sp.summit[2] - 10;
- const tiers = i === 4 ? [[sp.cave.left, sp.cave.right, sp.cave.floor]] : sp.ledges;
- for(const tier of tiers){
-  // Place ladder rungs ~30px inboard from the right edge of the shelf
-  const x = (i === 4 ? sp.cave.right - 25 : tier[1] - 30);
-  const startY = tier[2] - 5;
-  ctx.save(); ctx.lineCap = 'round';
-  ctx.lineWidth = 5; ctx.strokeStyle = '#273c4a';
-  ctx.beginPath(); ctx.moveTo(x - 12, startY); ctx.lineTo(x - 12, goalY); ctx.moveTo(x + 12, startY); ctx.lineTo(x + 12, goalY); ctx.stroke();
-  ctx.strokeStyle = '#b9a18a'; ctx.lineWidth = 3;
-  for(let y = startY - 6; y >= goalY; y -= 17){
-   ctx.beginPath(); ctx.moveTo(x - 13, y); ctx.lineTo(x + 13, y); ctx.stroke();
-  }
-  ctx.strokeStyle = '#c8dce2'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x - 18, goalY); ctx.lineTo(Math.max(x + 20, sp.summit[0] + 20), goalY); ctx.stroke();
-  ctx.restore();
+// 4. One frozen ice ascent per outdoor mountain; a single steel ladder in the cave.
+function drawIceClimb(i) {
+ const points = iceClimbPoints(i);
+ if (points.length < 2) return;
+ const lower = points[0], upper = points[points.length-1];
+ const left = [], right = [], mid = [];
+ for (let y = lower.y; y >= upper.y; y -= 8) {
+  const pos = icePositionAt(i, y);
+  const jag = Math.sin(y * .093 + i * 2.1) * 2.3 + Math.sin(y * .23) * 1.5;
+  mid.push({x:pos.x + jag, y});
  }
+ mid.push({x:upper.x,y:upper.y});
+ for (const pos of mid) {
+  const drift = Math.sin(pos.y * .08 + i) * 3;
+  left.push({x:pos.x-23 + drift,y:pos.y});
+  right.push({x:pos.x+21 + drift*.5,y:pos.y});
+ }
+ ctx.save();
+ ctx.lineJoin='round'; ctx.lineCap='round';
+ // Rock-to-ice seam: a continuous band fused into the mountain face.
+ ctx.beginPath(); left.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+ right.slice().reverse().forEach(p=>ctx.lineTo(p.x,p.y));
+ ctx.closePath(); ctx.fillStyle='#092d429c';ctx.fill();
+ ctx.strokeStyle='#21455899';ctx.lineWidth=5;ctx.stroke();
+ const ice=ctx.createLinearGradient(lower.x-25,0,lower.x+35,0);
+ ice.addColorStop(0,'#527d92d8');ice.addColorStop(.3,'#b8f0f4db');
+ ice.addColorStop(.58,'#73cbd9cc');ice.addColorStop(1,'#2a6e8ab8');
+ ctx.beginPath();
+ mid.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+ ctx.strokeStyle=ice;ctx.lineWidth=34;ctx.stroke();
+ ctx.beginPath();
+ mid.forEach((p,j)=>j?ctx.lineTo(p.x-9,p.y):ctx.moveTo(p.x-9,p.y));
+ ctx.strokeStyle='#e6fbff91';ctx.lineWidth=4;ctx.stroke();
+ // Embedded angular ice crystal veins, not ladder rungs.
+ for(let y=lower.y-17, n=0; y>upper.y+12; y-=24,n++){
+  const here=icePositionAt(i,y);
+  const sign=n%2===0 ? -1 : 1;
+  ctx.strokeStyle=n%3===0?'#e7fbffc9':'#123c57a8';
+  ctx.lineWidth=n%3===0?2.5:1.9;
+  ctx.beginPath();ctx.moveTo(here.x+sign*4,y-11);
+  ctx.lineTo(here.x+sign*(12+n%3*3),y+2);
+  ctx.lineTo(here.x+sign*7,y+12);ctx.stroke();
+  if(n%3===1){
+   ctx.fillStyle='#e9ffffd5';ctx.beginPath();
+   ctx.moveTo(here.x-1,y-4);ctx.lineTo(here.x+5,y+2);
+   ctx.lineTo(here.x,y+8);ctx.lineTo(here.x-4,y+2);ctx.fill();
+  }
+ }
+ // Mark the places where the frozen route meets each landing terrace.
+ for(const point of points.slice(0,-1)){
+  ctx.strokeStyle='#d7f8f9cf';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(point.x-17,point.y-2);
+  ctx.lineTo(point.x-9,point.y-12);
+  ctx.moveTo(point.x+13,point.y-1);ctx.lineTo(point.x+5,point.y-10);ctx.stroke();
+ }
+ ctx.restore();
+}
+
+function drawCaveLadder() {
+ const c=spires[4].cave, x=c.right-25;
+ const startY=c.floor-5, endY=spires[4].summit[2]-10;
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ // Brushed steel rails and ice-encrusted wall brackets.
+ ctx.strokeStyle='#203746';ctx.lineWidth=9;
+ ctx.beginPath();ctx.moveTo(x-13,startY);ctx.lineTo(x-13,endY);
+ ctx.moveTo(x+13,startY);ctx.lineTo(x+13,endY);ctx.stroke();
+ ctx.strokeStyle='#9eb1ba';ctx.lineWidth=4.2;
+ ctx.beginPath();ctx.moveTo(x-13,startY);ctx.lineTo(x-13,endY);
+ ctx.moveTo(x+13,startY);ctx.lineTo(x+13,endY);ctx.stroke();
+ for(let y=startY-10;y>=endY;y-=19){
+  ctx.strokeStyle='#344957';ctx.lineWidth=7;
+  ctx.beginPath();ctx.moveTo(x-14,y);ctx.lineTo(x+14,y);ctx.stroke();
+  ctx.strokeStyle='#ced9d9';ctx.lineWidth=3.5;
+  ctx.beginPath();ctx.moveTo(x-13,y-2);ctx.lineTo(x+13,y-2);ctx.stroke();
+  if(Math.round(y)%3===0){
+   ctx.fillStyle='#f2f8f9';ctx.fillRect(x-15,y-4,4,2);
+  }
+ }
+ for(let y=startY-22;y>endY;y-=64){
+  ctx.strokeStyle='#6c858e';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(x+13,y);ctx.lineTo(x+27,y+5);ctx.stroke();
+ }
+ ctx.restore();
+}
+
+function drawClimbingRoutes(i){
+ if(i===4) drawCaveLadder();
+ else if(i>0) drawIceClimb(i);
+}
+
+function drawIcePicks(){
+ if(!p.climb || !p.climb.isIce) return;
+ const beat=p.climb.climbBeat * Math.PI * .92;
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ for(const side of [-1,1]){
+  const phase=beat + (side===1?Math.PI:0);
+  const reach=Math.sin(phase)*7;
+  const handX=p.x+side*18,handY=p.y-29+reach*.4;
+  const tipX=handX+side*11,tipY=handY-24-reach;
+  // Axe shaft held by the climber, with a swept steel pick at the ice.
+  ctx.strokeStyle='#26333a';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(handX,handY);ctx.lineTo(tipX,tipY);ctx.stroke();
+  ctx.strokeStyle='#9db8c2';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(tipX-side*10,tipY-3);
+  ctx.quadraticCurveTo(tipX+side*2,tipY-9,tipX+side*13,tipY-1);
+  ctx.lineTo(tipX+side*8,tipY+3);ctx.stroke();
+  ctx.fillStyle='#333b40';ctx.beginPath();ctx.arc(handX,handY,3.5,0,PI*2);ctx.fill();
+ }
+ ctx.restore();
 }
 
 function decorate(i){
@@ -225,7 +315,7 @@ function draw(){
  for(let i = 1; i < spires.length; i++){
   const s = spires[i].summit;
   if((s[1] - camera.x) * zoom < -180 || (s[0] - camera.x) * zoom > w + 180) continue;
-  drawLadders(i);
+  drawClimbingRoutes(i);
  }
  for(let i = 0; i < spires.length; i++){
   const s = spires[i].summit;
@@ -284,17 +374,18 @@ function draw(){
  } else {
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);
  }
+ if(p.state === 'CLIMBING' && p.climb?.isIce) drawIcePicks();
  ctx.restore();
 
  // Check rung proximity for Climb up button & hint
- const rungXTarget = (plat) => plat ? (plat.kind === 'cave' ? spires[4].cave.right - 25 : plat.right - 30) : -999;
+ const rungXTarget = climbEntryX;
  const nearRungs = p.state === 'CLIMBING' || (isGround() && ['ledge','cave'].includes(currentPlatform()?.kind) && Math.abs(p.x - rungXTarget(currentPlatform())) < 45);
  document.getElementById('up').hidden = !nearRungs;
 
  meter.style.display = p.vault ? 'block' : 'none';
  if(p.vault) needle.style.left = Math.min(100, p.vault.elapsed / p.vault.rideDuration * 100) + '%';
  stageEl.textContent = completed ? 'ASCENT COMPLETE' : `LEAP ${Math.min(atStage + 1, 4)} / 4`;
- let status = completed ? 'Checkpoint reached.' : p.state === 'CLIMBING' ? 'Hold ↑ to climb · Release to rest' : p.state === 'STEP_OFF' ? 'Stepping onto the summit' : `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_', ' ')}`;
+ let status = completed ? 'Checkpoint reached.' : p.state === 'CLIMBING' ? (p.climb?.isIce ? 'Hold ↑ to ice climb · Release to rest' : 'Hold ↑ on cave ladder · Release to rest') : p.state === 'STEP_OFF' ? 'Stepping onto the summit' : `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_', ' ')}`;
  subEl.textContent = status;
  document.getElementById('timer').textContent = formatTime(elapsed);
 }

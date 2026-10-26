@@ -34,10 +34,10 @@ function getLanding(plat){
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
   } else {
    landingHistory[plat.spire - 1] = plat.tier;
-   hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE RUNGS`, 3);
+   hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE ICE WALL`, 3);
   }
  } else if(plat.kind === 'ledge' && plat.spire === atStage){
-  hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE RUNGS`, 2);
+  hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE ICE WALL`, 2);
  }
  if(plat.kind === 'summit' && plat.spire === 4) win();
 }
@@ -52,11 +52,11 @@ function win(){
 function climbStart(plat){
  const goal = platforms.find(v => v.id === 's' + plat.spire);
  if(!goal) return;
- const rungX = plat.kind === 'cave' ? spires[4].cave.right - 25 : plat.right - 30;
+ const rungX = climbEntryX(plat);
  if(Math.abs(p.x - rungX) > 28) return;
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
- p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0};
- hint('HOLD W / ↑ TO CLIMB — ONE RUNG AT A TIME', 2.5); haptic(7);
+ p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0, isIce:plat.kind !== 'cave'};
+ hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 
 function tick(dt){
@@ -69,7 +69,7 @@ function tick(dt){
   if(k.up){
    const oldY = p.y; p.y = Math.max(c.targetY, p.y - 62 * dt); c.climbBeat += (oldY - p.y) / 12;
   }
-  p.x = c.originX; // Lock X to ladder line during climb
+  p.x = c.isIce ? icePositionAt(c.spire, p.y).x : c.originX; // Follow one continuous ice line, or the cave ladder
   if(p.y <= c.targetY + .25){ p.y = c.targetY; p.state = 'STEP_OFF'; c.exitTime = 0; }
   return;
  }
@@ -151,7 +151,7 @@ function tick(dt){
   if(standing){
    p.standingOn = standing.id; p.surface = standing.surfaceType;
    if(!isGround()) p.state = Math.abs(p.vx) > 20 ? 'RUNNING' : 'GROUNDED';
-   const rungX = standing.kind === 'cave' ? spires[4].cave.right - 25 : standing.right - 30;
+   const rungX = climbEntryX(standing);
    if(['ledge','cave'].includes(standing.kind) && p.groundedFor > .10 && Math.abs(p.vx) < 120 && k.up && Math.abs(p.x - rungX) < 28){
     climbStart(standing);
    }

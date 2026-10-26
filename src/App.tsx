@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summit Leap v0.8.4 - Terrain Edge Polish */
+/** Summit Leap v0.8.5 - Ice Ascent */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summit Leap — v0.8.4: Terrain Edge Polish';
+    document.title = 'Summit Leap — v0.8.5: Ice Ascent';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
