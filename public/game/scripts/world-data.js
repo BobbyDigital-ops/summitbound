@@ -102,7 +102,7 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
 const terraceShift={
- 1:{High:20,Middle:65,Low:40},
+ 1:{High:20,Middle:65,Low:-15},
  2:{High:275,Middle:160,Low:350},
  3:{High:65,Middle:60,Low:55}
 };
