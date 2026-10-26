@@ -1,5 +1,5 @@
 # SUMMITBOUND — active design brief
-**Current build:** v0.8.8 Cavern & Varied Leaps — CI build and route tests passed; awaiting real-player visual and vault-reachability review. Includes v0.8.7 full-length wooden staff rendering.
+**Current build:** v0.9.1 Ascending Terraces — CI tests including real pole-vault flight simulations for nine seeds passed; awaiting player gameplay and visual review. Backup: `backup/v090-before-staggered-terraces`.
 **Canonical outstanding backlog:** https://github.com/BobbyDigital-ops/summitbound/issues/1
 
 ## Game promise
@@ -21,9 +21,12 @@ Long realistic running strides instead of rapid skipping; proper sprite-based cl
 ## Collaboration / release rule
 Every release: (1) assess whether Gemini would outperform direct GitHub edits; default to direct edits and narrow Gemini prompts only where justified, (2) small, reversible GitHub changes, (3) meaningful tests, (4) **visible HUD version number and subtitle** plus updated title, (5) human preview/playtest before considering visuals approved, (6) update GitHub issue #1 as tasks are implemented. AI Studio pulls from GitHub; Gemini modifications sync to GitHub first. A passing build is not a gameplay test.
 
-## Current traversal identities (v0.8.8)
+## Current traversal identities (v0.9.1)
 - Leap 1: Opening Chasm — introductory canyon to first set of terraces.
-- Leap 2: Windward Drop — a wider horizontal crossing with lower ledge landings.
-- Leap 3: Steep Ice Crux — shorter crossing but a markedly higher destination spire.
-- Leap 4: Cavern Approach — longer precision entry into a jagged recessed cave with a warm campfire, keeping the sheltered metal ladder.
-These are fixed authored profiles shared by nine deterministic ledge-layout seeds; they must be judged for reachability with actual in-game vaults, not only numeric geometry tests. The v0.9 asset pass must further differentiate foreground silhouette/texture and improve cave depth.
+- Leap 2: Windward Rise — a more demanding horizontal crossing where EVERY landing is higher than the preceding launch summit.
+- Leap 3: Steep Ice Crux — shorter crossing, ascending to a markedly higher spire.
+- Leap 4: Cavern Approach — an UPHILL precision entry into a high cave recessed on the side of a much taller jagged peak, with the sheltered steel ladder and finish-line campfire.
+All four crossings gain elevation; low, middle and high terraces are risk/reward landing choices with independent horizontal positions, varied distances and widths. Nine deterministic routes are checked against the actual pole-vault flight engine, but still require real human playtesting. The v0.9 asset pass must further differentiate foreground silhouette/texture and improve cave depth.
+
+## v0.9.1 pending visual review
+Terraces are horizontally staggered and lead to a coherent uphill route. Smaller non-collidable crags, winter shrubs, grass, ice drips and dwarf firs are layered into the clipped mountainside. The ice-climbing sprite, pick placements and crampon animation were smoothed by using a slower distance-linked cadence. **Still unmet:** truly painterly illustrated cave entrance on rock-face side, high-quality foreground assets, polished full-body climbing animation, and convincing running sprite poses. Never claim procedural shape changes alone achieve the original concept art.
