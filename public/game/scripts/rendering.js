@@ -137,33 +137,97 @@ function drawSpire(i){
 }
 
 function drawCave(){
- const c = spires[4].cave, opening = c.floor - c.ceiling;
+ const c=spires[4].cave;
+ const l=c.left,r=c.right,t=c.ceiling,b=c.floor,w=r-l,mid=l+w*.52;
  ctx.save();
- ctx.fillStyle = '#0d1b27'; ctx.beginPath(); ctx.moveTo(c.left - 4, c.ceiling - 13);
- ctx.bezierCurveTo(c.left + 30, c.ceiling - 35, c.right - 28, c.ceiling - 24, c.right + 27, c.ceiling + 11);
- ctx.lineTo(c.right + 31, c.floor + 38); ctx.lineTo(c.left + 9, c.floor + 11); ctx.closePath(); ctx.fill();
- 
- let shade = ctx.createLinearGradient(c.left, c.ceiling, c.right, c.floor);
- shade.addColorStop(0, '#142638'); shade.addColorStop(.65, '#081523'); shade.addColorStop(1, '#172935');
- ctx.fillStyle = shade; ctx.fillRect(c.left, c.ceiling + 4, c.right - c.left, c.floor - c.ceiling - 10);
- 
- ctx.fillStyle = '#596c78'; ctx.beginPath(); ctx.moveTo(c.left - 18, c.ceiling - 28);
- ctx.quadraticCurveTo(c.left + 45, c.ceiling - 35, c.right + 40, c.ceiling - 17);
- ctx.lineTo(c.right + 40, c.ceiling + 6); ctx.quadraticCurveTo(c.left + 50, c.ceiling - 11, c.left - 18, c.ceiling + 6); ctx.closePath(); ctx.fill();
- ctx.fillStyle = '#ebf5f6'; ctx.beginPath(); ctx.moveTo(c.left - 18, c.ceiling - 27); ctx.quadraticCurveTo(c.left + 70, c.ceiling - 35, c.right + 35, c.ceiling - 19); ctx.lineTo(c.right + 30, c.ceiling - 11); ctx.lineTo(c.left - 15, c.ceiling - 16); ctx.fill();
- 
- ctx.fillStyle = '#4d606a'; ctx.beginPath(); ctx.moveTo(c.left - 9, c.floor + 3); ctx.lineTo(c.right + 36, c.floor + 2); ctx.lineTo(c.right + 34, c.floor + 22); ctx.lineTo(c.left - 9, c.floor + 14); ctx.fill();
- ctx.strokeStyle = '#e0ebec'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(c.left - 7, c.floor - 1); ctx.lineTo(c.right + 35, c.floor - 1); ctx.stroke();
- 
- // Campfire
- const flameX = c.right - 36, flameY = c.floor - 10, flick = Math.sin(performance.now() * .012) * 5;
- const glow = ctx.createRadialGradient(flameX, flameY - 15, 1, flameX, flameY - 15, 160);
- glow.addColorStop(0, '#ffca7477'); glow.addColorStop(.42, '#ec852433'); glow.addColorStop(1, '#ee8c2100'); ctx.fillStyle = glow; ctx.fillRect(c.left - 85, c.ceiling - 100, c.right - c.left + 185, opening + 200);
- ctx.strokeStyle = '#513324'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(flameX - 13, flameY); ctx.lineTo(flameX + 16, flameY + 4); ctx.moveTo(flameX + 12, flameY); ctx.lineTo(flameX - 12, flameY + 3); ctx.stroke();
- ctx.fillStyle = '#ffa82e'; ctx.beginPath(); ctx.moveTo(flameX - 13, flameY);
- ctx.quadraticCurveTo(flameX - 22, flameY - 27, flameX + 4, flameY - 44 - flick);
- ctx.quadraticCurveTo(flameX + 23, flameY - 17, flameX + 11, flameY); ctx.fill();
- ctx.fillStyle = '#fff1a7'; ctx.beginPath(); ctx.moveTo(flameX - 4, flameY); ctx.quadraticCurveTo(flameX - 8, flameY - 19, flameX + 5, flameY - 24 - flick * .4); ctx.quadraticCurveTo(flameX + 11, flameY - 5, flameX + 8, flameY); ctx.fill();
+ // Rock collar is part of the mountain, not an add-on rectangular tunnel.
+ ctx.fillStyle='#1d3444ee';
+ ctx.beginPath();ctx.moveTo(l-72,b+62);
+ ctx.lineTo(l-63,b+6);ctx.lineTo(l-70,t+47);
+ ctx.lineTo(l-49,t-25);ctx.lineTo(l-17,t-53);
+ ctx.lineTo(l+32,t-42);ctx.lineTo(mid,t-60);
+ ctx.lineTo(r+18,t-44);ctx.lineTo(r+59,t+16);
+ ctx.lineTo(r+51,b+31);ctx.lineTo(r+26,b+52);
+ ctx.lineTo(mid,b+33);ctx.lineTo(l-24,b+60);
+ ctx.closePath();ctx.fill();
+
+ // Intrinsically arched mouth; usable floor and roof collision coordinates
+ // remain c.floor and c.ceiling so the opening cannot become a hidden trap.
+ const traceMouth=()=>{
+  ctx.beginPath();ctx.moveTo(l-29,b+16);
+  ctx.bezierCurveTo(l-44,t+85,l-32,t+32,l-10,t+4);
+  ctx.bezierCurveTo(l+9,t-22,l+40,t-22,l+w*.43,t-16);
+  ctx.bezierCurveTo(l+w*.70,t-27,r+7,t-10,r+31,t+25);
+  ctx.bezierCurveTo(r+42,t+64,r+33,b-19,r+18,b+14);
+  ctx.quadraticCurveTo(mid,b+10,l-29,b+16);ctx.closePath();
+ };
+ traceMouth();ctx.fillStyle='#061522';ctx.fill();
+ ctx.save();traceMouth();ctx.clip();
+ const inner=ctx.createLinearGradient(l-30,t,r+44,b);
+ inner.addColorStop(0,'#2f5262');inner.addColorStop(.3,'#143244');
+ inner.addColorStop(.7,'#061622');inner.addColorStop(1,'#091b29');
+ ctx.fillStyle=inner;ctx.fillRect(l-50,t-40,w+140,b-t+120);
+ // Concentric rock layers convey a deep, irregularly excavated cave.
+ for(let n=0;n<4;n++){
+  const d=13+n*19;
+  ctx.strokeStyle=['#7b92935f','#8ca8a34e','#2e52636f','#0d2535ca'][n];
+  ctx.lineWidth=15-n*2;ctx.beginPath();
+  ctx.moveTo(l+d,b+3);
+  ctx.bezierCurveTo(l+d-20,t+40,l+w*.26+d*.26,t+8+n*9,mid,t+8+n*9);
+  ctx.bezierCurveTo(r-d*.4,t+5+n*9,r-d,b-18,r-d,b+5);ctx.stroke();
+ }
+ const glow=ctx.createRadialGradient(r-45,b-28,3,r-45,b-28,160);
+ glow.addColorStop(0,'#ffcd8c9a');glow.addColorStop(.30,'#ef8b3a50');
+ glow.addColorStop(.68,'#d3662218');glow.addColorStop(1,'#b5611200');
+ ctx.fillStyle=glow;ctx.fillRect(l-40,t-30,w+130,b-t+95);
+ ctx.fillStyle='#2c4554';
+ ctx.beginPath();ctx.moveTo(l-35,b+20);ctx.lineTo(l-5,b+9);
+ ctx.lineTo(l+47,b+13);ctx.lineTo(mid-10,b+7);
+ ctx.lineTo(r-18,b+3);ctx.lineTo(r+34,b+15);
+ ctx.lineTo(r+40,b+35);ctx.lineTo(l-38,b+37);ctx.fill();
+ // Uneven rocks, silhouettes only inside the cavern mouth.
+ for(let n=0;n<6;n++){
+  const x=l+22+n*34, y=b+7+(n%3)*3;
+  ctx.fillStyle=n%2?'#263b4a':'#425969';
+  ctx.beginPath();ctx.moveTo(x-14,y+4);ctx.lineTo(x-8,y-9);
+  ctx.lineTo(x+2,y-7-(n%3)*4);ctx.lineTo(x+16,y+6);ctx.fill();
+ }
+ ctx.restore();
+
+ // Massive broken overhang and cold rim: NO squared off horizontal roof.
+ ctx.strokeStyle='#5b7480b0';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=21;
+ ctx.beginPath();ctx.moveTo(l-34,b+10);
+ ctx.bezierCurveTo(l-47,t+67,l-25,t-12,l+23,t-30);
+ ctx.bezierCurveTo(l+w*.53,t-43,r+24,t-6,r+38,t+40);ctx.stroke();
+ ctx.strokeStyle='#a1bdc3a1';ctx.lineWidth=5;ctx.stroke();
+ ctx.fillStyle='#e9f4f6';ctx.beginPath();
+ ctx.moveTo(l-53,t-31);ctx.lineTo(l-25,t-43);ctx.lineTo(l+16,t-40);
+ ctx.lineTo(l+39,t-48);ctx.lineTo(l+72,t-35);
+ ctx.lineTo(l+101,t-45);ctx.lineTo(r-16,t-32);
+ ctx.lineTo(r+20,t-14);ctx.lineTo(r+6,t-18);
+ ctx.lineTo(r-19,t-24);ctx.lineTo(l+77,t-24);
+ ctx.lineTo(l+8,t-20);ctx.closePath();ctx.fill();
+ // Physical floor remains untouched; a jagged stone apron conceals the box.
+ ctx.fillStyle='#516f7a';ctx.beginPath();
+ ctx.moveTo(l-38,b+15);ctx.lineTo(l-12,b+8);
+ ctx.lineTo(l+45,b+12);ctx.lineTo(mid,b+7);
+ ctx.lineTo(r-22,b+10);ctx.lineTo(r+37,b+17);
+ ctx.lineTo(r+46,b+31);ctx.lineTo(mid+22,b+24);
+ ctx.lineTo(l+16,b+27);ctx.lineTo(l-41,b+31);ctx.fill();
+ ctx.strokeStyle='#bfdfe5c8';ctx.lineWidth=3;ctx.beginPath();
+ ctx.moveTo(l-32,b+11);ctx.quadraticCurveTo(mid,b+5,r+25,b+13);ctx.stroke();
+
+ // Warm fire at the end of the cave — the level finishes on landing here.
+ const fx=r-36,fy=b-10,flick=Math.sin(performance.now()*.012)*5;
+ ctx.strokeStyle='#513324';ctx.lineWidth=7;ctx.beginPath();
+ ctx.moveTo(fx-13,fy);ctx.lineTo(fx+16,fy+4);
+ ctx.moveTo(fx+12,fy);ctx.lineTo(fx-12,fy+3);ctx.stroke();
+ ctx.fillStyle='#ffa82e';ctx.beginPath();ctx.moveTo(fx-13,fy);
+ ctx.quadraticCurveTo(fx-22,fy-27,fx+4,fy-44-flick);
+ ctx.quadraticCurveTo(fx+23,fy-17,fx+11,fy);ctx.fill();
+ ctx.fillStyle='#fff1a7';ctx.beginPath();ctx.moveTo(fx-4,fy);
+ ctx.quadraticCurveTo(fx-8,fy-19,fx+5,fy-24-flick*.4);
+ ctx.quadraticCurveTo(fx+11,fy-5,fx+8,fy);ctx.fill();
  ctx.restore();
 }
 
@@ -279,54 +343,31 @@ function drawIcePicks(){
 }
 
 function decorate(i){
- const s = spires[i].summit, top = s[2];
- const l = s[0], r = s[1];
- const positions = [l + 48, l + 145, r - 125, r - 55];
- for(const [j, x] of positions.entries()){pine(x, top - 8, j % 2 ? 2.35 : 3.1)}
-}
-
-// Hand-carried shepherd's staff: same material length as the planted pole.
-// The small backward tail means it reads as a full wooden stick, not a yellow spear.
-function restingStaffEnds(gripX, gripY, direction, materialLength) {
- const tilt = 0.15, rear = 36, dx = (direction < 0 ? -1 : 1) * Math.cos(tilt), dy = -Math.sin(tilt);
- return {
-  start: {x:gripX - dx * rear, y:gripY - dy * rear},
-  end: {x:gripX + dx * (materialLength - rear), y:gripY + dy * (materialLength - rear)}
- };
-}
-
-// Consistent weathered wooden shaft for both the carried and the bending state.
-// Only paints the existing points; vault motion, reach and spring physics are untouched.
-function paintWoodenStaff(points, gripFraction) {
- if(points.length < 2) return;
- ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
- const sections=points.length-1;
- for(let k=1;k<=sections;k++){
-  const from=points[k-1], to=points[k], t=(k-.5)/sections;
-  const thickness=6.5-1.7*t+0.2*Math.sin(t*27);
-  ctx.beginPath(); ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
-  ctx.strokeStyle='#463226';ctx.lineWidth=thickness+1.3;ctx.stroke();
-  ctx.strokeStyle=k%7===0?'#876144':'#a17a55';
-  ctx.lineWidth=thickness;ctx.stroke();
-  ctx.strokeStyle='#d7b48a90';ctx.lineWidth=Math.max(0.9,thickness*.19);ctx.stroke();
+ const summit=spires[i].summit, top=summit[2], l=summit[0], w=summit[1]-l;
+ // Distinct landscape identities for the four crossings and final cavern.
+ const treeLayouts=[
+  [[.09,2.8],[.18,2.25],[.76,3.0],[.90,2.35]],
+  [[.14,2.75],[.81,2.15]],
+  [[.17,1.8],[.84,2.2],[.92,1.55]],
+  [[.82,2.85]],
+  [[.73,2.15],[.88,1.55]]
+ ];
+ for(const [f,size] of treeLayouts[i]) pine(l+f*w,top-8,size);
+ if(i===2||i===3){
+  ctx.save();
+  for(let k=0;k<4;k++){
+   const x=l+w*(.28+k*.125),sz=12+(k*7+i*3)%18;
+   ctx.fillStyle=k%2===0?'#597688':'#3c5c6d';
+   ctx.beginPath();ctx.moveTo(x-sz,top+1);
+   ctx.lineTo(x-sz*.3,top-sz*.95);
+   ctx.lineTo(x+sz*.35,top-sz*.65);
+   ctx.lineTo(x+sz*.68,top);ctx.closePath();ctx.fill();
+   ctx.strokeStyle='#eaf6f9';ctx.lineWidth=3;
+   ctx.beginPath();ctx.moveTo(x-sz*.8,top-sz*.14);
+   ctx.lineTo(x-sz*.25,top-sz*.86);ctx.stroke();
+  }
+  ctx.restore();
  }
- // Subtle grain follows the shaft and never looks like repeated bright yellow bands.
- for(let k=3;k<sections-2;k+=5){
-  const a=points[k], b=points[Math.min(sections,k+2)];
-  ctx.strokeStyle=k%3===0?'#5238298c':'#d3aa7c80'; ctx.lineWidth=.95;
-  ctx.beginPath();ctx.moveTo(a.x,a.y-1.4);ctx.lineTo(b.x,b.y-1.4);ctx.stroke();
- }
- // A short, worn leather hand-grip reinforces the shepherd's-staff appearance.
- const pos=Math.max(1,Math.min(sections-2,Math.round(sections*gripFraction)));
- for(let z=-1;z<=1;z++){
-  const at=pos+z, a=points[Math.max(0,at-1)], b=points[Math.min(sections,at+1)];
-  const t=points[at], d=Math.hypot(b.x-a.x,b.y-a.y)||1;
-  const nx=-(b.y-a.y)/d, ny=(b.x-a.x)/d;
-  ctx.strokeStyle=z===0?'#4b3529':'#674637';ctx.lineWidth=2.2;
-  ctx.beginPath();ctx.moveTo(t.x-nx*3.3,t.y-ny*3.3);
-  ctx.lineTo(t.x+nx*3.3,t.y+ny*3.3);ctx.stroke();
- }
- ctx.restore();
 }
 
 function draw(){
@@ -447,7 +488,7 @@ function draw(){
 
  meter.style.display = p.vault ? 'block' : 'none';
  if(p.vault) needle.style.left = Math.min(100, p.vault.elapsed / p.vault.rideDuration * 100) + '%';
- stageEl.textContent = completed ? 'ASCENT COMPLETE' : `LEAP ${Math.min(atStage + 1, 4)} / 4`;
+ stageEl.textContent = completed ? 'ASCENT COMPLETE' : `LEAP ${Math.min(atStage + 1, 4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
  let status = completed ? 'Checkpoint reached.' : p.state === 'CLIMBING' ? (p.climb?.isIce ? 'Hold ↑ to ice climb · Release to rest' : 'Hold ↑ on cave ladder · Release to rest') : p.state === 'STEP_OFF' ? 'Stepping onto the summit' : `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_', ' ')}`;
  subEl.textContent = status;
  document.getElementById('timer').textContent = formatTime(elapsed);
