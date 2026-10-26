@@ -121,6 +121,7 @@ function sculptTerrace(raw, spireIndex, seed) {
 
 function applyRoute(seed) {
  routeSeed=((seed%9)+9)%9;
+ if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
  const group=ledgeLayouts[routeSeed];
  for(let i=1;i<=3;i++) {
   spires[i].ledges=group[i-1].map(a=>sculptTerrace(a,i,routeSeed));

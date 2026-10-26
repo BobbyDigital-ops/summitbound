@@ -166,9 +166,10 @@ function tick(dt){
 }
 
 function resize(){
- const ratio = Math.min(devicePixelRatio || 1, 2);
+ const ratio = Math.min(devicePixelRatio || 1, innerWidth < 950 ? 1.15 : 1.6);
  canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+ if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
 }
 
 function loop(now){

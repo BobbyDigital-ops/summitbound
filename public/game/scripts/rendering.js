@@ -1,12 +1,12 @@
 // Summit Leap v0.8.3 — extracted unchanged from v0.8.1.
 // Irregular, wind-sculpted conifers: branching silhouettes with broken snow
 // deposits instead of stacked symmetric triangle/Christmas-tree sprites.
-function pine(cx,ground,s){
- ctx.save();ctx.translate(cx,ground);ctx.scale(s,s);
+function pine(cx,ground,s,paintCtx=ctx){
+ paintCtx.save();paintCtx.translate(cx,ground);paintCtx.scale(s,s);
  const seed=Math.sin(cx*.093+ground*.025)*31;
  const lean=Math.sin(cx*.033)*7;
- ctx.strokeStyle='#292b30';ctx.lineWidth=3.5;ctx.lineCap='round';
- ctx.beginPath();ctx.moveTo(0,7);ctx.quadraticCurveTo(-lean*.2,-48,lean,-116);ctx.stroke();
+ paintCtx.strokeStyle='#292b30';paintCtx.lineWidth=3.5;paintCtx.lineCap='round';
+ paintCtx.beginPath();paintCtx.moveTo(0,7);paintCtx.quadraticCurveTo(-lean*.2,-48,lean,-116);paintCtx.stroke();
  for(let j=0;j<14;j++){
   const h=-14-j*7.25;
   const fraction=j/14, half=31*(1-fraction*.86);
@@ -15,86 +15,86 @@ function pine(cx,ground,s){
    const reach=half*variation;
    const x0=lean*(j/14), x1=x0+side*reach;
    const droop=4+5*(1-fraction)+3*Math.sin(seed+j*2.9);
-   ctx.strokeStyle='#323638';ctx.lineWidth=2.6;
-   ctx.beginPath();ctx.moveTo(x0,h-5);
-   ctx.quadraticCurveTo(x0+side*reach*.53,h-9,x1,h+droop);ctx.stroke();
-   const foliage=ctx.createLinearGradient(x0-side*15,h-12,x1,h+11);
+   paintCtx.strokeStyle='#323638';paintCtx.lineWidth=2.6;
+   paintCtx.beginPath();paintCtx.moveTo(x0,h-5);
+   paintCtx.quadraticCurveTo(x0+side*reach*.53,h-9,x1,h+droop);paintCtx.stroke();
+   const foliage=paintCtx.createLinearGradient(x0-side*15,h-12,x1,h+11);
    foliage.addColorStop(0,j%3?'#152c30':'#294245');
    foliage.addColorStop(.6,j%2?'#1c3938':'#253b3e');
    foliage.addColorStop(1,'#10282d');
-   ctx.fillStyle=foliage;ctx.beginPath();
-   ctx.moveTo(x0,h-10);
-   ctx.lineTo(x0+side*reach*.38,h-11-(j%3));
-   ctx.lineTo(x1,h+droop);
-   ctx.lineTo(x0+side*reach*.58,h+droop-1);
-   ctx.lineTo(x0+side*reach*.27,h+2);
-   ctx.lineTo(x0,h);ctx.closePath();ctx.fill();
+   paintCtx.fillStyle=foliage;paintCtx.beginPath();
+   paintCtx.moveTo(x0,h-10);
+   paintCtx.lineTo(x0+side*reach*.38,h-11-(j%3));
+   paintCtx.lineTo(x1,h+droop);
+   paintCtx.lineTo(x0+side*reach*.58,h+droop-1);
+   paintCtx.lineTo(x0+side*reach*.27,h+2);
+   paintCtx.lineTo(x0,h);paintCtx.closePath();paintCtx.fill();
    if((j+Math.round(seed))%4!==0){
-    ctx.strokeStyle='#deebec';ctx.lineWidth=1.7+(1-fraction)*.7;
-    ctx.beginPath();ctx.moveTo(x0+side*3,h-9);
-    ctx.quadraticCurveTo(x0+side*reach*.45,h-10,x0+side*reach*.84,h+droop*.36);
-    ctx.stroke();
-    ctx.fillStyle='#f2f7f6cc';ctx.beginPath();
-    ctx.ellipse(x0+side*reach*.52,h-7,reach*.19,1.9,.12*side,0,PI*2);ctx.fill();
+    paintCtx.strokeStyle='#deebec';paintCtx.lineWidth=1.7+(1-fraction)*.7;
+    paintCtx.beginPath();paintCtx.moveTo(x0+side*3,h-9);
+    paintCtx.quadraticCurveTo(x0+side*reach*.45,h-10,x0+side*reach*.84,h+droop*.36);
+    paintCtx.stroke();
+    paintCtx.fillStyle='#f2f7f6cc';paintCtx.beginPath();
+    paintCtx.ellipse(x0+side*reach*.52,h-7,reach*.19,1.9,.12*side,0,PI*2);paintCtx.fill();
    }
   }
  }
- ctx.fillStyle='#edf6f1';ctx.beginPath();
- ctx.moveTo(lean-4,-118);ctx.lineTo(lean,-127);ctx.lineTo(lean+4,-119);
- ctx.closePath();ctx.fill();
- ctx.restore();
+ paintCtx.fillStyle='#edf6f1';paintCtx.beginPath();
+ paintCtx.moveTo(lean-4,-118);paintCtx.lineTo(lean,-127);paintCtx.lineTo(lean+4,-119);
+ paintCtx.closePath();paintCtx.fill();
+ paintCtx.restore();
 }
 
 // 2. Natural mountain-integrated ledges
 // Subtle crags, dwarf spruce, snow hummocks and frozen drip-lines are
 // decorative geology only. Small enough to not look like reachable platforms.
-function cliffMicroTerrain(i, L, R, T) {
+function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
  const w=R-L;
- ctx.save();
+ paintCtx.save();
  for(let n=0;n<12;n++){
   const h=T+90+n*79+(n%3)*17;
   const frac=.20+(.65*((n*37+i*19)%17)/16);
   const x=L+frac*w;
   const rw=16+((n*13+i*17)%18);
-  ctx.fillStyle=n%3?'#526d7c99':'#3d5c6bba';
-  ctx.beginPath();ctx.moveTo(x-rw*.45,h+13);
-  ctx.lineTo(x-rw*.32,h-7);ctx.lineTo(x-4,h-15-(n%3)*5);
-  ctx.lineTo(x+rw*.37,h-9);ctx.lineTo(x+rw*.58,h+16);
-  ctx.closePath();ctx.fill();
-  ctx.fillStyle='#dbeef1cc';ctx.beginPath();
-  ctx.moveTo(x-rw*.34,h-8);ctx.lineTo(x-5,h-18-(n%3)*5);
-  ctx.lineTo(x+rw*.27,h-12);ctx.lineTo(x-1,h-11);ctx.closePath();ctx.fill();
+  paintCtx.fillStyle=n%3?'#526d7c99':'#3d5c6bba';
+  paintCtx.beginPath();paintCtx.moveTo(x-rw*.45,h+13);
+  paintCtx.lineTo(x-rw*.32,h-7);paintCtx.lineTo(x-4,h-15-(n%3)*5);
+  paintCtx.lineTo(x+rw*.37,h-9);paintCtx.lineTo(x+rw*.58,h+16);
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.fillStyle='#dbeef1cc';paintCtx.beginPath();
+  paintCtx.moveTo(x-rw*.34,h-8);paintCtx.lineTo(x-5,h-18-(n%3)*5);
+  paintCtx.lineTo(x+rw*.27,h-12);paintCtx.lineTo(x-1,h-11);paintCtx.closePath();paintCtx.fill();
   // Frosted windswept brush and exposed grass on some isolated pockets.
   if(n%3!==1){
-   ctx.strokeStyle='#879f94a8';ctx.lineWidth=1.4;
+   paintCtx.strokeStyle='#879f94a8';paintCtx.lineWidth=1.4;
    for(let g=0;g<4;g++){
     const gx=x+(g-1.5)*4;
-    ctx.beginPath();ctx.moveTo(gx,h-11);
-    ctx.quadraticCurveTo(gx+(g%2?4:-5),h-24,gx+(g%2?8:-7),h-28-(n%3)*2);
-    ctx.stroke();
+    paintCtx.beginPath();paintCtx.moveTo(gx,h-11);
+    paintCtx.quadraticCurveTo(gx+(g%2?4:-5),h-24,gx+(g%2?8:-7),h-28-(n%3)*2);
+    paintCtx.stroke();
    }
-   ctx.fillStyle='#c0d1d0c2';ctx.beginPath();
-   ctx.ellipse(x,h-12,12,3,0,0,PI*2);ctx.fill();
+   paintCtx.fillStyle='#c0d1d0c2';paintCtx.beginPath();
+   paintCtx.ellipse(x,h-12,12,3,0,0,PI*2);paintCtx.fill();
   }
-  if(n%4===0 && i!==0) pine(x+rw*.13,h-13,.22+((i+n)%3)*.045);
+  if(n%4===0 && i!==0) pine(x+rw*.13,h-13,.22+((i+n)%3)*.045,paintCtx);
   if(n%5===2){
-   ctx.strokeStyle='#b3e0e7a7';ctx.lineWidth=2.4;
-   ctx.beginPath();ctx.moveTo(x+5,h+11);
-   ctx.bezierCurveTo(x+3,h+25,x+11,h+47,x+7,h+57);
-   ctx.stroke();
+   paintCtx.strokeStyle='#b3e0e7a7';paintCtx.lineWidth=2.4;
+   paintCtx.beginPath();paintCtx.moveTo(x+5,h+11);
+   paintCtx.bezierCurveTo(x+3,h+25,x+11,h+47,x+7,h+57);
+   paintCtx.stroke();
   }
  }
- ctx.restore();
+ paintCtx.restore();
 }
 
-function drawSpire(i){
+function drawSpire(i,paintCtx=ctx){
  const s = spires[i], L = s.summit[0], R = s.summit[1], T = s.summit[2], tiers = s.ledges;
  const bottom = 2100;
- ctx.save();
+ paintCtx.save();
  // One continuous canyon-side contour, sampled from upper summit through
  // high / middle / low shelves. The face never detaches from a landing lip.
- ctx.beginPath();
- ctx.moveTo(mountainContourX(i,T+2),T+2);
+ paintCtx.beginPath();
+ paintCtx.moveTo(mountainContourX(i,T+2),T+2);
  const crestSteps=Math.max(24,Math.round((R-L)/12));
  // The fifth destination is a *towering* peak, not a flat platform with a
  // cave painted onto its side. The ice-cave entrance is far below its summit.
@@ -115,28 +115,28 @@ function drawSpire(i){
    -(4+17*Math.pow(Math.max(0,Math.sin(f*18+i*3.7)),4))
    *(f>.21&&f<.86?1:0));
   const rough=2.9*Math.sin(f*71+i*3.7)+2.6*Math.sin(f*151+i);
-  ctx.lineTo(x,T-2+crag+rough);
+  paintCtx.lineTo(x,T-2+crag+rough);
  }
  // Wind-cut rear face: no artificial vertical grey rectangle wall.
  for(let y=T+23;y<bottom;y+=27){
   const depth=y-T;
   const flank=R+8+Math.sin(depth*.013+i)*19+Math.sin(depth*.041+i*2)*7+Math.min(38,depth*.022);
-  ctx.lineTo(flank,y);
+  paintCtx.lineTo(flank,y);
  }
- ctx.lineTo(R+41,bottom);
- ctx.lineTo(mountainContourX(i,bottom),bottom);
- for(let y=bottom-16;y>T+2;y-=14)ctx.lineTo(mountainContourX(i,y),y);
- ctx.closePath();
- ctx.clip();
+ paintCtx.lineTo(R+41,bottom);
+ paintCtx.lineTo(mountainContourX(i,bottom),bottom);
+ for(let y=bottom-16;y>T+2;y-=14)paintCtx.lineTo(mountainContourX(i,y),y);
+ paintCtx.closePath();
+ paintCtx.clip();
 
- let rock = ctx.createLinearGradient(L - 100, T, R + 100, T + 500);
+ let rock = paintCtx.createLinearGradient(L - 100, T, R + 100, T + 500);
  rock.addColorStop(0, '#8499a6'); rock.addColorStop(.16, '#657b89'); rock.addColorStop(.44, '#485e70'); rock.addColorStop(.72, '#31495d'); rock.addColorStop(1, '#1a3145');
- ctx.fillStyle = rock; ctx.fillRect(L - 230, T - 30, R - L + 420, 2200);
+ paintCtx.fillStyle = rock; paintCtx.fillRect(L - 230, T - 30, R - L + 420, 2200);
 
  if(slateTexture.complete && slateTexture.naturalWidth){
-  const pat = ctx.createPattern(slateTexture, 'repeat');
-  ctx.save(); ctx.globalAlpha = .27;
-  ctx.fillStyle = pat; ctx.fillRect(L - 290, T - 50, R - L + 500, 2200); ctx.restore();
+  const pat = paintCtx.createPattern(slateTexture, 'repeat');
+  paintCtx.save(); paintCtx.globalAlpha = .27;
+  paintCtx.fillStyle = pat; paintCtx.fillRect(L - 290, T - 50, R - L + 500, 2200); paintCtx.restore();
  }
 
  // Fractured rock face detail
@@ -144,68 +144,68 @@ function drawSpire(i){
  const rnd = () => { seed = (1664525 * seed + 1013904223) >>> 0; return seed / 4294967296; };
  for(let k = 0; k < 105; k++){
   const x = L - 170 + rnd() * (R - L + 240), y = T + 20 + rnd() * 1280, d = 24 + rnd() * 110;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + d * .3, y - d * .2); ctx.lineTo(x + d * .4, y + d * .9); ctx.lineTo(x - d * .1, y + d * 1.45); ctx.closePath();
-  ctx.fillStyle = k % 3 === 0 ? '#c3d1d810' : k % 3 === 1 ? '#081b2c26' : '#d2deea12'; ctx.fill();
+  paintCtx.beginPath(); paintCtx.moveTo(x, y); paintCtx.lineTo(x + d * .3, y - d * .2); paintCtx.lineTo(x + d * .4, y + d * .9); paintCtx.lineTo(x - d * .1, y + d * 1.45); paintCtx.closePath();
+  paintCtx.fillStyle = k % 3 === 0 ? '#c3d1d810' : k % 3 === 1 ? '#081b2c26' : '#d2deea12'; paintCtx.fill();
  }
  for(let k = 0; k < 75; k++){
   const x = L - 40 + rnd() * (R - L + 50), y = T + rnd() * 1300;
-  ctx.strokeStyle = rnd() > .4 ? '#091d2c66' : '#b2c5d031'; ctx.lineWidth = 1 + rnd() * 2;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 7 + rnd() * 22, y + 18 + rnd() * 45); ctx.lineTo(x - 16 + rnd() * 24, y + 48 + rnd() * 40); ctx.stroke();
+  paintCtx.strokeStyle = rnd() > .4 ? '#091d2c66' : '#b2c5d031'; paintCtx.lineWidth = 1 + rnd() * 2;
+  paintCtx.beginPath(); paintCtx.moveTo(x, y); paintCtx.lineTo(x - 7 + rnd() * 22, y + 18 + rnd() * 45); paintCtx.lineTo(x - 16 + rnd() * 24, y + 48 + rnd() * 40); paintCtx.stroke();
  }
 
  // Diagonal strata and exposed, snow-filled fissures connect ledges to the
  // single underlying rock face rather than making separate rectangular slabs.
- ctx.save();
+ paintCtx.save();
  for(let band=0;band<14;band++){
   const by=T+64+band*80, bx=L+50+((band*137+i*79)%(R-L-110));
-  ctx.strokeStyle=band%3===0?'#aec7d05c':'#102b3f65';
-  ctx.lineWidth=5+band%4*3;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(bx,by);
-  ctx.bezierCurveTo(bx-32,by+35,bx+18,by+57,bx-16,by+95);ctx.stroke();
+  paintCtx.strokeStyle=band%3===0?'#aec7d05c':'#102b3f65';
+  paintCtx.lineWidth=5+band%4*3;paintCtx.lineCap='round';
+  paintCtx.beginPath();paintCtx.moveTo(bx,by);
+  paintCtx.bezierCurveTo(bx-32,by+35,bx+18,by+57,bx-16,by+95);paintCtx.stroke();
   if(band%3===0){
-   ctx.strokeStyle='#dbeef180';ctx.lineWidth=3;ctx.beginPath();
-   ctx.moveTo(bx-4,by+12);ctx.lineTo(bx-11,by+56);ctx.stroke();
+   paintCtx.strokeStyle='#dbeef180';paintCtx.lineWidth=3;paintCtx.beginPath();
+   paintCtx.moveTo(bx-4,by+12);paintCtx.lineTo(bx-11,by+56);paintCtx.stroke();
   }
  }
- ctx.restore();
+ paintCtx.restore();
 
  // The final rock tower has angular facets and streaky snow on its long faces.
  if(i===4){
-  ctx.fillStyle='#192f4485';ctx.beginPath();
-  ctx.moveTo(L+308,T-575);ctx.lineTo(L+347,T-245);
-  ctx.lineTo(L+580,T+410);ctx.lineTo(L+466,T+950);
-  ctx.lineTo(L+375,T+180);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#acc1c560';ctx.beginPath();
-  ctx.moveTo(L+310,T-575);ctx.lineTo(L+395,T-370);
-  ctx.lineTo(L+414,T-168);ctx.lineTo(L+364,T-290);ctx.closePath();ctx.fill();
+  paintCtx.fillStyle='#192f4485';paintCtx.beginPath();
+  paintCtx.moveTo(L+308,T-575);paintCtx.lineTo(L+347,T-245);
+  paintCtx.lineTo(L+580,T+410);paintCtx.lineTo(L+466,T+950);
+  paintCtx.lineTo(L+375,T+180);paintCtx.closePath();paintCtx.fill();
+  paintCtx.fillStyle='#acc1c560';paintCtx.beginPath();
+  paintCtx.moveTo(L+310,T-575);paintCtx.lineTo(L+395,T-370);
+  paintCtx.lineTo(L+414,T-168);paintCtx.lineTo(L+364,T-290);paintCtx.closePath();paintCtx.fill();
   for(const d of [[L+307,T-566,105],[L+372,T-485,120],
                   [L+440,T-305,130],[L+525,T-150,170]]){
-   ctx.strokeStyle='#ecf7f5a6';ctx.lineWidth=4;ctx.beginPath();
-   ctx.moveTo(d[0],d[1]);ctx.bezierCurveTo(d[0]+17,d[1]+27,
-   d[0]-8,d[1]+d[2]*.48,d[0]+26,d[1]+d[2]);ctx.stroke();
+   paintCtx.strokeStyle='#ecf7f5a6';paintCtx.lineWidth=4;paintCtx.beginPath();
+   paintCtx.moveTo(d[0],d[1]);paintCtx.bezierCurveTo(d[0]+17,d[1]+27,
+   d[0]-8,d[1]+d[2]*.48,d[0]+26,d[1]+d[2]);paintCtx.stroke();
   }
  }
  // Snow tongues descend from real terrain shelves into broken cliff channels.
  for(const ledge of tiers){
   const x=ledge[0]+Math.min(30,(ledge[1]-ledge[0])*.30),y=ledge[2]+5;
   const len=86+(i*17+Math.floor(x))%88;
-  const drape=ctx.createLinearGradient(x-16,y,x+26,y+len);
+  const drape=paintCtx.createLinearGradient(x-16,y,x+26,y+len);
   drape.addColorStop(0,'#f1f8f7d9');drape.addColorStop(.5,'#a9d1db9f');
   drape.addColorStop(1,'#6b9ebc00');
-  ctx.fillStyle=drape;ctx.beginPath();
-  ctx.moveTo(x-10,y);ctx.quadraticCurveTo(x+19,y+34,x+3,y+len);
-  ctx.quadraticCurveTo(x+27,y+len*.58,x+19,y+8);
-  ctx.closePath();ctx.fill();
+  paintCtx.fillStyle=drape;paintCtx.beginPath();
+  paintCtx.moveTo(x-10,y);paintCtx.quadraticCurveTo(x+19,y+34,x+3,y+len);
+  paintCtx.quadraticCurveTo(x+27,y+len*.58,x+19,y+8);
+  paintCtx.closePath();paintCtx.fill();
  }
  // Broad rock buttresses and fracture bands follow the continuous cliff mass.
- ctx.save();
+ paintCtx.save();
  for(let n=0;n<6;n++){
   const y0=T+85+n*169, x0=mountainContourX(i,y0)+32;
-  ctx.strokeStyle=n%2===0?'#132c3b44':'#b6c7ca25';
-  ctx.lineWidth=8+n%3*4;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(x0,y0);
-  ctx.bezierCurveTo(x0+34,y0+50,x0+12,y0+105,x0+53,y0+145);
-  ctx.stroke();
+  paintCtx.strokeStyle=n%2===0?'#132c3b44':'#b6c7ca25';
+  paintCtx.lineWidth=8+n%3*4;paintCtx.lineCap='round';
+  paintCtx.beginPath();paintCtx.moveTo(x0,y0);
+  paintCtx.bezierCurveTo(x0+34,y0+50,x0+12,y0+105,x0+53,y0+145);
+  paintCtx.stroke();
  }
 
  // Frozen falls: seasonal ice glazed over fractures, not additional climb paths.
@@ -215,93 +215,93 @@ function drawSpire(i){
    :[{x:L+(R-L)*(i===1?.62:.77),y:T+12,length:i===1?395:510,width:i===1?33:46}];
   for(const fall of falls){
    const {x,y,length,width}=fall;
-   const ice=ctx.createLinearGradient(x-width,y,x+width,y);
+   const ice=paintCtx.createLinearGradient(x-width,y,x+width,y);
    ice.addColorStop(0,'#729eae00');ice.addColorStop(.23,'#b8e6ead2');
    ice.addColorStop(.52,'#effbffeb');ice.addColorStop(.77,'#88c8dacc');
    ice.addColorStop(1,'#4f879900');
-   ctx.fillStyle=ice;ctx.beginPath();
-   ctx.moveTo(x-width*.45,y);ctx.quadraticCurveTo(x-width,y+length*.24,x-width*.37,y+length*.5);
-   ctx.bezierCurveTo(x-width*.75,y+length*.7,x-width*.30,y+length*.91,x-3,y+length);
-   ctx.lineTo(x+width*.29,y+length*.9);
-   ctx.bezierCurveTo(x+width*.8,y+length*.70,x+width*.35,y+length*.3,x+width*.43,y);
-   ctx.closePath();ctx.fill();
+   paintCtx.fillStyle=ice;paintCtx.beginPath();
+   paintCtx.moveTo(x-width*.45,y);paintCtx.quadraticCurveTo(x-width,y+length*.24,x-width*.37,y+length*.5);
+   paintCtx.bezierCurveTo(x-width*.75,y+length*.7,x-width*.30,y+length*.91,x-3,y+length);
+   paintCtx.lineTo(x+width*.29,y+length*.9);
+   paintCtx.bezierCurveTo(x+width*.8,y+length*.70,x+width*.35,y+length*.3,x+width*.43,y);
+   paintCtx.closePath();paintCtx.fill();
    for(let g=0;g<4;g++){
     const sx=x-width*.28+g*width*.17;
-    ctx.strokeStyle=g%2===0?'#eff9ffbf':'#4a91acaa';
-    ctx.lineWidth=g%2===0?2.4:3.2;ctx.beginPath();
-    ctx.moveTo(sx,y+15);ctx.bezierCurveTo(sx+8,y+length*.35,
-     sx-10,y+length*.63,sx+6,y+length*.89);ctx.stroke();
+    paintCtx.strokeStyle=g%2===0?'#eff9ffbf':'#4a91acaa';
+    paintCtx.lineWidth=g%2===0?2.4:3.2;paintCtx.beginPath();
+    paintCtx.moveTo(sx,y+15);paintCtx.bezierCurveTo(sx+8,y+length*.35,
+     sx-10,y+length*.63,sx+6,y+length*.89);paintCtx.stroke();
    }
   }
  }
- ctx.restore();
+ paintCtx.restore();
  // Small crags remain clipped to the mountain rock face, never in the chasm.
- cliffMicroTerrain(i,L,R,T);
- ctx.restore();
+ cliffMicroTerrain(i,L,R,T,paintCtx);
+ paintCtx.restore();
 
  // Snow is adhered to real landing surfaces, not perched on detached slabs.
  const all = [[L, R, T], ...tiers.map(t=>[t[0],t[1],t[2]])];
  for(const [a,b,y] of all){
   const isSummit=Math.abs(y-T)<.01;
   const width=b-a;
-  ctx.save();
+  paintCtx.save();
   // Each natural terrace has thick, uneven bedrock *continuous with* the
   // cliff below. Snow covers the lip, rather than outlining a Mario shelf.
-  const baseGrad=ctx.createLinearGradient(a,y,b,y+96);
+  const baseGrad=paintCtx.createLinearGradient(a,y,b,y+96);
   baseGrad.addColorStop(0,'#718794');baseGrad.addColorStop(.34,'#536a79');
   baseGrad.addColorStop(1,'#203849');
-  ctx.fillStyle=baseGrad;ctx.beginPath();
-  ctx.moveTo(a-5,y+2);
-  ctx.lineTo(a+width*.27,y+6+Math.sin(a)*3);
-  ctx.lineTo(b-3,y+2);ctx.lineTo(b+2,y+17);
-  ctx.lineTo(b-width*.12,y+26+(i%3)*5);
-  ctx.lineTo(b-width*.3,y+44);
-  ctx.lineTo(a+width*.58,y+51+(i%2)*19);
-  ctx.lineTo(a+width*.25,y+88);
-  ctx.lineTo(a+width*.11,y+51);ctx.lineTo(a-9,y+14);
-  ctx.closePath();ctx.fill();
-  ctx.strokeStyle='#9db5bc6b';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(a+11,y+20);
-  ctx.lineTo(a+width*.36,y+32);ctx.lineTo(a+width*.43,y+59);ctx.stroke();
-  ctx.strokeStyle='#102b3c99';ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(b-width*.20,y+14);
-  ctx.lineTo(b-width*.30,y+47);ctx.lineTo(b-width*.36,y+57);ctx.stroke();
+  paintCtx.fillStyle=baseGrad;paintCtx.beginPath();
+  paintCtx.moveTo(a-5,y+2);
+  paintCtx.lineTo(a+width*.27,y+6+Math.sin(a)*3);
+  paintCtx.lineTo(b-3,y+2);paintCtx.lineTo(b+2,y+17);
+  paintCtx.lineTo(b-width*.12,y+26+(i%3)*5);
+  paintCtx.lineTo(b-width*.3,y+44);
+  paintCtx.lineTo(a+width*.58,y+51+(i%2)*19);
+  paintCtx.lineTo(a+width*.25,y+88);
+  paintCtx.lineTo(a+width*.11,y+51);paintCtx.lineTo(a-9,y+14);
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.strokeStyle='#9db5bc6b';paintCtx.lineWidth=2;
+  paintCtx.beginPath();paintCtx.moveTo(a+11,y+20);
+  paintCtx.lineTo(a+width*.36,y+32);paintCtx.lineTo(a+width*.43,y+59);paintCtx.stroke();
+  paintCtx.strokeStyle='#102b3c99';paintCtx.lineWidth=4;
+  paintCtx.beginPath();paintCtx.moveTo(b-width*.20,y+14);
+  paintCtx.lineTo(b-width*.30,y+47);paintCtx.lineTo(b-width*.36,y+57);paintCtx.stroke();
 
-  const cap=ctx.createLinearGradient(a,y-12,a,y+13);
+  const cap=paintCtx.createLinearGradient(a,y-12,a,y+13);
   cap.addColorStop(0,'#ffffff');cap.addColorStop(.55,'#eaf5f9');
   cap.addColorStop(1,'#a1c5d2');
-  ctx.fillStyle=cap;ctx.beginPath();
-  ctx.moveTo(a-3,y-2);
+  paintCtx.fillStyle=cap;paintCtx.beginPath();
+  paintCtx.moveTo(a-3,y-2);
   const steps=Math.max(6,Math.ceil(width/18));
   for(let q=0;q<=steps;q++){
    const f=q/steps, x=a+f*width;
    const drift=-6+(Math.sin(f*18+i*2.6)+Math.sin(f*37+i*3.1))*(isSummit?2:1.5);
-   ctx.lineTo(x,y+drift);
+   paintCtx.lineTo(x,y+drift);
   }
-  ctx.lineTo(b+2,y+2);
+  paintCtx.lineTo(b+2,y+2);
   for(let q=steps;q>=0;q--){
    const f=q/steps, x=a+f*width;
    const base=4+Math.sin(f*13+i)*2.2+(isSummit?2:6*Math.pow(Math.sin(Math.PI*f),2));
-   ctx.lineTo(x,y+base);
+   paintCtx.lineTo(x,y+base);
   }
-  ctx.closePath();ctx.fill();
-  ctx.strokeStyle='#faffffcc';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(a+4,y-6);ctx.quadraticCurveTo((a+b)/2,y-9,b-6,y-5);ctx.stroke();
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.strokeStyle='#faffffcc';paintCtx.lineWidth=1.5;
+  paintCtx.beginPath();paintCtx.moveTo(a+4,y-6);paintCtx.quadraticCurveTo((a+b)/2,y-9,b-6,y-5);paintCtx.stroke();
   // Isolated naturally spaced icicles rather than an even picket fence.
   const icicles=Math.max(1,Math.floor(width/68));
   for(let q=0;q<icicles;q++){
    const f=(q+.29+Math.sin(q*2.7+i)*.16)/icicles;
    const x=a+f*width;
    const length=5+(q*7+i*3)%12;
-   ctx.fillStyle='#bedee5b7';ctx.beginPath();
-   ctx.moveTo(x-2,y+5);ctx.lineTo(x+2,y+5);
-   ctx.lineTo(x,y+5+length);ctx.closePath();ctx.fill();
+   paintCtx.fillStyle='#bedee5b7';paintCtx.beginPath();
+   paintCtx.moveTo(x-2,y+5);paintCtx.lineTo(x+2,y+5);
+   paintCtx.lineTo(x,y+5+length);paintCtx.closePath();paintCtx.fill();
   }
-  ctx.restore();
+  paintCtx.restore();
  }
  // Exposed far edge drop-off fissure
  if(tiers.length) for(const t of tiers){
-  ctx.fillStyle = '#0d223577'; ctx.beginPath(); ctx.moveTo(t[1] + 2, t[2] + 9); ctx.lineTo(t[1] + 24, t[2] + 32); ctx.lineTo(t[1] + 9, t[2] + 86); ctx.lineTo(t[1] + 2, t[2] + 98); ctx.closePath(); ctx.fill();
+  paintCtx.fillStyle = '#0d223577'; paintCtx.beginPath(); paintCtx.moveTo(t[1] + 2, t[2] + 9); paintCtx.lineTo(t[1] + 24, t[2] + 32); paintCtx.lineTo(t[1] + 9, t[2] + 86); paintCtx.lineTo(t[1] + 2, t[2] + 98); paintCtx.closePath(); paintCtx.fill();
  }
 }
 
@@ -521,7 +521,7 @@ function drawIcePicks(){
  ctx.restore();
 }
 
-function decorate(i){
+function decorate(i,paintCtx=ctx){
  const summit=spires[i].summit, top=summit[2], l=summit[0], w=summit[1]-l;
  // Distinct landscape identities for the four crossings and final cavern.
  const treeLayouts=[
@@ -531,28 +531,28 @@ function decorate(i){
   [[.82,2.85]],
   [[.73,2.15],[.88,1.55]]
  ];
- for(const [f,size] of treeLayouts[i]) pine(l+f*w,top-8,size);
+ for(const [f,size] of treeLayouts[i]) pine(l+f*w,top-8,size,paintCtx);
  if(i>0 && i<4){
   const tiers=spires[i].ledges;
   for(const idx of [0,2]){
    const ledge=tiers[idx],width=ledge[1]-ledge[0];
-   if(width>110) pine(ledge[0]+19+(i%2)*7,ledge[2]-7,.66+(i%3)*.11);
+   if(width>110) pine(ledge[0]+19+(i%2)*7,ledge[2]-7,.66+(i%3)*.11,paintCtx);
   }
  }
  if(i===2||i===3){
-  ctx.save();
+  paintCtx.save();
   for(let k=0;k<4;k++){
    const x=l+w*(.28+k*.125),sz=12+(k*7+i*3)%18;
-   ctx.fillStyle=k%2===0?'#597688':'#3c5c6d';
-   ctx.beginPath();ctx.moveTo(x-sz,top+1);
-   ctx.lineTo(x-sz*.3,top-sz*.95);
-   ctx.lineTo(x+sz*.35,top-sz*.65);
-   ctx.lineTo(x+sz*.68,top);ctx.closePath();ctx.fill();
-   ctx.strokeStyle='#eaf6f9';ctx.lineWidth=3;
-   ctx.beginPath();ctx.moveTo(x-sz*.8,top-sz*.14);
-   ctx.lineTo(x-sz*.25,top-sz*.86);ctx.stroke();
+   paintCtx.fillStyle=k%2===0?'#597688':'#3c5c6d';
+   paintCtx.beginPath();paintCtx.moveTo(x-sz,top+1);
+   paintCtx.lineTo(x-sz*.3,top-sz*.95);
+   paintCtx.lineTo(x+sz*.35,top-sz*.65);
+   paintCtx.lineTo(x+sz*.68,top);paintCtx.closePath();paintCtx.fill();
+   paintCtx.strokeStyle='#eaf6f9';paintCtx.lineWidth=3;
+   paintCtx.beginPath();paintCtx.moveTo(x-sz*.8,top-sz*.14);
+   paintCtx.lineTo(x-sz*.25,top-sz*.86);paintCtx.stroke();
   }
-  ctx.restore();
+  paintCtx.restore();
  }
 }
 
@@ -598,6 +598,34 @@ function paintWoodenStaff(points, gripFraction) {
   ctx.lineTo(t.x+nx*3.3,t.y+ny*3.3);ctx.stroke();
  }
  ctx.restore();
+}
+
+// Static mountain artwork is rasterised once per route at a bounded internal
+// resolution. Redraw only moving snow, character, fire and input feedback.
+// Retain at most two high-cost canvases on mobile to limit memory pressure.
+const terrainCache=new Map();
+let cachedRouteSeed=-1;
+function invalidateTerrainCache(){terrainCache.clear();cachedRouteSeed=-1;}
+function mountainCache(i){
+ if(cachedRouteSeed!==routeSeed){terrainCache.clear();cachedRouteSeed=routeSeed;}
+ if(terrainCache.has(i))return terrainCache.get(i);
+ const s=spires[i], xs=[s.summit[0]-260,...s.ledges.map(t=>t[0]-150)];
+ if(s.cave)xs.push(s.cave.left-230);
+ const left=Math.min(...xs),right=s.summit[1]+210;
+ const top=s.summit[2]-(i===4?760:420),bottom=2125;
+ const width=right-left,height=bottom-top;
+ const pixelScale=Math.min(1,innerWidth<950?.60:.88,1800/Math.max(width,height));
+ const image=document.createElement('canvas');
+ image.width=Math.ceil(width*pixelScale);image.height=Math.ceil(height*pixelScale);
+ const off=image.getContext('2d',{alpha:true});
+ if(!off)return null;
+ off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
+ drawSpire(i,off);decorate(i,off);
+ const data={image,left,top,width,height};
+ terrainCache.set(i,data);
+ const max=innerWidth<950?2:3;
+ while(terrainCache.size>max)terrainCache.delete(terrainCache.keys().next().value);
+ return data;
 }
 
 // Aspect-preserving cover with *bounded continuous* parallax. No modulo,
@@ -647,25 +675,22 @@ function draw(){
  }
  
  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-camera.x, -camera.y);
- for(let i = 0; i < spires.length; i++){
-  const s = spires[i].summit;
-  const artLeft=i===4 ? Math.min(s[0],spires[4].cave.left-155) : s[0];
-  if((s[1] - camera.x) * zoom < -180 || (artLeft - camera.x) * zoom > w + 180) continue;
-  drawSpire(i);
+ for(let i=0;i<spires.length;i++){
+  const s=spires[i].summit;
+  const nearLeft=i===4?Math.min(s[0],spires[4].cave.left-230):Math.min(s[0],...s.ledges.map(t=>t[0]));
+  if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w+220)continue;
+  const chunk=mountainCache(i);
+  if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
+  else {drawSpire(i);decorate(i);}
  }
- if((spires[4].cave.right - camera.x) * zoom > -200 && (spires[4].cave.left - camera.x) * zoom < w + 200) drawCave();
- for(let i = 1; i < spires.length; i++){
-  const s = spires[i].summit;
-  if((s[1] - camera.x) * zoom < -180 || (s[0] - camera.x) * zoom > w + 180) continue;
+ if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
+ for(let i=1;i<spires.length;i++){
+  const s=spires[i].summit;
+  if((s[1]-camera.x)*zoom<-180||(s[0]-camera.x)*zoom>w+180)continue;
   drawClimbingRoutes(i);
  }
- for(let i = 0; i < spires.length; i++){
-  const s = spires[i].summit;
-  if((s[1] - camera.x) * zoom < -180 || (s[0] - camera.x) * zoom > w + 180) continue;
-  decorate(i);
- }
- 
- if(trail.length > 2){
+
+  if(trail.length > 2){
   ctx.strokeStyle = '#ffd69b78'; ctx.lineWidth = 2; ctx.setLineDash([5, 6]);
   ctx.beginPath(); trail.forEach((v, i) => i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y)); ctx.stroke(); ctx.setLineDash([]);
  }
