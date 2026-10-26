@@ -96,6 +96,26 @@ function drawSpire(i){
    const px = a + 15 + t * 27; ctx.fillStyle = '#bbdce3aa'; ctx.beginPath(); ctx.moveTo(px, y + 5); ctx.lineTo(px + 3, y + 5); ctx.lineTo(px + 1, y + 12 + (t % 4) * 3); ctx.fill();
   }
  }
+ // Thin overhanging snow lips and darker fractured rock directly beneath landing surfaces.
+ // Rendering-only detail: platform bounds, terrain collision, and vault physics are unchanged.
+ for(const [a, b, y] of all){
+  ctx.save();
+  ctx.strokeStyle = '#263c4c99'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(a + 5, y + 10);
+  ctx.quadraticCurveTo((a + b) / 2, y + 17, b - 5, y + 8); ctx.stroke();
+  ctx.strokeStyle = '#f5fbffb8'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(a + 10, y - 3);
+  ctx.quadraticCurveTo((a + b) / 2, y - 9, b - 12, y - 5); ctx.stroke();
+  const count = Math.max(2, Math.floor((b - a) / 75));
+  for(let n = 1; n <= count; n++){
+   const x = a + (b - a) * n / (count + 1);
+   ctx.strokeStyle = '#152b3c7d'; ctx.lineWidth = 2;
+   ctx.beginPath(); ctx.moveTo(x, y + 17);
+   ctx.lineTo(x + 7, y + 33 + (n % 3) * 6);
+   ctx.lineTo(x + 2, y + 46 + (n % 2) * 6); ctx.stroke();
+  }
+  ctx.restore();
+ }
  // Exposed far edge drop-off fissure
  if(tiers.length) for(const t of tiers){
   ctx.fillStyle = '#0d223577'; ctx.beginPath(); ctx.moveTo(t[1] + 2, t[2] + 9); ctx.lineTo(t[1] + 24, t[2] + 32); ctx.lineTo(t[1] + 9, t[2] + 86); ctx.lineTo(t[1] + 2, t[2] + 98); ctx.closePath(); ctx.fill();
