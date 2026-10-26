@@ -23,7 +23,7 @@ for(let seed=0;seed<9;seed++){
 test('cave contains a genuine recessed rock mouth',()=>{
  const s=fs.readFileSync('public/game/scripts/rendering.js','utf8');
  const cave=s.slice(s.indexOf('function drawCave(){'),s.indexOf('// 4. One frozen ice ascent'));
- assert.match(cave,/const traceMouth=/);
+ assert.match(cave,/const mouth=/);
  assert.match(cave,/ctx.clip\(\)/);
  assert.match(cave,/Raw split mountain stone/);
 });
