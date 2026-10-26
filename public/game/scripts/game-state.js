@@ -4,6 +4,7 @@ const DT = 1/120; const PI = Math.PI;
 
 let mode = 'practice', p = {}, platforms = [], fingers = {left:new Set(),right:new Set(),up:new Set(),vault:null}, keys = new Set(), camera = {x:0,y:0}, acc = 0, prev = performance.now(), elapsed = 0, completed = false, caveActivated = false, peakBuzz = false, trail = [], lastMessage = '', messageTimeout = 0, atStage = 0, lastSafeStage = 0, landingHistory = [];
 
+let graphicsQuality='auto'; // auto / low / high, configurable in Tune
 const snow = Array.from({length:190},(_,i)=>({x:((i*7919)%1009)/1009,y:((i*179)%977)/977,r:i%7===0?1.9:.75,speed:.2+(i%5)*.12}));
 
 function platform(id,l,r,t,s='snow',extra={}){return {id,x:(l+r)/2,y:t+60,width:r-l,height:120,surfaceType:s,top:t,left:l,right:r,...extra}}

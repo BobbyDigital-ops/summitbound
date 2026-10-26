@@ -166,17 +166,28 @@ function tick(dt){
 }
 
 function resize(){
- const ratio = Math.min(devicePixelRatio || 1, innerWidth < 950 ? 1.15 : 1.6);
+ const maxRatio=graphicsQuality==='low'?1:graphicsQuality==='high'?2:(innerWidth<950?1.15:1.6);
+ const ratio=Math.min(devicePixelRatio||1,maxRatio);
  canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
 }
 
+let perfStart=0,perfFrames=0,lastRenderedAt=0;
 function loop(now){
  let delta = Math.min(.05, (now - prev) / 1000); prev = now;
  acc += delta;
  for(let n = 0; acc >= DT && n < 7; n++, acc -= DT) tick(DT);
- draw();
+ if(graphicsQuality!=='low'||now-lastRenderedAt>=31){
+  draw();lastRenderedAt=now;
+ }
+ perfFrames++;
+ if(now-perfStart>1200){
+  const fps=perfFrames*1000/Math.max(1,now-perfStart);
+  const indicator=document.getElementById('performanceLabel');
+  if(indicator)indicator.textContent='Loop '+Math.round(fps)+' fps';
+  perfStart=now;perfFrames=0;
+ }
  requestAnimationFrame(loop);
 }
 

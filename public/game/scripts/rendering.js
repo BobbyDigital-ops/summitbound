@@ -612,7 +612,8 @@ function mountainCache(i){
  const left=Math.min(...xs),right=s.summit[1]+210;
  const top=s.summit[2]-(i===4?760:420),bottom=2125;
  const width=right-left,height=bottom-top;
- const pixelScale=Math.min(1,innerWidth<950?.60:.88,1800/Math.max(width,height));
+ const scale=graphicsQuality==='low'?.42:graphicsQuality==='high'?.98:(innerWidth<950?.60:.88);
+ const pixelScale=Math.min(1,scale,1800/Math.max(width,height));
  const image=document.createElement('canvas');
  image.width=Math.ceil(width*pixelScale);image.height=Math.ceil(height*pixelScale);
  const off=image.getContext('2d',{alpha:true});
@@ -659,7 +660,8 @@ function draw(){
  }
  
  ctx.fillStyle = '#f6fbffe0'; const sec = performance.now() * .001;
- for(const f of snow){
+ for(let n=0;n<snow.length;n+=(graphicsQuality==='low'?3:innerWidth<700?2:1)){
+  const f=snow[n];
   let sx = ((f.x * w + sec * (8 + f.speed * 12) - camera.x * .02) % (w + 30) + w + 30) % (w + 30);
   let sy = ((f.y * h + sec * (10 + f.speed * 13)) % (h + 20));
   ctx.beginPath(); ctx.arc(sx, sy, f.r, 0, PI * 2); ctx.fill();
@@ -772,7 +774,7 @@ function draw(){
 
  // Occasional larger flakes in front of the mountaineer; all particle motion
  // is time-driven, not keyed to discrete scrolling tiles.
- const frontCount=46;
+ const frontCount=graphicsQuality==='low'?14:innerWidth<700?26:46;
  ctx.fillStyle='#f6ffffd9';
  for(let n=0;n<frontCount;n++){
   const velocity=38+(n%7)*11, swirl=Math.sin(sec*1.6+n*3.7)*12;

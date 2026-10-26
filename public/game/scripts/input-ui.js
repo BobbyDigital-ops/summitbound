@@ -6,6 +6,13 @@ document.getElementById('again').addEventListener('click', gameReset);
 
 document.getElementById('tuneToggle').addEventListener('click', () => document.getElementById('tuning').hidden = !document.getElementById('tuning').hidden);
 document.getElementById('tuneClose').addEventListener('click', () => document.getElementById('tuning').hidden = true);
+document.getElementById('graphicsMode')?.addEventListener('click',()=>{
+ const levels=['auto','low','high'];
+ graphicsQuality=levels[(levels.indexOf(graphicsQuality)+1)%levels.length];
+ document.getElementById('graphicsMode').textContent='Graphics: '+graphicsQuality;
+ resize();
+ invalidateTerrainCache();
+});
 
 for(const [id, key, output, divisor] of [['liftTune','arcadeLift','liftVal',100], ['rangeTune','arcadeRange','rangeVal',100], ['gravityTune','gravity','gravityVal',1]]) {
  document.getElementById(id).addEventListener('input', e => {
