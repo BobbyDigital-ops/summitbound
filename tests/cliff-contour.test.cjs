@@ -9,7 +9,7 @@ for(let route=0;route<9;route++){
   for(let i=1;i<=3;i++){
    const mountain=vm.runInContext('spires['+i+']',ctx);
    const nodes=vm.runInContext('mountainContourNodes('+i+')',ctx);
-   assert.equal(nodes.length,5,'summit, three ledges, base');
+   assert.equal(nodes.length,mountain.ledges.length+2,'summit, active ledges, base');
    for(let t=0;t<nodes.length-1;t++)assert.ok(nodes[t].y<nodes[t+1].y);
    for(const tier of mountain.ledges){
     const edge=vm.runInContext('mountainContourX('+i+','+(tier[2]+3)+')',ctx);

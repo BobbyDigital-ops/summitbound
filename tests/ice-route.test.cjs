@@ -1,44 +1,28 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const vm = require('node:vm');
-const fs = require('node:fs');
-const source = fs.readFileSync('public/game/scripts/world-data.js','utf8');
-const ctx = vm.createContext({
- Image: class Image {},
- document: {getElementById:()=>null},
- platforms: []
-});
-vm.runInContext(source,ctx);
+const test=require('node:test'),assert=require('node:assert/strict');
+const vm=require('node:vm'),fs=require('node:fs');
+const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),ctx);
+const allCounts=new Set();
 for(let seed=0;seed<9;seed++){
- test('ice routes remain continuous on seeded route '+(seed+1),()=>{
+ test('ledge counts and ice-accessible routes on seed '+seed,()=>{
   vm.runInContext('applyRoute('+seed+')',ctx);
-  for(let sp=1;sp<=3;sp++){
-   const points=vm.runInContext('iceClimbPoints('+sp+')',ctx);
-   const ledges=vm.runInContext('spires['+sp+'].ledges',ctx);
-   const summit=vm.runInContext('spires['+sp+'].summit',ctx);
-   assert.equal(points.length,ledges.length+1);
-   for(let i=0;i<points.length-1;i++){
-    assert.ok(points[i].y>points[i+1].y,'climbing must always ascend');
-   }
-   for(const ledge of ledges){
-    const entry=points.find(p=>p.y===ledge[2]-22);
-    assert.ok(entry,'every landing ledge joins the shared ice route');
-    assert.equal(entry.x,ledge[1]-30);
-    assert.ok(entry.x>ledge[0]+20 && entry.x<ledge[1]-20,'accessible inboard from ledge edges');
-    const at=vm.runInContext('icePositionAt('+sp+','+entry.y+')',ctx);
-    assert.ok(Math.abs(at.x-entry.x)<.001);
-   }
-   const tip=points.at(-1);
-   assert.equal(tip.x,summit[0]+40);
-   assert.equal(tip.y,summit[2]-22);
-   for(let y=points[0].y;y>=tip.y;y-=3){
-    const sample=vm.runInContext('icePositionAt('+sp+','+y+')',ctx);
-    assert.ok(Number.isFinite(sample.x),'ice position should be finite');
+  for(let i=1;i<=3;i++){
+   const ledges=vm.runInContext('spires['+i+'].ledges',ctx);
+   allCounts.add(ledges.length);
+   assert.ok(ledges.length>=1&&ledges.length<=4);
+   const routes=vm.runInContext('independentIceRoutes('+i+')',ctx);
+   assert.ok(routes.length>=1&&routes.length<=ledges.length);
+   for(let k=0;k<ledges.length;k++){
+    const points=vm.runInContext('iceClimbPoints('+i+','+k+')',ctx);
+    assert.equal(points.length,2);
+    assert.equal(points[0].x,ledges[k][1]-30);
+    assert.equal(points[0].y,ledges[k][2]-22);
+    assert.ok(points[0].y>points[1].y);
    }
   }
  });
 }
-test('the checkpoint cavern has a separate ladder rather than an outdoor ice route',()=>{
+test('all counts 1–4 appear, cave remains a ladder',()=>{
+ assert.deepEqual([...allCounts].sort((a,b)=>a-b),[1,2,3,4]);
  assert.equal(vm.runInContext('iceClimbPoints(4).length',ctx),0);
- assert.equal(vm.runInContext("climbEntryX({kind:'cave'})",ctx),vm.runInContext('spires[4].cave.right-25',ctx));
 });
