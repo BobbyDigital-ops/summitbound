@@ -9,9 +9,9 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
  {name:'The Broken Tooth',summit:[1770,2570,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3575,4385,910,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[5145,6005,670,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
- {name:'Firespine Cavern',summit:[7100,7910,645,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
+ {name:'The Windward Spire',summit:[3575,4385,830,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[5145,6005,710,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'Firespine Cavern',summit:[7100,7910,420,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
 ];
 
 // 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
@@ -91,31 +91,64 @@ const leapTitles = ['OPENING CHASM','WINDWARD DROP','STEEP ICE CRUX','CAVERN APP
 const stageOffsets=[{dx:0,dy:0},{dx:0,dy:0},{dx:115,dy:85},{dx:-75,dy:-70},{dx:0,dy:0}];
 let routeSeed = 0;
 
+// Stage-specific upward targets. Every playable landing is ABOVE the prior
+// spire's launch summit (lower world Y means higher altitude).
+const risingTerraces={
+ 1:{High:990,Middle:1030,Low:1075},
+ 2:{High:875,Middle:905,Low:935},
+ 3:{High:755,Middle:790,Low:820}
+};
+const originalTierY={1:{High:1010,Middle:1130,Low:1240},
+ 2:{High:895,Middle:1010,Low:1125},
+ 3:{High:810,Middle:935,Low:1050}};
+const terraceShift={
+ 1:{High:70,Middle:90,Low:-65},
+ 2:{High:110,Middle:120,Low:65},
+ 3:{High:80,Middle:85,Low:95}
+};
+
+// Deterministic per-route shifts keep natural variety without changing gaps
+// so drastically that the lowest reachable landing becomes impossible.
+function sculptTerrace(raw, spireIndex, seed) {
+ const d=stageOffsets[spireIndex],label=raw[4];
+ const w=raw[1]-raw[0];
+ const wiggle=(((seed*7+spireIndex*11+label.length*5)%7)-3)*6;
+ const x=raw[0]+d.dx+terraceShift[spireIndex][label]+wiggle;
+ const base=risingTerraces[spireIndex][label];
+ const y=base+Math.round((raw[2]-originalTierY[spireIndex][label])*.35);
+ return [x,x+w,y,raw[3],label];
+}
+
 function applyRoute(seed) {
- routeSeed = ((seed % 9) + 9) % 9;
- const routeGroup = ledgeLayouts[routeSeed];
- for(let i = 1; i < spires.length - 1; i++) {
-  const d=stageOffsets[i];
-  spires[i].ledges = routeGroup[i-1].map(a => [a[0]+d.dx,a[1]+d.dx,a[2]+d.dy,a[3],a[4]]);
+ routeSeed=((seed%9)+9)%9;
+ const group=ledgeLayouts[routeSeed];
+ for(let i=1;i<=3;i++) {
+  spires[i].ledges=group[i-1].map(a=>sculptTerrace(a,i,routeSeed));
  }
- spires[4].cave = {...caveLayouts[routeSeed]};
- 
- if(typeof platforms !== 'undefined' && platforms.length) {
-  for(const pl of platforms) {
-   if(pl.kind !== 'ledge') continue;
-   const spIdx = pl.spire;
-   const tierIdx = Number(pl.id.split('-')[1]);
-   const t = spires[spIdx].ledges[tierIdx];
-   if(t) {
-    Object.assign(pl, {x:(t[0]+t[1])/2, y:t[2]+60, width:t[1]-t[0], height:120, left:t[0], right:t[1], top:t[2], surfaceType:t[3], tier:t[4]});
-   }
+ // The fire is a new, HIGHER destination, embedded in the side of the final
+ // massif. Both cave ceiling and floor must remain real collision surfaces.
+ const original=caveLayouts[routeSeed];
+ const floor=680+Math.round((original.floor-892)*.28);
+ const left=original.left-170;
+ spires[4].cave={left,right:left+(original.right-original.left),
+  floor,ceiling:floor-150};
+
+ if(typeof platforms!=='undefined' && platforms.length) {
+  for(const pl of platforms){
+   if(pl.kind!=='ledge')continue;
+   const t=spires[pl.spire].ledges[Number(pl.id.split('-')[1])];
+   if(t)Object.assign(pl,{x:(t[0]+t[1])/2,y:t[2]+60,
+    width:t[1]-t[0],height:120,left:t[0],right:t[1],
+    top:t[2],surfaceType:t[3],tier:t[4]});
   }
-  const c = spires[4].cave;
-  const cp = platforms.find(pl => pl.kind === 'cave');
-  if(cp) Object.assign(cp, {x:(c.left+c.right)/2, y:c.floor+60, width:c.right-c.left, height:120, left:c.left, right:c.right, top:c.floor});
+  const c=spires[4].cave;
+  const cp=platforms.find(pl=>pl.kind==='cave');
+  if(cp)Object.assign(cp,{x:(c.left+c.right)/2,y:c.floor+60,
+   width:c.right-c.left,height:120,left:c.left,
+   right:c.right,top:c.floor});
  }
- const el = document.getElementById('routeLabel');
- if(el) el.textContent = 'Route ' + (routeSeed + 1);
+ const label=document.getElementById('routeLabel');
+ if(label)label.textContent='Route '+(routeSeed+1);
 }
 
 
@@ -168,8 +201,9 @@ function mountainContourNodes(index) {
    nodes.push({x:tier[0]-10,y:tier[2]+3});
   }
  } else if(mountain.cave) {
-  nodes.push({x:mountain.cave.left-42,y:mountain.cave.ceiling-16});
-  nodes.push({x:mountain.cave.left-55,y:mountain.cave.floor+75});
+  nodes.push({x:mountain.cave.left+72,y:top[2]+48});
+  nodes.push({x:mountain.cave.left-115,y:mountain.cave.ceiling-12});
+  nodes.push({x:mountain.cave.left-123,y:mountain.cave.floor+82});
  } else {
   nodes.push({x:top[0]-55,y:top[2]+240});
  }

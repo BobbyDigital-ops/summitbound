@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.0 - Alpine Art Pass */
+/** Summitbound v0.9.1 - Ascending Terraces */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.0: Alpine Art Pass';
+    document.title = 'Summitbound — v0.9.1: Ascending Terraces';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

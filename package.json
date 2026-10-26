@@ -11,6 +11,7 @@
     "test:staff": "node --test tests/staff-length.test.cjs",
     "test:leaps": "node --test tests/leap-variety.test.cjs",
     "test:art": "node --test tests/art-pass.test.cjs",
+    "test:ascent": "node --test tests/ascent-terraces.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

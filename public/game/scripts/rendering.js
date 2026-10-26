@@ -46,6 +46,47 @@ function pine(cx,ground,s){
 }
 
 // 2. Natural mountain-integrated ledges
+// Subtle crags, dwarf spruce, snow hummocks and frozen drip-lines are
+// decorative geology only. Small enough to not look like reachable platforms.
+function cliffMicroTerrain(i, L, R, T) {
+ const w=R-L;
+ ctx.save();
+ for(let n=0;n<12;n++){
+  const h=T+90+n*79+(n%3)*17;
+  const frac=.20+(.65*((n*37+i*19)%17)/16);
+  const x=L+frac*w;
+  const rw=16+((n*13+i*17)%18);
+  ctx.fillStyle=n%3?'#526d7c99':'#3d5c6bba';
+  ctx.beginPath();ctx.moveTo(x-rw*.45,h+13);
+  ctx.lineTo(x-rw*.32,h-7);ctx.lineTo(x-4,h-15-(n%3)*5);
+  ctx.lineTo(x+rw*.37,h-9);ctx.lineTo(x+rw*.58,h+16);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='#dbeef1cc';ctx.beginPath();
+  ctx.moveTo(x-rw*.34,h-8);ctx.lineTo(x-5,h-18-(n%3)*5);
+  ctx.lineTo(x+rw*.27,h-12);ctx.lineTo(x-1,h-11);ctx.closePath();ctx.fill();
+  // Frosted windswept brush and exposed grass on some isolated pockets.
+  if(n%3!==1){
+   ctx.strokeStyle='#879f94a8';ctx.lineWidth=1.4;
+   for(let g=0;g<4;g++){
+    const gx=x+(g-1.5)*4;
+    ctx.beginPath();ctx.moveTo(gx,h-11);
+    ctx.quadraticCurveTo(gx+(g%2?4:-5),h-24,gx+(g%2?8:-7),h-28-(n%3)*2);
+    ctx.stroke();
+   }
+   ctx.fillStyle='#c0d1d0c2';ctx.beginPath();
+   ctx.ellipse(x,h-12,12,3,0,0,PI*2);ctx.fill();
+  }
+  if(n%4===0 && i!==0) pine(x+rw*.13,h-13,.22+((i+n)%3)*.045);
+  if(n%5===2){
+   ctx.strokeStyle='#b3e0e7a7';ctx.lineWidth=2.4;
+   ctx.beginPath();ctx.moveTo(x+5,h+11);
+   ctx.bezierCurveTo(x+3,h+25,x+11,h+47,x+7,h+57);
+   ctx.stroke();
+  }
+ }
+ ctx.restore();
+}
+
 function drawSpire(i){
  const s = spires[i], L = s.summit[0], R = s.summit[1], T = s.summit[2], tiers = s.ledges;
  const bottom = 2100;
@@ -195,6 +236,9 @@ function drawSpire(i){
  }
  ctx.restore();
  ctx.restore();
+
+ // Small natural crags rooted directly into the rock, not collision shelves.
+ cliffMicroTerrain(i,L,R,T);
 
  // Snow is adhered to real landing surfaces, not perched on detached slabs.
  const all = [[L, R, T], ...tiers.map(t=>[t[0],t[1],t[2]])];
@@ -448,22 +492,32 @@ function drawClimbingRoutes(i){
 }
 
 function drawIcePicks(){
- if(!p.climb || !p.climb.isIce) return;
- const beat=p.climb.climbBeat * Math.PI * .92;
+ if(!p.climb || !p.climb.isIce)return;
+ // Continuous alternation tied to actual climbing distance; release Up and
+ // the cycle freezes, so there's no perpetual flailing when resting.
+ const beat=p.climb.climbBeat*Math.PI;
+ const wall=icePositionAt(p.climb.spire,p.y)?.x ?? p.x;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  for(const side of [-1,1]){
-  const phase=beat + (side===1?Math.PI:0);
-  const reach=Math.sin(phase)*7;
-  const handX=p.x+side*18,handY=p.y-29+reach*.4;
-  const tipX=handX+side*11,tipY=handY-24-reach;
-  // Axe shaft held by the climber, with a swept steel pick at the ice.
-  ctx.strokeStyle='#26333a';ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(handX,handY);ctx.lineTo(tipX,tipY);ctx.stroke();
-  ctx.strokeStyle='#9db8c2';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(tipX-side*10,tipY-3);
-  ctx.quadraticCurveTo(tipX+side*2,tipY-9,tipX+side*13,tipY-1);
-  ctx.lineTo(tipX+side*8,tipY+3);ctx.stroke();
-  ctx.fillStyle='#333b40';ctx.beginPath();ctx.arc(handX,handY,3.5,0,PI*2);ctx.fill();
+  const phase=beat+(side===1?Math.PI:0);
+  const reach=Math.sin(phase);
+  const hx=p.x+side*12, hy=p.y-24-reach*3;
+  const tx=wall+side*7, ty=p.y-47-reach*11;
+  // Glove follows the shaft; tip is embedded in the ice band.
+  ctx.strokeStyle='#24343c';ctx.lineWidth=3.6;
+  ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(tx,ty);ctx.stroke();
+  ctx.strokeStyle='#bed0d3';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(tx-side*9,ty-4);
+  ctx.quadraticCurveTo(tx+side*3,ty-9,tx+side*9,ty+2);ctx.stroke();
+  ctx.fillStyle='#1d262e';ctx.beginPath();ctx.arc(hx,hy,3.1,0,PI*2);ctx.fill();
+  // Alternating boots and ice-crampon spikes actually touch the wall.
+  const footY=p.y+12+reach*6, footX=wall+side*(9+reach*1.8);
+  ctx.strokeStyle='#17232d';ctx.lineWidth=6;
+  ctx.beginPath();ctx.moveTo(p.x+side*8,p.y+2);
+  ctx.lineTo(footX,footY);ctx.stroke();
+  ctx.strokeStyle='#d3e0e5';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(footX-side*5,footY+1);
+  ctx.lineTo(footX+side*2,footY+5);ctx.stroke();
  }
  ctx.restore();
 }
@@ -660,11 +714,16 @@ function draw(){
   paintWoodenStaff(shaft,36/cfg.poleLength);
  }
  
- const pose = p.state === 'STEP_OFF' ? (Math.floor(sec * 10) % 8) : p.state === 'CLIMBING' ? (Math.floor(p.climb?.climbBeat || 0) % 2 ? 12 : 11) : p.vault ? 9 : (p.state === 'AIRBORNE' || p.state === 'FALLING') ? 10 : Math.abs(p.vx) > 18 ? Math.floor((p.runDistance || 0) / 45) % 8 : 8;
+ const pose = p.state === 'STEP_OFF' ? (Math.floor(sec * 10) % 8) : p.state === 'CLIMBING' ? (Math.floor((p.climb?.climbBeat || 0) / 2) % 2 ? 12 : 11) : p.vault ? 9 : (p.state === 'AIRBORNE' || p.state === 'FALLING') ? 10 : Math.abs(p.vx) > 18 ? Math.floor((p.runDistance || 0) / 45) % 8 : 8;
  if(climberSheet.complete && climberSheet.naturalWidth){
   ctx.save(); ctx.translate(p.x, p.y + 22); ctx.scale(p.facingDir < 0 ? -1 : 1, 1);
   const athletic = p.state === 'RUNNING' && Math.abs(p.vx)>90;
   if(athletic){ctx.translate(0,-1);ctx.rotate(.032*Math.sign(p.facingDir));}
+  if(p.state==='CLIMBING' && p.climb?.isIce){
+   const phase=(p.climb.climbBeat||0)*Math.PI;
+   ctx.translate(Math.sin(phase)*1.5,Math.cos(phase)*.7);
+   ctx.rotate(Math.sin(phase)*.018);
+  }
   ctx.drawImage(climberSheet, pose * 200, 0, 200, 256, -39, -93, 78, 100); ctx.restore();
  } else {
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);

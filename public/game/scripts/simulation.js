@@ -67,7 +67,7 @@ function tick(dt){
  if(p.state === 'CLIMBING'){
   const c = p.climb;
   if(k.up){
-   const oldY = p.y; p.y = Math.max(c.targetY, p.y - 62 * dt); c.climbBeat += (oldY - p.y) / 12;
+   const oldY = p.y; p.y = Math.max(c.targetY, p.y - 62 * dt); c.climbBeat += (oldY - p.y) / 24;
   }
   p.x = c.isIce ? icePositionAt(c.spire, p.y).x : c.originX; // Follow one continuous ice line, or the cave ladder
   if(p.y <= c.targetY + .25){ p.y = c.targetY; p.state = 'STEP_OFF'; c.exitTime = 0; }
