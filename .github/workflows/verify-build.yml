@@ -20,4 +20,5 @@ jobs:
       - run: npm run test:leaps
       - run: npm run test:art
       - run: npm run test:ascent
+      - run: npm run test:vault
       - run: npm run build
