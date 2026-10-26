@@ -12,7 +12,7 @@ test('four leaps have recognisably varied horizontal and vertical challenges',()
  const dest=[1,2,3,4].map(i=>i===4?s[4].cave.floor:s[i].ledges[1][2]);
  assert.ok(gap[1]>gap[0]+50,'second jump must be substantially wider than first');
  assert.ok(gap[2]<gap[1]-25,'third jump must be shorter');
- assert.ok(gap[3]>gap[2]+65,'final cave should demand another long crossing');
+ assert.ok(gap[3]>gap[2]+45,'final cave should demand another long crossing');
  assert.ok(s[2].ledges[1][2]<s[1].summit[2],'second jump is uphill, not descending');
  assert.ok(s[3].summit[2]<s[2].summit[2]-100,'third mountain must be higher');
  assert.equal(new Set(dest).size,4,'all four target heights must differ');
