@@ -402,12 +402,14 @@ function drawCave(){
 
 // 4. One frozen ice ascent per outdoor mountain; a single steel ladder in the cave.
 function drawIceClimb(i) {
- const points = iceClimbPoints(i);
- if (points.length < 2) return;
+ const routes=independentIceRoutes(i);
+ for(const route of routes){
+ const points=route.points;
+ if(points.length<2)continue;
  const lower = points[0], upper = points[points.length-1];
  const left = [], right = [], mid = [];
  for (let y = lower.y; y >= upper.y; y -= 8) {
-  const pos = icePositionAt(i, y);
+  const pos = icePositionAt(i,y,route.tier);
   const jag = Math.sin(y * .093 + i * 2.1) * 2.3 + Math.sin(y * .23) * 1.5;
   mid.push({x:pos.x + jag, y});
  }
@@ -435,7 +437,7 @@ function drawIceClimb(i) {
  ctx.strokeStyle='#e6fbff91';ctx.lineWidth=4;ctx.stroke();
  // Embedded angular ice crystal veins, not ladder rungs.
  for(let y=lower.y-17, n=0; y>upper.y+12; y-=24,n++){
-  const here=icePositionAt(i,y);
+  const here=icePositionAt(i,y,route.tier);
   const sign=n%2===0 ? -1 : 1;
   ctx.strokeStyle=n%3===0?'#e7fbffc9':'#123c57a8';
   ctx.lineWidth=n%3===0?2.5:1.9;
@@ -456,6 +458,7 @@ function drawIceClimb(i) {
   ctx.moveTo(point.x+13,point.y-1);ctx.lineTo(point.x+5,point.y-10);ctx.stroke();
  }
  ctx.restore();
+ }
 }
 
 function drawCaveLadder() {
@@ -495,7 +498,7 @@ function drawIcePicks(){
  // Continuous alternation tied to actual climbing distance; release Up and
  // the cycle freezes, so there's no perpetual flailing when resting.
  const beat=p.climb.climbBeat*Math.PI;
- const wall=icePositionAt(p.climb.spire,p.y)?.x ?? p.x;
+ const wall=icePositionAt(p.climb.spire,p.y,p.climb.tierIndex)?.x ?? p.x;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  for(const side of [-1,1]){
   const phase=beat+(side===1?Math.PI:0);

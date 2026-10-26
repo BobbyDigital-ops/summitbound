@@ -11,10 +11,7 @@ function platform(id,l,r,t,s='snow',extra={}){return {id,x:(l+r)/2,y:t+60,width:
 for(let i=0; i<spires.length; i++){
  const m = spires[i];
  platforms.push(platform('s'+i, ...m.summit, {kind:'summit', spire:i}));
- for(let j=0; j<m.ledges.length; j++){
-  const a = m.ledges[j];
-  platforms.push(platform('l'+i+'-'+j, a[0], a[1], a[2], a[3], {kind:'ledge', spire:i, tier:a[4]}));
- }
+ // Active ledge collision surfaces created by applyRoute().
  if(m.cave) platforms.push(platform('cave4', m.cave.left, m.cave.right, m.cave.floor, 'rock', {kind:'cave', spire:i, tier:'Checkpoint'}));
 }
 

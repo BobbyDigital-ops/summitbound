@@ -102,21 +102,28 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
 const terraceShift={
- 1:{High:20,Middle:65,Low:-15},
- 2:{High:275,Middle:160,Low:350},
- 3:{High:65,Middle:60,Low:55}
+ 1:{High:190,Middle:175,Low:-45},
+ 2:{High:605,Middle:280,Low:195},
+ 3:{High:315,Middle:195,Low:-15}
 };
-
-// Deterministic per-route shifts keep natural variety without changing gaps
-// so drastically that the lowest reachable landing becomes impossible.
-function sculptTerrace(raw, spireIndex, seed) {
- const d=stageOffsets[spireIndex],label=raw[4];
- const w=raw[1]-raw[0];
- const wiggle=(((seed*7+spireIndex*11+label.length*5)%7)-3)*6;
- const x=raw[0]+d.dx+terraceShift[spireIndex][label]+wiggle;
- const base=risingTerraces[spireIndex][label];
- const y=base+Math.round((raw[2]-originalTierY[spireIndex][label])*.35);
+const terraceCounts=[1,2,4,3,2,1,4,3,4];
+function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
+function sculptTerrace(raw,spire,seed){
+ const label=raw[4],w=raw[1]-raw[0],d=stageOffsets[spire];
+ const wiggle=(((seed*7+spire*11+label.length*5)%7)-3)*6;
+ const x=raw[0]+d.dx+terraceShift[spire][label]+wiggle;
+ const y=risingTerraces[spire][label]+Math.round((raw[2]-originalTierY[spire][label])*.35);
  return [x,x+w,y,raw[3],label];
+}
+function selectTerraces(group,spire,seed){
+ const lookup=Object.fromEntries(group.map(t=>[t[4],sculptTerrace(t,spire,seed)]));
+ const count=terraceCount(spire,seed);
+ const labels=count===1?['Low']:count===2?['Low','Middle']:count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
+ return labels.map(label=>label==='Ridge'
+  ?[spires[spire].summit[0]+180+((seed*23+spire*11)%100),
+    spires[spire].summit[0]+318+((seed*23+spire*11)%100),
+    spires[spire].summit[2]+42,'snow','Ridge']
+  :lookup[label]);
 }
 
 function applyRoute(seed) {
@@ -124,7 +131,7 @@ function applyRoute(seed) {
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
  const group=ledgeLayouts[routeSeed];
  for(let i=1;i<=3;i++) {
-  spires[i].ledges=group[i-1].map(a=>sculptTerrace(a,i,routeSeed));
+  spires[i].ledges=selectTerraces(group[i-1],i,routeSeed);
  }
  // The fire is a new, HIGHER destination, embedded in the side of the final
  // massif. Both cave ceiling and floor must remain real collision surfaces.
@@ -134,19 +141,18 @@ function applyRoute(seed) {
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};
 
- if(typeof platforms!=='undefined' && platforms.length) {
-  for(const pl of platforms){
-   if(pl.kind!=='ledge')continue;
-   const t=spires[pl.spire].ledges[Number(pl.id.split('-')[1])];
-   if(t)Object.assign(pl,{x:(t[0]+t[1])/2,y:t[2]+60,
-    width:t[1]-t[0],height:120,left:t[0],right:t[1],
-    top:t[2],surfaceType:t[3],tier:t[4]});
+ if(typeof platforms!=='undefined' && Array.isArray(platforms)) {
+  for(let k=platforms.length-1;k>=0;k--)
+   if(platforms[k].kind==='ledge')platforms.splice(k,1);
+  for(let i=1;i<=3;i++)for(let j=0;j<spires[i].ledges.length;j++){
+   const t=spires[i].ledges[j];
+   if(typeof platform==='function')
+    platforms.push(platform('l'+i+'-'+j,t[0],t[1],t[2],
+      t[3],{kind:'ledge',spire:i,tier:t[4]}));
   }
-  const c=spires[4].cave;
-  const cp=platforms.find(pl=>pl.kind==='cave');
+  const c=spires[4].cave,cp=platforms.find(p=>p.kind==='cave');
   if(cp)Object.assign(cp,{x:(c.left+c.right)/2,y:c.floor+60,
-   width:c.right-c.left,height:120,left:c.left,
-   right:c.right,top:c.floor});
+    width:c.right-c.left,height:120,left:c.left,right:c.right,top:c.floor});
  }
  const label=document.getElementById('routeLabel');
  if(label)label.textContent='Route '+(routeSeed+1);
@@ -159,29 +165,33 @@ function applyRoute(seed) {
  * ledge entry points. Route geometry follows seeded ledges; it never modifies
  * collision platforms or vault parameters.
  */
-function iceClimbPoints(spireIndex) {
- const s = spires[spireIndex];
- if (!s || spireIndex === 0 || s.cave) return [];
- const points = s.ledges.map((ledge, index) => ({
-  x: ledge[1] - 30, y: ledge[2] - 22, tierIndex: index
- })).sort((a, b) => b.y - a.y);
- points.push({x:s.summit[0] + 40, y:s.summit[2] - 22, tierIndex:-1});
- return points;
+function iceClimbPoints(spireIndex,fromTier=null){
+ const s=spires[spireIndex];
+ if(!s||spireIndex===0||s.cave)return [];
+ const selected=fromTier===null?s.ledges:[s.ledges[fromTier]];
+ const nodes=selected.map((t,i)=>({x:t[1]-30,y:t[2]-22,tierIndex:fromTier===null?i:fromTier})).sort((a,b)=>b.y-a.y);
+ nodes.push({x:s.summit[0]+55,y:s.summit[2]-22,tierIndex:-1});
+ return nodes;
 }
-
-function icePositionAt(spireIndex, y) {
- const path = iceClimbPoints(spireIndex);
- if (!path.length) return null;
- if (y >= path[0].y) return {x:path[0].x, y};
- for (let i = 0; i < path.length - 1; i++) {
-  const lower = path[i], upper = path[i + 1];
-  if (y >= upper.y) {
-   const linear = Math.max(0, Math.min(1, (lower.y - y) / (lower.y - upper.y)));
-   const smooth = linear * linear * (3 - 2 * linear);
-   return {x:lower.x + (upper.x - lower.x) * smooth, y};
+function icePositionAt(spireIndex,y,fromTier=null){
+ const points=iceClimbPoints(spireIndex,fromTier);
+ if(!points.length)return null;
+ if(y>=points[0].y)return {x:points[0].x,y};
+ for(let k=0;k<points.length-1;k++){
+  const a=points[k],b=points[k+1];
+  if(y>=b.y){
+   const q=Math.max(0,Math.min(1,(a.y-y)/(a.y-b.y)));
+   const h=q*q*(3-2*q);
+   return {x:a.x+(b.x-a.x)*h,y};
   }
  }
- return {x:path[path.length - 1].x, y};
+ return {x:points.at(-1).x,y};
+}
+function independentIceRoutes(i){
+ const s=spires[i];if(!s||!s.ledges.length)return [];
+ const xs=s.ledges.map(t=>t[1]-30);
+ if(Math.max(...xs)-Math.min(...xs)<105)return [{tier:null,points:iceClimbPoints(i)}];
+ return s.ledges.map((t,k)=>({tier:k,points:iceClimbPoints(i,k)}));
 }
 
 function climbEntryX(platform) {

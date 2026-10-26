@@ -55,7 +55,7 @@ function climbStart(plat){
  const rungX = climbEntryX(plat);
  if(Math.abs(p.x - rungX) > 28) return;
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
- p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0, isIce:plat.kind !== 'cave'};
+ p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0, isIce:plat.kind !== 'cave',tierIndex:plat.kind==='ledge'?Number(plat.id.split('-')[1]):null};
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 
@@ -69,7 +69,7 @@ function tick(dt){
   if(k.up){
    const oldY = p.y; p.y = Math.max(c.targetY, p.y - 62 * dt); c.climbBeat += (oldY - p.y) / 24;
   }
-  p.x = c.isIce ? icePositionAt(c.spire, p.y).x : c.originX; // Follow one continuous ice line, or the cave ladder
+  p.x = c.isIce ? icePositionAt(c.spire,p.y,c.tierIndex).x : c.originX; // Follow one continuous ice line, or the cave ladder
   if(p.y <= c.targetY + .25){ p.y = c.targetY; p.state = 'STEP_OFF'; c.exitTime = 0; }
   return;
  }
