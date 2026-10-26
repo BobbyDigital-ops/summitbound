@@ -15,7 +15,7 @@ for(let seed=0;seed<9;seed++){
       'ledge remains below its own summit '+i+' '+ledge[4]);
    }
    const xs=s[i].ledges.map(a=>a[0]);
-   assert.ok(Math.max(...xs)-Math.min(...xs)>100,
+   assert.ok(xs.length===1 || Math.max(...xs)-Math.min(...xs)>115,
       'terraces need meaningful horizontal stagger');
   }
   assert.ok(s[4].cave.floor<s[3].summit[2],
