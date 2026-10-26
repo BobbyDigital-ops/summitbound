@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.6 - Natural Motion */
+/** Summitbound v0.9.7 - Mobile Release Candidate */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.6: Natural Motion';
+    document.title = 'Summitbound — v0.9.7: Mobile Release Candidate';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
