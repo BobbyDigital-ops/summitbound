@@ -1,0 +1,115 @@
+// Summit Leap v0.8.3 — extracted unchanged from v0.8.1.
+const mountainBackdrop = new Image(); mountainBackdrop.src='/game/mountain-background.jpg';
+const cliffTexture = new Image(); cliffTexture.src='/game/cliff-texture.png';
+const climberSheet = new Image(); climberSheet.src='/game/mountaineer-red-puffer.png';
+const slateTexture = new Image(); slateTexture.src='/game/rock-slate-seamless.png';
+
+const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,runAcceleration:850,maxRunSpeed:360,brakingDecel:2000,poleLength:195,poleStiffness:120,poleDamping:4.5,bendingStiffness:40,maxDeformation:.52,energyRetention:.96,playerMass:70,airborneSteerForce:520,rockFriction:.88,snowFriction:.48,iceFriction:.05,simSpeed:1};
+
+const spires = [
+ {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
+ {name:'The Broken Tooth',summit:[1770,2570,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
+ {name:'The Windward Spire',summit:[3460,4270,825,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[5220,6080,740,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'Firespine Cavern',summit:[7100,7910,645,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
+];
+
+// 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
+const ledgeLayouts = [
+ // Seed 0 (Route 1)
+ [
+  [[1675,1760,1010,'rock','High'],[1553,1693,1130,'snow','Middle'],[1502,1705,1240,'rock','Low']],
+  [[3280,3436,895,'rock','High'],[3185,3285,1010,'ice','Middle'],[3135,3302,1125,'snow','Low']],
+  [[5050,5198,810,'snow','High'],[4968,5143,935,'rock','Middle'],[4940,5067,1050,'ice','Low']]
+ ],
+ // Seed 1 (Route 2)
+ [
+  [[1650,1760,1010,'rock','High'],[1540,1670,1130,'snow','Middle'],[1470,1690,1240,'rock','Low']],
+  [[3350,3438,895,'rock','High'],[3200,3390,1010,'ice','Middle'],[3150,3280,1125,'snow','Low']],
+  [[5110,5197,810,'snow','High'],[5020,5180,935,'rock','Middle'],[4940,5140,1050,'ice','Low']]
+ ],
+ // Seed 2 (Route 3)
+ [
+  [[1690,1760,1010,'rock','High'],[1530,1720,1130,'snow','Middle'],[1490,1650,1240,'rock','Low']],
+  [[3270,3425,895,'rock','High'],[3220,3340,1010,'ice','Middle'],[3160,3370,1125,'snow','Low']],
+  [[5040,5196,810,'snow','High'],[4970,5080,935,'rock','Middle'],[4910,5150,1050,'ice','Low']]
+ ],
+ // Seed 3 (Route 4)
+ [
+  [[1660,1755,1000,'rock','High'],[1560,1685,1120,'snow','Middle'],[1480,1660,1235,'rock','Low']],
+  [[3310,3440,890,'rock','High'],[3210,3330,1005,'ice','Middle'],[3140,3290,1120,'snow','Low']],
+  [[5070,5195,805,'snow','High'],[4990,5120,930,'rock','Middle'],[4925,5100,1045,'ice','Low']]
+ ],
+ // Seed 4 (Route 5)
+ [
+  [[1640,1750,1015,'rock','High'],[1545,1700,1135,'snow','Middle'],[1510,1715,1245,'rock','Low']],
+  [[3290,3430,900,'rock','High'],[3190,3360,1015,'ice','Middle'],[3170,3320,1130,'snow','Low']],
+  [[5090,5190,815,'snow','High'],[4980,5150,940,'rock','Middle'],[4950,5120,1055,'ice','Low']]
+ ],
+ // Seed 5 (Route 6)
+ [
+  [[1680,1760,1005,'rock','High'],[1535,1665,1125,'snow','Middle'],[1475,1675,1230,'rock','Low']],
+  [[3330,3435,890,'rock','High'],[3230,3380,1005,'ice','Middle'],[3130,3270,1120,'snow','Low']],
+  [[5060,5195,805,'snow','High'],[4960,5100,930,'rock','Middle'],[4905,5080,1040,'ice','Low']]
+ ],
+ // Seed 6 (Route 7)
+ [
+  [[1655,1755,1010,'rock','High'],[1550,1710,1130,'snow','Middle'],[1495,1700,1240,'rock','Low']],
+  [[3300,3430,895,'rock','High'],[3205,3350,1010,'ice','Middle'],[3155,3310,1125,'snow','Low']],
+  [[5080,5192,810,'snow','High'],[5000,5135,935,'rock','Middle'],[4930,5110,1050,'ice','Low']]
+ ],
+ // Seed 7 (Route 8)
+ [
+  [[1670,1760,1010,'rock','High'],[1525,1680,1125,'snow','Middle'],[1485,1680,1235,'rock','Low']],
+  [[3340,3438,895,'rock','High'],[3180,3310,1005,'ice','Middle'],[3145,3340,1120,'snow','Low']],
+  [[5100,5195,810,'snow','High'],[4970,5110,930,'rock','Middle'],[4915,5075,1045,'ice','Low']]
+ ],
+ // Seed 8 (Route 9)
+ [
+  [[1645,1750,1005,'rock','High'],[1565,1720,1130,'snow','Middle'],[1505,1710,1245,'rock','Low']],
+  [[3275,3425,890,'rock','High'],[3215,3375,1010,'ice','Middle'],[3165,3355,1125,'snow','Low']],
+  [[5045,5190,805,'snow','High'],[4985,5160,935,'rock','Middle'],[4935,5130,1050,'ice','Low']]
+ ]
+];
+
+const caveLayouts = [
+ {left:6850,right:7075,floor:892,ceiling:756},
+ {left:6895,right:7078,floor:882,ceiling:764},
+ {left:6835,right:7090,floor:925,ceiling:778},
+ {left:6875,right:7075,floor:908,ceiling:781},
+ {left:6845,right:7100,floor:877,ceiling:744},
+ {left:6880,right:7085,floor:895,ceiling:758},
+ {left:6860,right:7070,floor:888,ceiling:752},
+ {left:6900,right:7095,floor:915,ceiling:772},
+ {left:6840,right:7080,floor:900,ceiling:760}
+];
+
+let routeSeed = 0;
+
+function applyRoute(seed) {
+ routeSeed = ((seed % 9) + 9) % 9;
+ const routeGroup = ledgeLayouts[routeSeed];
+ for(let i = 1; i < spires.length - 1; i++) {
+  spires[i].ledges = routeGroup[i-1].map(a => a.slice());
+ }
+ spires[4].cave = {...caveLayouts[routeSeed]};
+ 
+ if(typeof platforms !== 'undefined' && platforms.length) {
+  for(const pl of platforms) {
+   if(pl.kind !== 'ledge') continue;
+   const spIdx = pl.spire;
+   const tierIdx = Number(pl.id.split('-')[1]);
+   const t = spires[spIdx].ledges[tierIdx];
+   if(t) {
+    Object.assign(pl, {x:(t[0]+t[1])/2, y:t[2]+60, width:t[1]-t[0], height:120, left:t[0], right:t[1], top:t[2], surfaceType:t[3], tier:t[4]});
+   }
+  }
+  const c = spires[4].cave;
+  const cp = platforms.find(pl => pl.kind === 'cave');
+  if(cp) Object.assign(cp, {x:(c.left+c.right)/2, y:c.floor+60, width:c.right-c.left, height:120, left:c.left, right:c.right, top:c.floor});
+ }
+ const el = document.getElementById('routeLabel');
+ if(el) el.textContent = 'Route ' + (routeSeed + 1);
+}
+
+

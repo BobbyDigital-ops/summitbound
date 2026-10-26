@@ -1,0 +1,528 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#102237"/><title>Summit Leap — The Great Traverse v0.6</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;touch-action:none;background:#071a2a}canvas{display:block;width:100vw;height:100vh;touch-action:none}
+#top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));background:linear-gradient(180deg,#07182eef,#1025399c);border-bottom:1px solid #d4e8fa24;backdrop-filter:blur(6px)}#brand{font-size:17px;font-weight:850;letter-spacing:.065em;white-space:nowrap}#brand small{font-size:9px;color:#a6c2d4;font-weight:600;letter-spacing:.12em;display:block}#top .group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}button{cursor:pointer;color:#e8f2f9;font-weight:750;border:1px solid #a6bed34c;background:#10293fcb;border-radius:10px;padding:8px 10px;font-size:12px}button.sel{background:#c28b42;color:#091a28;border-color:#efd194}button:active{transform:scale(.98)}#timer{font-variant-numeric:tabular-nums;color:#ffdf9d;font-weight:760;font-size:12px}
+#notice{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:4;font-weight:750;font-size:13px;letter-spacing:.02em;text-align:center;color:white;text-shadow:0 2px 8px #071c2e;pointer-events:none;min-width:240px;white-space:nowrap}
+#hud{position:fixed;left:12px;top:108px;z-index:4;min-width:190px;pointer-events:none;border:1px solid #cadeed3a;border-radius:12px;background:#082238b3;padding:8px 11px;box-shadow:0 4px 18px #03111f55}#hud strong{color:#ffe5b8;font-size:12px}#hud div{font-size:11px;line-height:1.55;color:#d2e5f1}
+#meter{display:none;position:fixed;z-index:6;left:50%;top:16px;transform:translateX(-50%);width:min(270px,45vw);pointer-events:none}#meter .label{font-size:9px;display:flex;justify-content:space-between;color:#faf7e8;text-shadow:0 2px 6px #051b2b}#bar{position:relative;height:11px;margin-top:4px;background:linear-gradient(90deg,#4cbdd8 0%,#3a94d2 30%,#e7be60 65%,#f18b50 85%,#764f67 100%);border:2px solid #e2e5e8;border-radius:30px;box-shadow:0 0 15px #061c2a}#needle{position:absolute;top:-5px;left:0;width:3px;height:18px;background:#fff;box-shadow:0 0 4px #fff;border-radius:2px}
+#controls{z-index:6;position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(13px,env(safe-area-inset-bottom));display:flex;gap:11px;align-items:center}#controls button{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;line-height:1;height:66px;width:72px;border-radius:20px;border:1.5px solid #a6bed34c;background:#0b253fc9;box-shadow:0 3px 13px #00131b80;touch-action:none;user-select:none;-webkit-user-select:none}#controls button small,#controls-right button small{font-size:10px;font-weight:700;color:#9ec2db;margin-top:2px;letter-spacing:.05em}#controls button[hidden]{display:none}#controls button.down{background:#b18750ed;color:#10243a;border-color:#ffe5b8}#controls button.down small{color:#10243a}
+#controls-right{z-index:6;position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(13px,env(safe-area-inset-bottom));display:flex;gap:11px;align-items:center}#controls-right button{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:15px;font-weight:800;letter-spacing:.04em;height:66px;min-width:105px;padding:0 16px;border-radius:20px;background:#143e5ec9;border:2px solid #5aa7d4a0;color:#f4fbff;box-shadow:0 3px 16px #00131b80;touch-action:none;user-select:none;-webkit-user-select:none}#controls-right button.down{background:#e5a953;color:#081b2a;border-color:#ffebc4}#controls-right button.down small{color:#081b2a}
+#help{position:fixed;bottom:16px;right:130px;z-index:4;pointer-events:none;font-size:11px;color:#f1f5f7;text-shadow:0 2px 5px #081824a0;background:#0d243b9c;border-radius:9px;padding:8px 10px;max-width:330px;text-align:right}
+#tuning{position:fixed;z-index:9;right:12px;top:60px;width:min(280px,94vw);background:#0e263af2;border:1px solid #bed3e275;border-radius:14px;padding:13px;box-shadow:0 15px 35px #0009}#tuning[hidden]{display:none}#tuning .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}#tuning label{display:block;font-size:12px;margin:12px 0}#tuning label span{float:right;color:#ffe3a8}#tuning input{width:100%}#tuning small{color:#b3cadb;line-height:1.5}#victory{display:none;position:fixed;z-index:10;inset:0;background:#071a2bba;align-items:center;justify-content:center;padding:16px}#victory.open{display:flex}#victory section{max-width:440px;width:100%;text-align:center;border-radius:20px;background:#112e43eb;border:1px solid #dbe6ef65;box-shadow:0 15px 70px #0008;padding:25px}#victory h1{margin:0 0 8px;font-size:26px;color:#ffe4a4}#victory p{color:#dce8f0;line-height:1.5}
+@media (max-width:760px){#top{padding:5px 8px}#brand{font-size:13px}#top button{padding:7px;font-size:10px}#timer{font-size:10px}#hud{top:65px;left:5px;background:#08223891;padding:5px 7px;min-width:0}#hud div{font-size:9px}#hud strong{font-size:10px}#notice{top:62px;font-size:11px}#meter{top:52px;left:auto;right:12px;transform:none;width:34vw}#controls button{height:60px;width:64px;font-size:20px}#controls-right button{height:60px;min-width:92px;font-size:13px;padding:0 10px}#help{bottom:84px;right:12px;max-width:210px;font-size:9px;padding:5px 8px} }
+</style></head><body>
+<canvas id="game"></canvas><header id="top"><div id="brand">SUMMIT LEAP<small>THE GREAT TRAVERSE · v0.6</small></div><div class="group"><button class="sel" data-mode="practice">Practice</button><button data-mode="hardcore">Hardcore</button><button id="retry">Retry leap</button><button id="restart">Restart</button><button id="tuneToggle">Tune</button><span id="timer">0:00.0</span></div></header><div id="notice"></div><div id="hud"><strong id="stage">SPIRE 1 / 3</strong><div id="substage">Build momentum. Aim for an outcrop.</div></div><div id="meter"><div class="label"><span>FORWARD</span><span>MORE LIFT</span></div><div id="bar"><div id="needle"></div></div></div>
+<div id="controls"><button id="left" aria-label="Move left (A)">◀<small>A</small></button><button id="right" aria-label="Move right (D)">▶<small>D</small></button><button id="up" aria-label="Climb up (W)" hidden>▲<small>W</small></button></div><div id="controls-right"><button id="vaultBtn" aria-label="Hold to vault, release to fly (Space)">⤹ VAULT<small>SPACE</small></button></div><div id="help">Run with <b>A / D</b> or <b>◀ ▶</b> · Vault with <b>SPACE</b>, <b>⤹ VAULT</b> or touching sky · Climb with <b>W / ▲</b></div>
+<div id="tuning" hidden><div class="row"><b>Arcade movement tuning</b><button id="tuneClose">✕</button></div><label>Lift <span id="liftVal">118%</span><input id="liftTune" type="range" min="85" max="145" value="118" step="2"/></label><label>Forward <span id="rangeVal">84%</span><input id="rangeTune" type="range" min="65" max="115" value="84" step="2"/></label><label>Gravity <span id="gravityVal">800</span><input id="gravityTune" type="range" min="600" max="1050" value="800" step="25"/></label><small>v0.5 arcade launch and air control preserved; fixed-length pole constraint. Climbing costs time. A perfect summit landing skips it. Ledge catches and Endless Mode are planned for later.</small><div class="row"><button data-skip="1">Test spire 2</button><button data-skip="2">Test spire 3</button></div></div>
+<div id="victory"><section><h1>THE FIRE IS YOURS</h1><p id="victoryText"></p><button id="again">Climb again</button></section></div>
+<script>
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+class PolePhysicsEngine {
+    static PLANT_OFFSET = 120;
+    static DEFAULT_RIDE_SECONDS = 1.75;
+    static LATE_SECONDS = 0.65;
+    static validatePlantPoint(px, py, facingDir, platforms, _config) {
+        const dir = facingDir >= 0 ? 1 : -1;
+        const targetX = px + dir * this.PLANT_OFFSET;
+        const current = platforms.find(plat => {
+            const left = plat.x - plat.width / 2;
+            const right = plat.x + plat.width / 2;
+            const top = plat.y - plat.height / 2;
+            return px >= left && px <= right && Math.abs(py + 22 - top) < 35;
+        });
+        if (!current)
+            return {
+                isValid: false, anchorX: targetX, anchorY: py + 22,
+                distance: this.PLANT_OFFSET, angle: 0, reason: 'Player must be standing on a ledge',
+            };
+        const left = current.x - current.width / 2;
+        const right = current.x + current.width / 2;
+        const top = current.y - current.height / 2;
+        const distance = Math.hypot(targetX - px, top - py);
+        const angle = Math.atan2(top - py, targetX - px);
+        if (targetX < left || targetX > right)
+            return {
+                isValid: false, anchorX: targetX, anchorY: top, distance, angle,
+                reason: 'Plant point would miss the launch ledge',
+            };
+        return { isValid: true, anchorX: targetX, anchorY: top, distance, angle };
+    }
+    static initVault(px, py, vx, vy, anchorX, anchorY, config) {
+        const facingDir = anchorX >= px ? 1 : -1;
+        const approachSpeed = Math.max(0, facingDir * vx);
+        const power = clamp(approachSpeed / Math.max(1, config.maxRunSpeed), 0, 1);
+        const rideDuration = this.DEFAULT_RIDE_SECONDS;
+        const chord = Math.hypot(px - anchorX, py - anchorY);
+        return {
+            anchorX, anchorY, facingDir,
+            theta: Math.atan2(anchorY - py, facingDir * (anchorX - px)),
+            omega: 0, radius: chord, startPx: px, startPy: py,
+            strain: 0, deformationPx: 0, storedEnergy: 0, bendOffset: 0,
+            springForce: 0, bendingTorque: 0, radialVelocity: 0,
+            tangentialVelocity: approachSpeed, heightGained: 0,
+            distanceTraveled: 0, phase: 'APPROACH',
+            elapsed: 0, rideDuration, initialVx: vx, initialVy: vy,
+            liftCapacity: 190 * (0.62 + 0.38 * Math.sqrt(power)) * (config.arcadeLift ?? 1),
+        };
+    }
+    static stepVault(state, dt, config, _px, _py, _vx, _vy) {
+        const t = state.elapsed + dt;
+        const T = state.rideDuration;
+        const u = clamp(t / T, 0, 1);
+        const vx0 = state.initialVx;
+        const vy0 = state.initialVy;
+        const H = state.liftCapacity;
+        // A deliberate, readable pole ride. The athlete keeps traveling up and
+        // forward for long enough to choose a release; it is NOT a real pole beam.
+        // An exponential braking curve carries running momentum into a gentler
+        // forward drift while the player's vertical position eases upward.
+        const forwardPower = clamp(Math.abs(vx0) / Math.max(1, config.maxRunSpeed), 0, 1);
+        const cruise = 35 + 53 * forwardPower;
+        const tau = 0.48;
+        let x = state.startPx + (vx0 - state.facingDir * cruise) * tau * (1 - Math.exp(-t / tau)) + state.facingDir * cruise * t;
+        let vx = (vx0 - state.facingDir * cruise) * Math.exp(-t / tau) + state.facingDir * cruise;
+        const ease = u * u * (3 - 2 * u);
+        const easePrime = 6 * u * (1 - u);
+        let y = state.startPy + vy0 * t - H * ease;
+        let vy = vy0 - (H / T) * easePrime;
+        if (t > T) {
+            const late = t - T;
+            const xAtEnd = state.startPx + (vx0 - state.facingDir * cruise) * tau * (1 - Math.exp(-T / tau)) + state.facingDir * cruise * T;
+            const vxAtEnd = (vx0 - state.facingDir * cruise) * Math.exp(-T / tau) + state.facingDir * cruise;
+            x = xAtEnd + vxAtEnd * (1 - Math.exp(-late));
+            vx = vxAtEnd * Math.exp(-late);
+            y = state.startPy + vy0 * t - H + 0.5 * config.gravity * 0.3 * late * late;
+            vy = vy0 + config.gravity * 0.3 * late;
+        }
+        const dir = state.facingDir;
+        const dx = x - state.anchorX;
+        const dy = y - state.anchorY;
+        const radius = Math.hypot(dx, dy);
+        const theta = Math.atan2(-dy, -dir * dx);
+        const bendFraction = t < T ? Math.pow(Math.max(0, Math.sin(Math.PI * Math.min(0.98, u))), 0.85) : 0;
+        const power = 0.52 + 0.48 * Math.sqrt(clamp(Math.abs(vx0) / Math.max(config.maxRunSpeed, 1), 0, 1));
+        const deformationPx = config.poleLength * config.maxDeformation * power * bendFraction;
+        const strain = clamp(deformationPx / Math.max(config.poleLength * config.maxDeformation, 1), 0, 1);
+        // Named "feedback" values for tuning and effects, not SI forces or joules.
+        const storedEnergy = 0.5 * config.poleStiffness * deformationPx * deformationPx;
+        const springForce = config.poleStiffness * deformationPx;
+        const phase = t >= T ? 'UNCOILED'
+            : u < 0.23 ? 'LOADING'
+                : u < 0.48 ? 'MAX_FLEX'
+                    : u < 0.9 ? 'RECOILING' : 'UNCOILED';
+        const stateNext = {
+            ...state, elapsed: t, theta, radius,
+            omega: 0, strain, deformationPx, storedEnergy,
+            bendOffset: deformationPx * 0.8, springForce,
+            bendingTorque: 0, radialVelocity: 0,
+            tangentialVelocity: Math.hypot(vx, vy),
+            heightGained: Math.max(0, state.startPy - y),
+            distanceTraveled: Math.abs(x - state.startPx), phase,
+        };
+        // A pole is allowed to CURVE, never to stretch. Convert the deliberately
+        // paced arcade ride to a constrained hand position with a smooth soft cap.
+        // This preserves the familiar release and flight controls from v0.5.
+        const handDx = x + 3 - state.anchorX;
+        const handDy = y - 5 - state.anchorY;
+        const chord = Math.hypot(handDx, handDy);
+        const softRadius = Math.max(60, config.poleLength - 28);
+        const room = 26;
+        if (chord > softRadius) {
+            const limited = softRadius + room * (1 - Math.exp(-(chord - softRadius) / room));
+            const scale = limited / chord;
+            x = state.anchorX + handDx * scale - 3;
+            y = state.anchorY + handDy * scale + 5;
+            // Numerical differentiation of the constrained position, not the
+            // unconstrained ghost trajectory; never use this for launch boost.
+            vx = (x - (state.lastX ?? state.startPx)) / dt;
+            vy = (y - (state.lastY ?? state.startPy)) / dt;
+        }
+        stateNext.radius = Math.hypot(x + 3 - state.anchorX,y - 5 - state.anchorY);
+        stateNext.lastX = x; stateNext.lastY = y;
+        return {
+            state: stateNext, nextPx: x, nextPy: y,
+            nextVx: vx, nextVy: vy,
+            shouldAutoRelease: t >= T + this.LATE_SECONDS,
+        };
+    }
+    static calculateReleaseVelocity(vx, vy, state, config) {
+        // Intentional arcade assistance: run-up improves launch power, but a
+        // medium approach still produces an exciting leap. The release phase
+        // trades forward reach for lift across a broad, learnable window.
+        // Do not present this as physically energy-conserving spring simulation.
+        const approach = Math.max(0, state.facingDir * state.initialVx);
+        const runRatio = clamp(approach / Math.max(1, config.maxRunSpeed), 0, 1);
+        const assistance = approach < 20 ? 0.08 : 0.62 + 0.38 * Math.sqrt(runRatio);
+        const u = clamp(state.elapsed / state.rideDuration, 0, 1);
+        const late = Math.max(0, state.elapsed - state.rideDuration);
+        const latePenalty = Math.exp(-1.6 * late);
+        const launchX = state.facingDir * (610 - 200 * u) * assistance * latePenalty * (config.arcadeRange ?? 1);
+        const launchY = -(185 + 330 * u) * assistance * latePenalty * (config.arcadeLift ?? 1) + config.gravity * 0.5 * late;
+        return { vx: launchX, vy: launchY };
+    }
+    static predictTrajectory(startX, startY, startVx, startVy, config, steps = 28, timeStep = 0.04) {
+        const points = [];
+        let x = startX, y = startY, vy = startVy;
+        for (let i = 0; i < steps; i++) {
+            points.push({ x, y });
+            vy += config.gravity * timeStep;
+            x += startVx * timeStep;
+            y += vy * timeStep;
+        }
+        return points;
+    }
+}
+
+const mountainBackdrop = new Image(); mountainBackdrop.src='/game/mountain-background.jpg';
+
+function pine(cx,ground,s,glow=false){
+ ctx.save();ctx.translate(cx,ground);ctx.scale(s,s);
+ ctx.fillStyle='#2b2929';ctx.fillRect(-2,-32,4,34);
+ for(let k=0;k<4;k++){const y=-32-k*13,r=17-k*3;
+ ctx.beginPath();ctx.moveTo(0,y-24);ctx.lineTo(-r,y+2);ctx.quadraticCurveTo(-r*.4,y-1,0,y+1);ctx.quadraticCurveTo(r*.6,y,r,y+2);ctx.closePath();
+ ctx.fillStyle=k%2?'#183b3a':'#244748';ctx.fill();
+ ctx.strokeStyle='#cbd8de';ctx.lineWidth=2.3;ctx.beginPath();ctx.moveTo(-r*.8,y-1);ctx.lineTo(-1,y-21);ctx.lineTo(r*.55,y-1);ctx.stroke();}
+ ctx.restore();
+}
+
+const cliffTexture = new Image(); cliffTexture.src='/game/cliff-texture.png';
+const climberSheet = new Image(); climberSheet.src='/game/mountaineer-sprites.png';
+const cfg={gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,runAcceleration:850,maxRunSpeed:360,brakingDecel:2000,poleLength:195,poleStiffness:120,poleDamping:4.5,bendingStiffness:40,maxDeformation:.52,energyRetention:.96,playerMass:70,airborneSteerForce:520,rockFriction:.88,snowFriction:.48,iceFriction:.05,simSpeed:1};
+const spires=[
+ {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
+ {name:'The Broken Tooth',summit:[1770,2570,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
+ {name:'The Windward Spire',summit:[3460,4270,825,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[5220,6080,740,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]}
+];
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),meter=document.getElementById('meter'),needle=document.getElementById('needle'),stageEl=document.getElementById('stage'),subEl=document.getElementById('substage'),notice=document.getElementById('notice');
+const DT=1/120;const PI=Math.PI;
+let mode='practice',p={},platforms=[],fingers={left:new Set(),right:new Set(),up:new Set(),vault:null},keys=new Set(),camera={x:0,y:0},acc=0,prev=performance.now(),elapsed=0,completed=false,peakBuzz=false,trail=[],lastMessage='',messageTimeout=0,atStage=0,lastSafeStage=0,landingHistory=[],climbFrom=null;
+const snow=Array.from({length:92},(_,i)=>({x:((i*7919)%1009)/1009,y:((i*179)%977)/977,r:i%7===0?1.9:.75,speed:.2+(i%5)*.12}));
+function platform(id,l,r,t,s='snow',extra={}){return {id,x:(l+r)/2,y:t+60,width:r-l,height:120,surfaceType:s,top:t,left:l,right:r,...extra}}
+for(let i=0;i<spires.length;i++){const m=spires[i];platforms.push(platform('s'+i,...m.summit,{kind:'summit',spire:i}));for(let j=0;j<m.ledges.length;j++){const a=m.ledges[j];platforms.push(platform('l'+i+'-'+j,a[0],a[1],a[2],a[3],{kind:'ledge',spire:i,tier:a[4]}))}}
+function hint(txt,duration=2.4){lastMessage=txt;messageTimeout=duration;notice.textContent=txt}
+function spawn(stage=0,keepTime=false){let pl=platforms.find(x=>x.id==='s'+stage),x=stage===0?150:pl.left+95;
+ p={x,y:pl.top-22,vx:0,vy:0,state:'GROUNDED',surface:'snow',facingDir:1,vault:null,anchorX:0,anchorY:0,bend:0,groundedFor:.5,standingOn:pl.id,climb:null};if(!keepTime)elapsed=0;atStage=stage;lastSafeStage=stage;completed=false;trail=[];acc=0;peakBuzz=false;fingers.vault=null;fingers.up.clear();meter.style.display='none';document.getElementById('victory').classList.remove('open');
+ const zoom=getZoom();camera.x=x-.26*innerWidth/zoom;camera.y=p.y-.60*innerHeight/zoom;hint(stage?'Retry this ascent.':'Reach the next spire — land high to climb less.',3)}
+function gameReset(){landingHistory=[];spawn(0)}
+function haptic(ms){try{navigator.vibrate?.(ms)}catch{}}
+function isGround(){return ['GROUNDED','RUNNING','BRAKING','SLIDING'].includes(p.state)}
+function currentPlatform(){return platforms.find(pl=>pl.id===p.standingOn)}
+function plant(){if(!isGround())return;const pl=currentPlatform();if(!pl||pl.kind!=='summit')return;const val=PolePhysicsEngine.validatePlantPoint(p.x,p.y,p.facingDir,[pl],cfg);if(!val.isValid)return;p.vault=PolePhysicsEngine.initVault(p.x,p.y,p.vx,p.vy,val.anchorX,val.anchorY,cfg);p.state='RIDING_VAULT';p.anchorX=val.anchorX;p.anchorY=val.anchorY;p.bend=0;peakBuzz=false;p.standingOn=null;haptic(9)}
+function release(){if(p.state!=='RIDING_VAULT')return;const kick=PolePhysicsEngine.calculateReleaseVelocity(p.vx,p.vy,p.vault,cfg);p.vx=kick.vx;p.vy=kick.vy;p.state='AIRBORNE';p.vault=null;p.bend=0;meter.style.display='none'}
+function input(){return{left:keys.has('a')||keys.has('arrowleft')||fingers.left.size>0,right:keys.has('d')||keys.has('arrowright')||fingers.right.size>0,up:keys.has('arrowup')||keys.has('w')||fingers.up.size>0}}
+function getZoom(){return clamp(innerWidth/1150,.62,1.0)*.76}
+function drawSpire(i){
+ const s=spires[i],L=s.summit[0],R=s.summit[1],T=s.summit[2],tiers=s.ledges;
+ const bottom=2100;
+ ctx.save();ctx.beginPath();ctx.moveTo(L,T-9);
+ ctx.bezierCurveTo(L+(R-L)*.25,T-17,R-90,T-15,R-4,T+17);
+ ctx.lineTo(R+65,bottom);ctx.lineTo(L-170,bottom);
+ // Reverse trace from mountain base to crest. Steps are integrated into one
+ // solid rock silhouette rather than detached floating rectangular platforms.
+ if(tiers.length){
+  const low=tiers[2],mid=tiers[1],high=tiers[0];
+  ctx.lineTo(low[0]+16,low[2]+48);ctx.lineTo(low[0]+19,low[2]+18);
+  ctx.quadraticCurveTo(low[0]-12,low[2]+12,low[0]-8,low[2]+1);
+  ctx.lineTo(low[1]+10,low[2]+1);
+  ctx.lineTo(L-12,(low[2]+mid[2])/2);
+  ctx.lineTo(mid[0]+20,mid[2]+40);ctx.lineTo(mid[0]+16,mid[2]+18);
+  ctx.quadraticCurveTo(mid[0]-11,mid[2]+13,mid[0]-8,mid[2]+1);
+  ctx.lineTo(mid[1]+6,mid[2]+1);
+  ctx.lineTo(L-8,(mid[2]+high[2])/2);
+  ctx.lineTo(high[0]+21,high[2]+40);ctx.lineTo(high[0]+14,high[2]+15);
+  ctx.quadraticCurveTo(high[0]-14,high[2]+9,high[0]-6,high[2]+1);
+  ctx.lineTo(high[1]+8,high[2]+1);ctx.lineTo(L-4,T+45);
+ } else ctx.lineTo(L-14,T+105);
+ ctx.closePath();ctx.clip();
+ let rock=ctx.createLinearGradient(L-100,T,R+100,T+500);
+ rock.addColorStop(0,'#8499a6');rock.addColorStop(.16,'#657b89');rock.addColorStop(.44,'#485e70');rock.addColorStop(.72,'#31495d');rock.addColorStop(1,'#1a3145');ctx.fillStyle=rock;ctx.fillRect(L-230,T-30,R-L+420,2200);
+ if(cliffTexture.complete&&cliffTexture.naturalWidth){ctx.globalAlpha=.75;ctx.drawImage(cliffTexture,L-180,T-5,R-L+320,1640);ctx.globalAlpha=1;}
+ // Contiguous fractured rock faces with vertical strata and chipped facets.
+ let seed=i*37+9;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296};
+ for(let k=0;k<105;k++){
+  const x=L-170+rnd()*(R-L+240),y=T+20+rnd()*1280,d=24+rnd()*110;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+d*.3,y-d*.2);ctx.lineTo(x+d*.4,y+d*.9);ctx.lineTo(x-d*.1,y+d*1.45);ctx.closePath();
+  ctx.fillStyle=k%3===0?'#c3d1d810':k%3===1?'#081b2c26':'#d2deea12';ctx.fill();
+ }
+ for(let k=0;k<75;k++){
+  const x=L-40+rnd()*(R-L+50),y=T+rnd()*1300;
+  ctx.strokeStyle=rnd()>.4?'#091d2c66':'#b2c5d031';ctx.lineWidth=1+rnd()*2;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-7+rnd()*22,y+18+rnd()*45);ctx.lineTo(x-16+rnd()*24,y+48+rnd()*40);ctx.stroke();
+ }
+ ctx.restore();
+ // Visible snow belongs to the actual profile, no rectangular ledge platforms.
+ const all=[[L,R,T],...tiers.map(t=>[t[0],t[1],t[2]])];
+ for(const [a,b,y] of all){
+  ctx.beginPath();ctx.moveTo(a-5,y-2);ctx.bezierCurveTo(a+23,y-15,b-32,y-11,b+4,y-5);
+  ctx.lineTo(b+3,y+3);ctx.quadraticCurveTo(b-16,y+11,b-31,y+5);
+  ctx.lineTo(a+15,y+7);ctx.closePath();ctx.fillStyle='#e1edf1';ctx.fill();
+  ctx.strokeStyle='#fcffff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a,y-5);ctx.quadraticCurveTo((a+b)/2,y-12,b,y-7);ctx.stroke();
+  for(let t=0;t<Math.min(12,Math.floor((b-a)/26));t++){
+   const px=a+15+t*27;ctx.fillStyle='#bbdce3aa';ctx.beginPath();ctx.moveTo(px,y+5);ctx.lineTo(px+3,y+5);ctx.lineTo(px+1,y+12+(t%4)*3);ctx.fill();
+  }
+ }
+ // An open crevasse on the far right edge of each shelf. There is no stopping
+ // collision here; overshooting the shelf means falling down this dark fissure.
+ if(tiers.length)for(const t of tiers){
+  ctx.fillStyle='#0d223577';ctx.beginPath();ctx.moveTo(t[1]+2,t[2]+9);ctx.lineTo(t[1]+24,t[2]+32);ctx.lineTo(t[1]+9,t[2]+86);ctx.lineTo(t[1]+2,t[2]+98);ctx.closePath();ctx.fill();
+ }
+}
+function drawLadders(i){if(i===0)return;
+ const s=spires[i],top=s.summit[2],low=s.ledges[2][2],x=s.summit[0]-59;
+ // A narrow fixed via ferrata route with iron rungs and a safety wire, not a teleporter.
+ ctx.strokeStyle='#263b45';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-9,low);ctx.lineTo(x-9,top-5);ctx.moveTo(x+10,low);ctx.lineTo(x+10,top-5);ctx.stroke();
+ ctx.strokeStyle='#d0ae7d';ctx.lineWidth=2.8;
+ for(let y=low-5;y>top;y-=13){ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+11,y);ctx.stroke()}
+ ctx.strokeStyle='#d7e4e3';ctx.lineWidth=1.7;ctx.beginPath();ctx.moveTo(x+25,low);ctx.lineTo(x+29,top-10);ctx.stroke();
+}
+function decorate(i){const s=spires[i].summit,top=s[2];const l=s[0],r=s[1];let positions=[l+48,l+145,r-125,r-55];for(const [j,x] of positions.entries()){pine(x,top-8,j%2?2.35:3.1)}
+ if(i===3){const fireX=r-132,fireY=top-10;let halo=ctx.createRadialGradient(fireX,fireY,2,fireX,fireY,90);halo.addColorStop(0,'#ffa34d88');halo.addColorStop(1,'#e77e2900');ctx.fillStyle=halo;ctx.fillRect(fireX-100,fireY-100,200,200);ctx.fillStyle='#101c2b';ctx.beginPath();ctx.ellipse(fireX,top-15,54,62,0,PI,2*PI);ctx.lineTo(fireX+54,top+2);ctx.lineTo(fireX-54,top+2);ctx.closePath();ctx.fill();ctx.fillStyle='#45281b';ctx.fillRect(fireX-14,top-8,28,6);ctx.fillStyle='#ffb443';ctx.beginPath();ctx.moveTo(fireX-11,top-6);ctx.quadraticCurveTo(fireX-18,top-35,fireX+3,top-48);ctx.quadraticCurveTo(fireX+27,top-19,fireX+8,top-6);ctx.fill()}
+}
+function draw(){const w=innerWidth,h=innerHeight,zoom=getZoom();
+ const targetX=p.x-.28*w/zoom,targetY=p.y-.56*h/zoom;camera.x+=(targetX-camera.x)*.055;camera.y+=(targetY-camera.y)*.045;
+ ctx.fillStyle='#6d91ab';ctx.fillRect(0,0,w,h);
+ if(mountainBackdrop.complete&&mountainBackdrop.naturalWidth){const bgW=w*1.27,dx=-w*.15-(((camera.x*.016)%(w*.14))+w*.14)%(w*.14);ctx.drawImage(mountainBackdrop,dx,-h*.14,bgW,h*1.17)}
+ let fg=ctx.createLinearGradient(0,h*.40,0,h);fg.addColorStop(0,'#d6e4f000');fg.addColorStop(.76,'#bfd5e344');fg.addColorStop(1,'#b3c7d488');ctx.fillStyle=fg;ctx.fillRect(0,h*.4,w,h*.6);
+ // Sparse painterly atmospheric pillars, solid silhouettes instead of transparent triangles.
+ ctx.fillStyle='#344f66b9';for(let i=-2;i<Math.ceil(w/260)+3;i++){const x=i*275-((camera.x*.07)%275),top=h*.62+Math.sin(i*2.4)*44;ctx.beginPath();ctx.moveTo(x-36,h);ctx.lineTo(x-20,top+30);ctx.lineTo(x-8,top+8);ctx.lineTo(x,top);ctx.lineTo(x+18,top+16);ctx.lineTo(x+36,h);ctx.closePath();ctx.fill()}
+ ctx.fillStyle='#f6fbffe0';const sec=performance.now()*.001;for(const f of snow){let sx=((f.x*w+sec*(8+f.speed*12)-camera.x*.02)%(w+30)+w+30)%(w+30);let sy=((f.y*h+sec*(10+f.speed*13))%(h+20));ctx.beginPath();ctx.arc(sx,sy,f.r,0,PI*2);ctx.fill()}
+ ctx.save();ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
+ for(let i=0;i<spires.length;i++){const s=spires[i].summit,center=(s[0]+s[1])/2;if((s[1]-camera.x)*zoom < -180 || (s[0]-camera.x)*zoom>w+180)continue;drawSpire(i)}
+ for(let i=1;i<spires.length;i++){const s=spires[i].summit;if((s[1]-camera.x)*zoom < -180 || (s[0]-camera.x)*zoom>w+180)continue;drawLadders(i)}
+ 
+ for(let i=0;i<spires.length;i++){const s=spires[i].summit;if((s[1]-camera.x)*zoom < -180 || (s[0]-camera.x)*zoom>w+180)continue;decorate(i)}
+ if(trail.length>2){ctx.strokeStyle='#ffd69b78';ctx.lineWidth=2;ctx.setLineDash([5,6]);ctx.beginPath();trail.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.stroke();ctx.setLineDash([])}
+ if(p.vault){
+   const ax=p.anchorX,ay=p.anchorY,px=p.x+3,py=p.y-5;
+   const dx=px-ax,dy=py-ay,chord=Math.hypot(dx,dy)||1;
+   const nx=-dy/chord,ny=dx/chord,L=cfg.poleLength;
+   const curveLen=(bend)=>{let lx=ax,ly=ay,total=0;
+     const cx=(ax+px)/2+nx*bend,cy=(ay+py)/2+ny*bend;
+     for(let i=1;i<=24;i++){let t=i/24,r=1-t,x=r*r*ax+2*r*t*cx+t*t*px,y=r*r*ay+2*r*t*cy+t*t*py;
+       total+=Math.hypot(x-lx,y-ly);lx=x;ly=y}return total;
+   };
+   let low=0,high=400;for(let k=0;k<13;k++){let mid=(low+high)/2;if(curveLen(mid)>L)high=mid;else low=mid}
+   const bend=(low+high)/2;ctx.strokeStyle='#e9ba77';ctx.lineWidth=6;ctx.lineCap='round';
+   ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo((ax+px)/2+nx*bend,(ay+py)/2+ny*bend,px,py);ctx.stroke();
+   ctx.strokeStyle='#fff1c599';ctx.lineWidth=1.6;ctx.stroke();
+   ctx.fillStyle='#e3c896';ctx.beginPath();ctx.arc(ax,ay,5,0,PI*2);ctx.fill();
+ }else if(p.state!=='CLIMBING'){
+   ctx.strokeStyle='#deb97b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(p.x-8,p.y-5);ctx.lineTo(p.x+p.facingDir*79,p.y-15);ctx.stroke();
+ }
+ // Dedicated, consistently shaded mountaineer sprite atlas. The scarf, boots,
+ // pack and silhouette remain readable at mobile resolution.
+ const pose=p.state==='CLIMBING'?9:p.vault?7:(p.state==='AIRBORNE'||p.state==='FALLING')?8:
+   Math.abs(p.vx)>18?Math.floor(sec*10)%6:6;
+ if(climberSheet.complete&&climberSheet.naturalWidth){
+   ctx.save();ctx.translate(p.x,p.y+22);ctx.scale(p.facingDir<0?-1:1,1);
+   ctx.drawImage(climberSheet,pose*100,0,100,128,-39,-93,78,100);ctx.restore();
+ }else{ctx.fillStyle='#bb3947';ctx.fillRect(p.x-10,p.y-30,20,50)}
+ ctx.restore();
+ const nearRungs=p.state==='CLIMBING'||(isGround()&&currentPlatform()?.kind==='ledge'&&p.x>currentPlatform().right-110);
+ const upBtn=document.getElementById('up');if(upBtn)upBtn.hidden=!nearRungs;
+ const inState=input();
+ const leftBtn=document.getElementById('left');if(leftBtn)leftBtn.classList.toggle('down',inState.left);
+ const rightBtn=document.getElementById('right');if(rightBtn)rightBtn.classList.toggle('down',inState.right);
+ if(upBtn)upBtn.classList.toggle('down',inState.up);
+ const vBtn=document.getElementById('vaultBtn');if(vBtn)vBtn.classList.toggle('down',p.state==='RIDING_VAULT'||fingers.vault!==null||keys.has(' '));
+ meter.style.display=p.vault?'block':'none';if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
+ stageEl.textContent=completed?'ASCENT COMPLETE':`LEAP ${Math.min(atStage+1,3)} / 3`;
+ let status=completed?'Checkpoint reached.':p.state==='CLIMBING'?'Hold ↑ to climb · Release to rest':`Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;subEl.textContent=status;
+ document.getElementById('timer').textContent=formatTime(elapsed);
+}
+function formatTime(t){return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor(t*10)%10}
+function fail(){if(mode==='hardcore'){hint('Hardcore: back to the beginning!',3);gameReset()}else{const stage=Math.min(lastSafeStage,2);landingHistory.length=stage;spawn(stage,true);hint('Missed the mountain — retry this leap!',2)}}
+function getLanding(plat){p.standingOn=plat.id;p.surface=plat.surfaceType;p.groundedFor=0;
+ if(plat.spire>atStage){atStage=plat.spire; if(plat.kind==='summit'){lastSafeStage=plat.spire;landingHistory[plat.spire-1]='Direct summit';hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED',3);haptic([12,30,12]);}
+ else {landingHistory[plat.spire-1]=plat.tier;hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE RUNGS`,3)}
+ }else if(plat.kind==='ledge'&&plat.spire===atStage){hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE RUNGS`,2)}
+ if(plat.kind==='summit' && plat.spire===3)win();
+}
+function win(){completed=true;p.vx=0;p.vy=0;p.state='GROUNDED';haptic([35,60,35]);document.getElementById('victoryText').textContent=`Three canyon leaps completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ')||'direct ascent'}. Try again to land higher and climb less.`;document.getElementById('victory').classList.add('open');hint('CAVE CHECKPOINT REACHED!',5)}
+function climbStart(plat){let target=platforms.find(x=>x.id==='s'+plat.spire);p.state='CLIMBING';p.vx=0;p.vy=0;p.climb={originX:p.x,originY:p.y,targetX:target.left+56,targetY:target.top-22,progress:0,distance:Math.max(35,p.y-(target.top-22)),spire:plat.spire};hint('HOLD W / ↑ TO CLIMB — RELEASE TO REST',2.5);haptic(7)}
+function tick(dt){if(completed)return;elapsed+=dt;const k=input(),ground=isGround(),prevFeet=p.y+22;
+ if(p.state==='CLIMBING'){
+  const c=p.climb;c.progress=clamp(c.progress+(k.up?dt*48/c.distance:0),0,1);p.x=c.originX+(c.targetX-c.originX)*c.progress;p.y=c.originY+(c.targetY-c.originY)*c.progress;
+  if(c.progress>=1){p.state='GROUNDED';p.vx=0;p.vy=0;p.surface='snow';p.standingOn='s'+c.spire;p.groundedFor=.2;lastSafeStage=c.spire;hint('SUMMIT REACHED — READY FOR NEXT LEAP',2);if(c.spire===3)win()}
+  return;
+ }
+ if(ground){const direction=k.right===k.left?0:k.right?1:-1;if(direction){p.facingDir=direction;const opposed=Math.sign(p.vx)===-direction;if(opposed)p.vx+=direction*cfg.brakingDecel*dt;else p.vx+=direction*cfg.runAcceleration*dt;p.vx=clamp(p.vx,-cfg.maxRunSpeed,cfg.maxRunSpeed);p.state=opposed?'BRAKING':'RUNNING'}
+ else {const f=p.surface==='ice'?cfg.iceFriction:p.surface==='snow'?cfg.snowFriction:cfg.rockFriction,drop=2400*f*dt;p.vx=Math.abs(p.vx)<=drop?0:p.vx-Math.sign(p.vx)*drop;p.state=Math.abs(p.vx)<2?'GROUNDED':'SLIDING';}
+ p.groundedFor+=dt;
+ }
+ if(p.state==='RIDING_VAULT'&&p.vault){const result=PolePhysicsEngine.stepVault(p.vault,dt,cfg);p.vault=result.state;p.x=result.nextPx;p.y=result.nextPy;p.vx=result.nextVx;p.vy=result.nextVy;p.bend=result.state.bendOffset;if(!peakBuzz&&result.state.strain>=.75){peakBuzz=true;haptic(12)}if(result.shouldAutoRelease)release();}
+ else if(p.state==='AIRBORNE'||p.state==='FALLING'){const fd=dt*cfg.arcadeFlightTempo;p.vy+=cfg.gravity*fd;if(k.left)p.vx-=cfg.airborneSteerForce*fd;if(k.right)p.vx+=cfg.airborneSteerForce*fd;p.vx=clamp(p.vx,-650,650);p.x+=p.vx*fd;p.y+=p.vy*fd;if(trail.length===0||Math.hypot(p.x-trail.at(-1).x,p.y-trail.at(-1).y)>8){trail.push({x:p.x,y:p.y});if(trail.length>52)trail.shift()}}
+ else{p.x+=p.vx*dt;if(p.x<12){p.x=12;p.vx=0}}
+ if(p.state!=='RIDING_VAULT'){const wasGround=ground,feet=p.y+22;let standing=null;
+ // One-way top surfaces only. Real far edges: no walls, magnetic stopping or landing snaps.
+ if(wasGround){const pl=currentPlatform();if(pl&&p.x>=pl.left+2&&p.x<=pl.right-2&&Math.abs(feet-pl.top)<12){standing=pl;p.y=pl.top-22}}
+ if(!standing&&p.vy>=0){const possibles=platforms.filter(pl=>p.x>=pl.left+3&&p.x<=pl.right-3 && prevFeet<=pl.top+3 && feet>=pl.top-4).sort((a,b)=>a.top-b.top);if(possibles.length){standing=possibles[0];p.y=standing.top-22;p.vy=0;if(!wasGround)getLanding(standing)}}
+ if(standing){p.standingOn=standing.id;p.surface=standing.surfaceType;if(!isGround())p.state=Math.abs(p.vx)>20?'RUNNING':'GROUNDED';
+  if(standing.kind==='ledge'&&p.groundedFor>.12&&Math.abs(p.vx)<115&&k.up&&p.x>standing.right-76&&p.x<standing.right-5)climbStart(standing);
+ }else{if(wasGround){p.state='FALLING';p.standingOn=null;p.vy=Math.max(0,p.vy);p.groundedFor=0;}}
+ }
+ // Falling continues if player slides off the exposed far side of any outcrop.
+ if(p.y>Math.max(1520,spires[Math.min(atStage+1,3)].ledges[2]?.[2]+430)||p.x>6350||p.x<-90)fail();
+ if(messageTimeout>0){messageTimeout-=dt;if(messageTimeout<=0)notice.textContent=''}
+}
+function resize(){const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(innerWidth*ratio);canvas.height=Math.round(innerHeight*ratio);ctx.setTransform(ratio,0,0,ratio,0,0)}
+function loop(now){let delta=Math.min(.05,(now-prev)/1000);prev=now;acc+=delta;for(let n=0;acc>=DT&&n<7;n++,acc-=DT)tick(DT);draw();requestAnimationFrame(loop)}
+function retry(){spawn(Math.min(lastSafeStage,2),true)}
+for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(el=>el.classList.toggle('sel',el===b));gameReset()});
+document.getElementById('retry').addEventListener('click',retry);document.getElementById('restart').addEventListener('click',gameReset);document.getElementById('again').addEventListener('click',gameReset);
+document.getElementById('tuneToggle').addEventListener('click',()=>document.getElementById('tuning').hidden=!document.getElementById('tuning').hidden);document.getElementById('tuneClose').addEventListener('click',()=>document.getElementById('tuning').hidden=true);
+for(const [id,key,output,divisor] of [['liftTune','arcadeLift','liftVal',100],['rangeTune','arcadeRange','rangeVal',100],['gravityTune','gravity','gravityVal',1]])document.getElementById(id).addEventListener('input',e=>{let num=Number(e.target.value);cfg[key]=num/divisor;document.getElementById(output).textContent=divisor===100?num+'%':String(num)});
+for(const el of document.querySelectorAll('[data-skip]'))el.addEventListener('click',()=>{spawn(Number(el.dataset.skip),true);document.getElementById('tuning').hidden=true});
+function handleKeyDown(e){
+  const k = (e.key || '').toLowerCase();
+  const code = (e.code || '').toLowerCase();
+  const isLeft = k === 'a' || code === 'keya' || k === 'arrowleft' || code === 'arrowleft';
+  const isRight = k === 'd' || code === 'keyd' || k === 'arrowright' || code === 'arrowright';
+  const isUp = k === 'w' || code === 'keyw' || k === 'arrowup' || code === 'arrowup';
+  const isDown = k === 's' || code === 'keys' || k === 'arrowdown' || code === 'arrowdown';
+  const isSpace = k === ' ' || k === 'space' || code === 'space';
+  const isR = k === 'r' || code === 'keyr';
+
+  if (e.preventDefault && (isSpace || isLeft || isRight || isUp || isDown)) {
+    try { e.preventDefault(); } catch (_) {}
+  }
+
+  if (isLeft) { keys.add('a'); keys.add('arrowleft'); }
+  if (isRight) { keys.add('d'); keys.add('arrowright'); }
+  if (isUp) { keys.add('w'); keys.add('arrowup'); }
+  if (isDown) { keys.add('s'); keys.add('arrowdown'); }
+
+  if (isSpace && !keys.has(' ')) {
+    keys.add(' ');
+    plant();
+  }
+
+  if (isR) retry();
+}
+
+function handleKeyUp(e){
+  const k = (e.key || '').toLowerCase();
+  const code = (e.code || '').toLowerCase();
+  const isLeft = k === 'a' || code === 'keya' || k === 'arrowleft' || code === 'arrowleft';
+  const isRight = k === 'd' || code === 'keyd' || k === 'arrowright' || code === 'arrowright';
+  const isUp = k === 'w' || code === 'keyw' || k === 'arrowup' || code === 'arrowup';
+  const isDown = k === 's' || code === 'keys' || k === 'arrowdown' || code === 'arrowdown';
+  const isSpace = k === ' ' || k === 'space' || code === 'space';
+
+  if (isLeft) { keys.delete('a'); keys.delete('arrowleft'); }
+  if (isRight) { keys.delete('d'); keys.delete('arrowright'); }
+  if (isUp) { keys.delete('w'); keys.delete('arrowup'); }
+  if (isDown) { keys.delete('s'); keys.delete('arrowdown'); }
+
+  if (isSpace) {
+    keys.delete(' ');
+    release();
+  }
+}
+
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', handleKeyUp);
+window.addEventListener('message', ev => {
+  if (!ev.data) return;
+  if (ev.data.type === 'keydown') handleKeyDown(ev.data);
+  if (ev.data.type === 'keyup') handleKeyUp(ev.data);
+});
+window.addEventListener('blur', () => {
+  keys.clear();
+  fingers.left.clear();
+  fingers.right.clear();
+  fingers.up.clear();
+  fingers.vault = null;
+  release();
+});
+
+function control(el, dir) {
+  if (!el) return;
+  const start = (e) => {
+    try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+    try { if (e.pointerId !== undefined) el.setPointerCapture(e.pointerId); } catch (_) {}
+    const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 1);
+    fingers[dir].add(id);
+    el.classList.add('down');
+  };
+  const end = (e) => {
+    try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+    const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 1);
+    fingers[dir].delete(id);
+    el.classList.toggle('down', fingers[dir].size > 0);
+  };
+
+  el.addEventListener('pointerdown', start);
+  for (const evt of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+    el.addEventListener(evt, end);
+  }
+  el.addEventListener('touchstart', start, { passive: false });
+  el.addEventListener('touchend', end, { passive: false });
+  el.addEventListener('touchcancel', end, { passive: false });
+}
+control(document.getElementById('left'), 'left');
+control(document.getElementById('right'), 'right');
+control(document.getElementById('up'), 'up');
+
+const vaultBtn = document.getElementById('vaultBtn');
+if (vaultBtn) {
+  const startVault = (e) => {
+    try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+    try { if (e.pointerId !== undefined) vaultBtn.setPointerCapture(e.pointerId); } catch (_) {}
+    const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 'v');
+    if (fingers.vault === null) {
+      fingers.vault = id;
+      plant();
+    }
+    vaultBtn.classList.add('down');
+  };
+  const endVault = (e) => {
+    try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+    const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 'v');
+    if (fingers.vault === id || fingers.vault !== null) {
+      fingers.vault = null;
+      release();
+    }
+    vaultBtn.classList.remove('down');
+  };
+
+  vaultBtn.addEventListener('pointerdown', startVault);
+  for (const evt of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+    vaultBtn.addEventListener(evt, endVault);
+  }
+  vaultBtn.addEventListener('touchstart', startVault, { passive: false });
+  vaultBtn.addEventListener('touchend', endVault, { passive: false });
+  vaultBtn.addEventListener('touchcancel', endVault, { passive: false });
+}
+
+const startCanvasVault = (e) => {
+  if (fingers.vault !== null) return;
+  try { if (e.pointerId !== undefined) canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 'c');
+  fingers.vault = id;
+  plant();
+  if (vaultBtn) vaultBtn.classList.add('down');
+};
+const endCanvasVault = (e) => {
+  const id = e.pointerId ?? (e.changedTouches ? e.changedTouches[0]?.identifier : 'c');
+  if (fingers.vault === id || fingers.vault !== null) {
+    fingers.vault = null;
+    release();
+  }
+  if (vaultBtn) vaultBtn.classList.remove('down');
+};
+
+canvas.addEventListener('pointerdown', startCanvasVault);
+for (const evt of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  canvas.addEventListener(evt, endCanvasVault);
+}
+canvas.addEventListener('touchstart', startCanvasVault, { passive: false });
+canvas.addEventListener('touchend', endCanvasVault, { passive: false });
+canvas.addEventListener('touchcancel', endCanvasVault, { passive: false });
+
+window.addEventListener('resize', resize);
+resize();
+spawn(0);
+requestAnimationFrame(loop);
+</script></body></html>

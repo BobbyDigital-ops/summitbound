@@ -1,0 +1,17 @@
+SUMMIT LEAP V0.6 — EXISTING AI STUDIO PROJECT FILE PATCH
+
+Use this patch if you want to keep the existing project and update only active game files.
+Unzip the archive and put each file at the same relative path in the existing project.
+IMPORTANT: Uploading a .zip as a chat attachment is not necessarily the same as replacing the project files; use the Code panel / supported import workflow to put the files into their actual paths.
+
+The active React entrypoint (src/App.tsx) now displays the newer playable HTML canvas game at /game/summit-leap-v06.html.
+The older Phaser scenes, entities, physics and UI components remain in the existing project as LEGACY REFERENCE. They are not the live movement engine; do not switch back to them in an AI edit.
+No new runtime dependency is introduced beyond the existing React/Vite package environment.
+
+Most relevant gameplay source: public/game/summit-leap-v06.html
+Art assets: public/game/*.jpg / *.png
+
+TESTED: standalone JS syntax; Chromium-run gameplay physics, 3 reachable tier sets and summit shortcuts; pole chord remains under material length; hold-W manual climbing/pause; right-edge fall; browser renders background and sprite atlas.
+NOT VERIFIED: npm/Vite full build in this restricted environment because dependency installation did not complete.
+VISUAL CAVEAT: foreground cliffs/trees are a prototype art pass, NOT yet the original reference's full painterly quality. Dedicated game art is still recommended.
+PLANNED: timed Prince-of-Persia ledge grab; Endless Mode; fire/warmth mechanics in later development.
