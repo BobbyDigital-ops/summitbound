@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.3 - Distributed Landings */
+/** Summitbound v0.9.4 - Natural Cavern */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.3: Distributed Landings';
+    document.title = 'Summitbound — v0.9.4: Natural Cavern';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

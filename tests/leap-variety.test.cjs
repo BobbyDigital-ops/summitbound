@@ -25,5 +25,5 @@ test('cave contains a genuine recessed rock mouth',()=>{
  const cave=s.slice(s.indexOf('function drawCave(){'),s.indexOf('// 4. One frozen ice ascent'));
  assert.match(cave,/const traceMouth=/);
  assert.match(cave,/ctx.clip\(\)/);
- assert.match(cave,/Concentric rock layers/);
+ assert.match(cave,/Raw split mountain stone/);
 });

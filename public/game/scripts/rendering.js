@@ -306,97 +306,82 @@ function drawSpire(i,paintCtx=ctx){
 }
 
 function drawCave(){
- const c=spires[4].cave;
- const l=c.left,r=c.right,t=c.ceiling,b=c.floor,w=r-l,mid=l+w*.52;
- ctx.save();
- // Rock collar is part of the mountain, not an add-on rectangular tunnel.
- ctx.fillStyle='#1d3444ee';
- ctx.beginPath();ctx.moveTo(l-72,b+62);
- ctx.lineTo(l-63,b+6);ctx.lineTo(l-70,t+47);
- ctx.lineTo(l-49,t-25);ctx.lineTo(l-17,t-53);
- ctx.lineTo(l+32,t-42);ctx.lineTo(mid,t-60);
- ctx.lineTo(r+18,t-44);ctx.lineTo(r+59,t+16);
- ctx.lineTo(r+51,b+31);ctx.lineTo(r+26,b+52);
- ctx.lineTo(mid,b+33);ctx.lineTo(l-24,b+60);
- ctx.closePath();ctx.fill();
-
- // Intrinsically arched mouth; usable floor and roof collision coordinates
- // remain c.floor and c.ceiling so the opening cannot become a hidden trap.
- const traceMouth=()=>{
-  ctx.beginPath();ctx.moveTo(l-29,b+16);
-  ctx.bezierCurveTo(l-44,t+85,l-32,t+32,l-10,t+4);
-  ctx.bezierCurveTo(l+9,t-22,l+40,t-22,l+w*.43,t-16);
-  ctx.bezierCurveTo(l+w*.70,t-27,r+7,t-10,r+31,t+25);
-  ctx.bezierCurveTo(r+42,t+64,r+33,b-19,r+18,b+14);
-  ctx.quadraticCurveTo(mid,b+10,l-29,b+16);ctx.closePath();
+ const c=spires[4].cave,l=c.left,r=c.right,t=c.ceiling,b=c.floor,w=r-l;
+ ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+ // Raw split mountain stone, with an irregular dark opening in its side.
+ ctx.fillStyle='#2b4555';ctx.beginPath();
+ ctx.moveTo(l-80,b+80);ctx.lineTo(l-93,t+42);
+ ctx.lineTo(l-55,t-30);ctx.lineTo(l-9,t-60);
+ ctx.lineTo(l+w*.52,t-69);ctx.lineTo(r+42,t-39);
+ ctx.lineTo(r+83,t+19);ctx.lineTo(r+75,b+82);ctx.closePath();ctx.fill();
+ const mouth=()=>{
+  ctx.beginPath();ctx.moveTo(l-23,b+13);
+  ctx.lineTo(l-44,b-27);ctx.lineTo(l-35,b-72);
+  ctx.lineTo(l-43,t+53);ctx.lineTo(l-25,t+25);
+  ctx.lineTo(l+6,t+12);ctx.lineTo(l+29,t-8);
+  ctx.lineTo(l+w*.35,t+5);ctx.lineTo(l+w*.48,t-22);
+  ctx.lineTo(l+w*.69,t+5);ctx.lineTo(r-16,t-9);
+  ctx.lineTo(r+8,t+14);ctx.lineTo(r+27,t+49);
+  ctx.lineTo(r+18,b-37);ctx.lineTo(r+32,b+5);
+  ctx.lineTo(r-12,b+14);ctx.lineTo(l+w*.67,b-5);
+  ctx.lineTo(l+w*.45,b+7);ctx.lineTo(l+10,b+16);ctx.closePath();
  };
- traceMouth();ctx.fillStyle='#061522';ctx.fill();
- ctx.save();traceMouth();ctx.clip();
- const inner=ctx.createLinearGradient(l-30,t,r+44,b);
- inner.addColorStop(0,'#2f5262');inner.addColorStop(.3,'#143244');
- inner.addColorStop(.7,'#061622');inner.addColorStop(1,'#091b29');
- ctx.fillStyle=inner;ctx.fillRect(l-50,t-40,w+140,b-t+120);
- // Concentric rock layers convey a deep, irregularly excavated cave.
- for(let n=0;n<4;n++){
-  const d=13+n*19;
-  ctx.strokeStyle=['#7b92935f','#8ca8a34e','#2e52636f','#0d2535ca'][n];
-  ctx.lineWidth=15-n*2;ctx.beginPath();
-  ctx.moveTo(l+d,b+3);
-  ctx.bezierCurveTo(l+d-20,t+40,l+w*.26+d*.26,t+8+n*9,mid,t+8+n*9);
-  ctx.bezierCurveTo(r-d*.4,t+5+n*9,r-d,b-18,r-d,b+5);ctx.stroke();
+ mouth();ctx.fillStyle='#091c29';ctx.fill();
+ ctx.save();mouth();ctx.clip();
+ const stone=ctx.createLinearGradient(l-40,t+20,r+50,b+20);
+ stone.addColorStop(0,'#254856');stone.addColorStop(.39,'#102b3b');
+ stone.addColorStop(.75,'#091a2a');stone.addColorStop(1,'#091723');
+ ctx.fillStyle=stone;ctx.fillRect(l-55,t-45,w+140,b-t+130);
+ for(let k=0;k<18;k++){
+  const x=l+((k*89+22)%Math.max(100,w));
+  ctx.strokeStyle=k%3===0?'#aac5c04a':'#31506382';
+  ctx.lineWidth=2+k%4;ctx.beginPath();
+  ctx.moveTo(x,t+13+(k%3)*7);
+  ctx.bezierCurveTo(x-21,t+40,x+17,b-80,x-8,b+17);ctx.stroke();
  }
- const glow=ctx.createRadialGradient(r-45,b-28,3,r-45,b-28,160);
- glow.addColorStop(0,'#ffcd8c9a');glow.addColorStop(.30,'#ef8b3a50');
- glow.addColorStop(.68,'#d3662218');glow.addColorStop(1,'#b5611200');
- ctx.fillStyle=glow;ctx.fillRect(l-40,t-30,w+130,b-t+95);
- ctx.fillStyle='#2c4554';
- ctx.beginPath();ctx.moveTo(l-35,b+20);ctx.lineTo(l-5,b+9);
- ctx.lineTo(l+47,b+13);ctx.lineTo(mid-10,b+7);
- ctx.lineTo(r-18,b+3);ctx.lineTo(r+34,b+15);
- ctx.lineTo(r+40,b+35);ctx.lineTo(l-38,b+37);ctx.fill();
- // Uneven rocks, silhouettes only inside the cavern mouth.
- for(let n=0;n<6;n++){
-  const x=l+22+n*34, y=b+7+(n%3)*3;
-  ctx.fillStyle=n%2?'#263b4a':'#425969';
-  ctx.beginPath();ctx.moveTo(x-14,y+4);ctx.lineTo(x-8,y-9);
-  ctx.lineTo(x+2,y-7-(n%3)*4);ctx.lineTo(x+16,y+6);ctx.fill();
- }
+ const glow=ctx.createRadialGradient(r-36,b-20,1,r-36,b-20,185);
+ glow.addColorStop(0,'#ffdd9fb1');glow.addColorStop(.37,'#ed923c6d');
+ glow.addColorStop(.8,'#bd5a1a1c');glow.addColorStop(1,'#bd5a1a00');
+ ctx.fillStyle=glow;ctx.fillRect(l-40,t-28,w+130,b-t+110);
  ctx.restore();
-
- // Massive broken overhang and cold rim: NO squared off horizontal roof.
- ctx.strokeStyle='#5b7480b0';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=21;
- ctx.beginPath();ctx.moveTo(l-34,b+10);
- ctx.bezierCurveTo(l-47,t+67,l-25,t-12,l+23,t-30);
- ctx.bezierCurveTo(l+w*.53,t-43,r+24,t-6,r+38,t+40);ctx.stroke();
- ctx.strokeStyle='#a1bdc3a1';ctx.lineWidth=5;ctx.stroke();
- ctx.fillStyle='#e9f4f6';ctx.beginPath();
- ctx.moveTo(l-53,t-31);ctx.lineTo(l-25,t-43);ctx.lineTo(l+16,t-40);
- ctx.lineTo(l+39,t-48);ctx.lineTo(l+72,t-35);
- ctx.lineTo(l+101,t-45);ctx.lineTo(r-16,t-32);
- ctx.lineTo(r+20,t-14);ctx.lineTo(r+6,t-18);
- ctx.lineTo(r-19,t-24);ctx.lineTo(l+77,t-24);
- ctx.lineTo(l+8,t-20);ctx.closePath();ctx.fill();
- // Physical floor remains untouched; a jagged stone apron conceals the box.
- ctx.fillStyle='#516f7a';ctx.beginPath();
- ctx.moveTo(l-38,b+15);ctx.lineTo(l-12,b+8);
- ctx.lineTo(l+45,b+12);ctx.lineTo(mid,b+7);
- ctx.lineTo(r-22,b+10);ctx.lineTo(r+37,b+17);
- ctx.lineTo(r+46,b+31);ctx.lineTo(mid+22,b+24);
- ctx.lineTo(l+16,b+27);ctx.lineTo(l-41,b+31);ctx.fill();
- ctx.strokeStyle='#bfdfe5c8';ctx.lineWidth=3;ctx.beginPath();
- ctx.moveTo(l-32,b+11);ctx.quadraticCurveTo(mid,b+5,r+25,b+13);ctx.stroke();
-
- // Warm fire at the end of the cave — the level finishes on landing here.
- const fx=r-36,fy=b-10,flick=Math.sin(performance.now()*.012)*5;
- ctx.strokeStyle='#513324';ctx.lineWidth=7;ctx.beginPath();
- ctx.moveTo(fx-13,fy);ctx.lineTo(fx+16,fy+4);
- ctx.moveTo(fx+12,fy);ctx.lineTo(fx-12,fy+3);ctx.stroke();
- ctx.fillStyle='#ffa82e';ctx.beginPath();ctx.moveTo(fx-13,fy);
- ctx.quadraticCurveTo(fx-22,fy-27,fx+4,fy-44-flick);
- ctx.quadraticCurveTo(fx+23,fy-17,fx+11,fy);ctx.fill();
- ctx.fillStyle='#fff1a7';ctx.beginPath();ctx.moveTo(fx-4,fy);
- ctx.quadraticCurveTo(fx-8,fy-19,fx+5,fy-24-flick*.4);
- ctx.quadraticCurveTo(fx+11,fy-5,fx+8,fy);ctx.fill();
+ // Jagged broken bedrock projects above and below the natural mouth.
+ for(let k=0;k<12;k++){
+  const f=k/11,x=l-36+w*f+Math.sin(k*3.12)*11;
+  const y=t-9+Math.sin(k*2.13)*12;
+  ctx.fillStyle=k%2?'#4b6471':'#3d5969';
+  ctx.beginPath();ctx.moveTo(x-21,y-13);
+  ctx.lineTo(x-7,y+11);ctx.lineTo(x+4,y+30+k%4*5);
+  ctx.lineTo(x+23,y+8);ctx.lineTo(x+15,y-20);ctx.closePath();ctx.fill();
+ }
+ ctx.fillStyle='#e6f2f2';ctx.beginPath();
+ ctx.moveTo(l-72,t-28);ctx.lineTo(l-35,t-45);ctx.lineTo(l+9,t-41);
+ ctx.lineTo(l+43,t-51);ctx.lineTo(l+w*.5,t-57);
+ ctx.lineTo(r-22,t-44);ctx.lineTo(r+40,t-23);
+ ctx.lineTo(r+17,t-20);ctx.lineTo(r-20,t-30);
+ ctx.lineTo(l+w*.52,t-38);ctx.lineTo(l+6,t-28);
+ ctx.lineTo(l-42,t-24);ctx.closePath();ctx.fill();
+ for(let k=0;k<9;k++){
+  const x=l+(k+1)*w/10,drop=8+(k*13)%34;
+  ctx.fillStyle=k%2?'#a4d1da98':'#e4f6f8d8';
+  ctx.beginPath();ctx.moveTo(x-3,t+1);ctx.lineTo(x+3,t+1);
+  ctx.lineTo(x,t+drop);ctx.closePath();ctx.fill();
+ }
+ // Organic stone apron follows the collision floor.
+ ctx.fillStyle='#536d7c';ctx.beginPath();
+ ctx.moveTo(l-47,b+16);ctx.lineTo(l-12,b+7);
+ ctx.lineTo(l+35,b+13);ctx.lineTo(l+w*.45,b+5);
+ ctx.lineTo(r-29,b+11);ctx.lineTo(r+46,b+16);
+ ctx.lineTo(r+55,b+47);ctx.lineTo(l-57,b+47);ctx.fill();
+ const fx=r-37,fy=b-14,flick=Math.sin(performance.now()*.012)*5;
+ ctx.strokeStyle='#533426';ctx.lineWidth=6;ctx.beginPath();
+ ctx.moveTo(fx-14,fy);ctx.lineTo(fx+16,fy+6);
+ ctx.moveTo(fx+11,fy);ctx.lineTo(fx-12,fy+6);ctx.stroke();
+ ctx.fillStyle='#f9a62a';ctx.beginPath();ctx.moveTo(fx-15,fy+5);
+ ctx.quadraticCurveTo(fx-21,fy-23,fx+4,fy-43-flick);
+ ctx.quadraticCurveTo(fx+20,fy-15,fx+12,fy+4);ctx.fill();
+ ctx.fillStyle='#fff4b5';ctx.beginPath();ctx.moveTo(fx-5,fy+5);
+ ctx.quadraticCurveTo(fx-8,fy-13,fx+5,fy-24);
+ ctx.lineTo(fx+9,fy+5);ctx.fill();
  ctx.restore();
 }
 
@@ -463,7 +448,7 @@ function drawIceClimb(i) {
 
 function drawCaveLadder() {
  const c=spires[4].cave, x=c.right-25;
- const startY=c.floor-5, endY=spires[4].summit[2]-10;
+ const startY=c.floor-7, endY=c.ceiling+18; // Cave-only metal rungs
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  // Brushed steel rails and ice-encrusted wall brackets.
  ctx.strokeStyle='#203746';ctx.lineWidth=9;
