@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.17 - Mobile Performance */
+/** Summitbound v0.9.18 - Sharper Mobile */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.17: Mobile Performance';
+    document.title = 'Summitbound — v0.9.18: Sharper Mobile';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

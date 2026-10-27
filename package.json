@@ -25,6 +25,7 @@
     "test:ice-art": "node --test tests/ice-face-art.test.cjs",
     "test:cache": "node --test tests/cache-budget.test.cjs",
     "test:resolution": "node --test tests/render-resolution.test.cjs",
+    "test:template": "node --test tests/approved-level-template.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
