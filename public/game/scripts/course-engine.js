@@ -6,7 +6,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
 const FEATURED_COURSE=Object.freeze({
- id:'five-peaks',version:3,levelNumber:1,campaignSize:100,peakCount:5,
+ id:'five-peaks',version:4,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
  checkpoints:Object.freeze([{peak:0,type:'start'},
    {peak:2,type:'campsite',ledge:0},{peak:4,type:'campsite',ledge:0}]),
@@ -16,8 +16,8 @@ const FEATURED_COURSE=Object.freeze({
   Object.freeze([150,105,65]),
   Object.freeze([105,55,25])
  ]),
- motifs:Object.freeze(['launch ridge','toothed wall','exposed camp',
-  'knife-edge crux','final campsite'])
+ motifs:Object.freeze(['stormbound starting ridge','the black notch double vault',
+  'windward precision campsite','broken crown uphill transfer','firespine final campsite'])
 });
 function isFeaturedCourse(){return true;}
 function featuredCheckpointAtPeak(peak){
@@ -147,6 +147,16 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
    if(ridge.safe<5)failures.push('ridge vault lacks precision but achievable release '+i);
    const gap=peak.summit[0]-peak.ridgeArrival[1];
    if(gap<280)failures.push('ridge not physically dangerous '+i);
+  }
+  // Catch a regression where a stronger pole silently makes the entire
+  // designed climbing system optional. Intended terrain must be first.
+  const directSummit=shelfTimingProfiles([peak.summit],previous.summit)[0];
+  if(directSummit.hits>0)
+   failures.push('incoming pole can bypass mountain and land on summit '+i);
+  if(peak.ridgeArrival){
+   const bypass=shelfTimingProfiles([peak.ridgeArrival],previous.summit)[0];
+   if(bypass.hits>0)
+    failures.push('incoming leap can bypass the ice and land on arrival '+i);
   }
   const minGap=Math.min(...peak.ledges.map(l=>l[0]-previous.summit[1]));
   if(minGap<400)failures.push('crossing not sufficiently wide '+i);
