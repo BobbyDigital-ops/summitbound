@@ -155,7 +155,7 @@ function selectTerraces(spire,seed){
    if(Math.max(...xs)-Math.min(...xs)<165)continue;
    if(Math.min(...xs)-previous[1]<385)continue; // no trivial takeoff hop
    if(byHeight.some((t,i)=>i>0&&t[2]-byHeight[i-1][2]<65))continue;
-   if(Math.max(...widths)-Math.min(...widths)<35)continue;
+   if(Math.max(...widths)-Math.min(...widths)<42)continue;
    if(!viableShelves(ledges,previous))continue;
    // Rising left face with a crest farther right; retain a real horizontal
    // pole-planting runup on top without changing the physics or controls.
