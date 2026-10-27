@@ -45,7 +45,7 @@ function currentPlatform(){return platforms.find(pl=>pl.id===p.standingOn)}
 function plant(){
  if(!isGround())return;
  const pl = currentPlatform();
- if(!pl || pl.kind!=='summit' || p.state==='CLIMBING')return;
+ if(!pl || !['summit','ledge'].includes(pl.kind) || p.state==='CLIMBING')return;
  const val = PolePhysicsEngine.validatePlantPoint(p.x, p.y, p.facingDir, [pl], cfg);
  if(!val.isValid)return;
  p.vault = PolePhysicsEngine.initVault(p.x, p.y, p.vx, p.vy, val.anchorX, val.anchorY, cfg);
