@@ -2,7 +2,7 @@
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d'), meter = document.getElementById('meter'), needle = document.getElementById('needle'), stageEl = document.getElementById('stage'), subEl = document.getElementById('substage'), notice = document.getElementById('notice');
 const DT = 1/120; const PI = Math.PI;
 
-let mode = 'practice', p = {}, platforms = [], fingers = {left:new Set(),right:new Set(),up:new Set(),vault:null}, keys = new Set(), camera = {x:0,y:0}, acc = 0, prev = performance.now(), elapsed = 0, completed = false, caveActivated = false, peakBuzz = false, trail = [], lastMessage = '', messageTimeout = 0, atStage = 0, lastSafeStage = 0, landingHistory = [];
+let mode = 'practice', p = {}, platforms = [], fingers = {left:new Set(),right:new Set(),up:new Set(),down:new Set(),vault:null}, keys = new Set(), camera = {x:0,y:0}, acc = 0, prev = performance.now(), elapsed = 0, completed = false, caveActivated = false, peakBuzz = false, trail = [], lastMessage = '', messageTimeout = 0, atStage = 0, lastSafeStage = 0, landingHistory = [];
 
 let graphicsQuality='auto'; // auto / low / high, configurable in Tune
 const snow = Array.from({length:190},(_,i)=>({x:((i*7919)%1009)/1009,y:((i*179)%977)/977,r:i%7===0?1.9:.75,speed:.2+(i%5)*.12}));
@@ -25,7 +25,7 @@ function spawn(stage=0, keepTime=false){
  p = {x, y:pl.top-22, vx:0, vy:0, state:'GROUNDED', surface:'snow', facingDir:1, runDistance:0, vault:null, anchorX:0, anchorY:0, bend:0, groundedFor:.5, standingOn:pl.id, climb:null};
  if(!keepTime) elapsed=0;
  if(stage===0) caveActivated=false;
- atStage=stage; lastSafeStage=stage; completed=false; trail=[]; acc=0; peakBuzz=false; fingers.vault=null; fingers.up.clear();
+ atStage=stage; lastSafeStage=stage; completed=false; trail=[]; acc=0; peakBuzz=false; fingers.vault=null; fingers.up.clear(); fingers.down.clear();
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
  const zoom = getZoom();
  camera.x = x - .26 * innerWidth / zoom; camera.y = p.y - .60 * innerHeight / zoom;
@@ -58,7 +58,8 @@ function input(){
  return {
   left: keys.has('a') || keys.has('keya') || keys.has('arrowleft') || fingers.left.size > 0,
   right: keys.has('d') || keys.has('keyd') || keys.has('arrowright') || fingers.right.size > 0,
-  up: keys.has('arrowup') || keys.has('w') || keys.has('keyw') || fingers.up.size > 0
+  up: keys.has('arrowup') || keys.has('w') || keys.has('keyw') || fingers.up.size > 0,
+  down: keys.has('arrowdown') || keys.has('s') || keys.has('keys') || fingers.down.size > 0
  };
 }
 
