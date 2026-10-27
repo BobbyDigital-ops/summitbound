@@ -345,6 +345,7 @@ function drawSpire(i,paintCtx=ctx){
 
 function drawCave(){
  const c=spires[4].cave,l=c.left,r=c.right,t=c.ceiling,b=c.floor,w=r-l;
+ const geom=caveGeometry();
  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
  // Raw split mountain stone, with an irregular dark opening in its side.
  ctx.fillStyle='#2b4555';ctx.beginPath();
@@ -360,7 +361,7 @@ function drawCave(){
   ctx.lineTo(l+w*.35,t+5);ctx.lineTo(l+w*.48,t-22);
   ctx.lineTo(l+w*.69,t+5);ctx.lineTo(r-16,t-9);
   ctx.lineTo(r+8,t+14);ctx.lineTo(r+27,t+49);
-  ctx.lineTo(r+18,b-37);ctx.lineTo(r+32,b+5);
+  ctx.lineTo(r-4,b-37);ctx.lineTo(r-10,b+5);
   ctx.lineTo(r-12,b+14);ctx.lineTo(l+w*.67,b-5);
   ctx.lineTo(l+w*.45,b+7);ctx.lineTo(l+10,b+16);ctx.closePath();
  };
@@ -377,7 +378,7 @@ function drawCave(){
   ctx.moveTo(x,t+13+(k%3)*7);
   ctx.bezierCurveTo(x-21,t+40,x+17,b-80,x-8,b+17);ctx.stroke();
  }
- const glow=ctx.createRadialGradient(r-36,b-20,1,r-36,b-20,185);
+ const glow=ctx.createRadialGradient(geom.fireX,b-20,1,geom.fireX,b-20,175);
  glow.addColorStop(0,'#ffdd9fb1');glow.addColorStop(.37,'#ed923c6d');
  glow.addColorStop(.8,'#bd5a1a1c');glow.addColorStop(1,'#bd5a1a00');
  ctx.fillStyle=glow;ctx.fillRect(l-40,t-28,w+130,b-t+110);
@@ -410,7 +411,7 @@ function drawCave(){
  ctx.lineTo(l+35,b+13);ctx.lineTo(l+w*.45,b+5);
  ctx.lineTo(r-29,b+11);ctx.lineTo(r+46,b+16);
  ctx.lineTo(r+55,b+47);ctx.lineTo(l-57,b+47);ctx.fill();
- const fx=r-37,fy=b-14,flick=Math.sin(performance.now()*.012)*5;
+ const fx=geom.fireX,fy=b-14,flick=Math.sin(performance.now()*.012)*5;
  ctx.strokeStyle='#533426';ctx.lineWidth=6;ctx.beginPath();
  ctx.moveTo(fx-14,fy);ctx.lineTo(fx+16,fy+6);
  ctx.moveTo(fx+11,fy);ctx.lineTo(fx-12,fy+6);ctx.stroke();
@@ -420,6 +421,20 @@ function drawCave(){
  ctx.fillStyle='#fff4b5';ctx.beginPath();ctx.moveTo(fx-5,fy+5);
  ctx.quadraticCurveTo(fx-8,fy-13,fx+5,fy-24);
  ctx.lineTo(fx+9,fy+5);ctx.fill();
+ // The exposed back wall is now visible stone rather than a painted gap.
+ // This agrees with the solid wallX used by the cave collision solver.
+ ctx.fillStyle='#213c4ad9';ctx.beginPath();
+ ctx.moveTo(geom.wallX+3,t+13);
+ ctx.lineTo(geom.wallX+16,t+39);
+ ctx.lineTo(r+24,t+63);
+ ctx.lineTo(r+19,b+13);
+ ctx.lineTo(geom.wallX+5,b+9);
+ ctx.lineTo(geom.wallX+8,b-50);
+ ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#9eb4bd44';ctx.lineWidth=2.4;ctx.beginPath();
+ ctx.moveTo(geom.wallX+5,t+43);
+ ctx.lineTo(geom.wallX+8,b-57);
+ ctx.stroke();
  ctx.restore();
 }
 
@@ -633,7 +648,7 @@ function drawIceCrestSnow(i,paintCtx=ctx){
 }
 
 function drawCaveLadder() {
- const c=spires[4].cave, x=c.right-25;
+ const c=spires[4].cave, x=caveGeometry().ladderX;
  const startY=c.floor-7, endY=c.ceiling+18; // Cave-only metal rungs
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  // Brushed steel rails and ice-encrusted wall brackets.
