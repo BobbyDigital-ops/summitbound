@@ -39,10 +39,10 @@ function processKeyDown(keyStr, codeStr) {
   (k==='d'||k==='arrowright'||c==='keyd')?1:0;
  if(axeSide&&!keys.has(k)&&!keys.has(c)){
   iceAxeStrike(axeSide);
-  axeCatchStrike(axeSide);
+  if(typeof axeCatchStrike==='function')axeCatchStrike(axeSide);
  }
- if((k==='f'||c==='keyf')&&!keys.has(k)&&!keys.has(c))
-  attemptAxeCatch();
+ if((k==='f'||c==='keyf')&&!keys.has(k)&&!keys.has(c)&&
+    typeof attemptAxeCatch==='function')attemptAxeCatch();
 
  const isSpace = k === ' ' || k === 'space' || c === 'space';
  if (isSpace) {
@@ -129,7 +129,7 @@ window.addEventListener('pointerdown', () => window.focus());
 function control(el, dir){
  el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); if(dir==='left'||dir==='right'){
    iceAxeStrike(dir==='left'?-1:1);
-   axeCatchStrike(dir==='left'?-1:1);
+   if(typeof axeCatchStrike==='function')axeCatchStrike(dir==='left'?-1:1);
   } fingers[dir].add(e.pointerId); el.classList.add('down'); });
  for(const evt of ['pointerup','pointercancel','lostpointercapture']) el.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); fingers[dir].delete(e.pointerId); el.classList.toggle('down', fingers[dir].size > 0); });
 }
@@ -140,7 +140,8 @@ control(document.getElementById('up'), 'up');
 control(document.getElementById('down'), 'down');
 const catchButton=document.getElementById('catch');
 catchButton?.addEventListener('pointerdown',e=>{
- e.preventDefault();e.stopPropagation();attemptAxeCatch();
+ e.preventDefault();e.stopPropagation();
+ if(typeof attemptAxeCatch==='function')attemptAxeCatch();
 });
 document.getElementById('ghostToggle')?.addEventListener('click',()=>{
  trialGhostVisible=!trialGhostVisible;
