@@ -1,3 +1,13 @@
+# v0.14 physics and mountain topology note
+
+The rendered cliff's rock shoulder and the top walkable summit are no longer the same thing. `spires[i].rockShoulderLeft` is the structural rock envelope reference; the summit's left collider stays on its actual narrow crest. This removes the misleading extra-wide, stretched summit snow that enabled a pole vault to bypass all ledges. The ice/rock attachment is audited separately at the true shelf lips.
+
+The v0.14 vault gives the player three meaningful choices: near-vertical ascent with virtually no forward translation at early release; a high forward arc as the pole turns; and a lower maximum-distance vault mid-swing. The player must not get a distance benefit merely by hanging on; stored recoil dissipates beyond the effective release window. The meter now labels **VERTICAL / RANGE / POWER FADES**. An overheld release is intentionally poor.
+
+Four receiving-peak crossings remain viable with safe release windows. Each requires landing on a genuine shelf or checkpoint ledge and following an ice route, rather than jumping directly onto an artificially widened summit. The four-peak bypass test uses swept first-contact collision against both shelf and summit and rejects any direct summit-first arrival. The final target is still exactly **100** curated levels.
+
+---
+
 # v0.13.0 — Vault physics separated from mountain authoring
 
 The five-peak reference geography is now **frozen as authored input**, so physics can be redesigned without making the old seed-zero procedural selector fail or move the mountains. The active course samples `PolePhysicsEngine` after `pole-dynamics.js` is loaded, while the frozen pre-Phase-8 selector remains available without that module.
