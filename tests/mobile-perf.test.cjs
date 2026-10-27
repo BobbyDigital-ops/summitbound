@@ -33,6 +33,12 @@ test('frame pacing retains 120Hz physics but slows stationary mobile painting',(
  assert.match(render,/if\(stageEl\.textContent!==stageText\)/);
  assert.match(render,/if\(timerEl\.textContent!==timeLabel\)/);
 });
+test('portrait HUD scrolls rather than expanding into multiple toolbar rows',()=>{
+ const styles=fs.readFileSync('public/game/summit-style.css','utf8');
+ assert.match(styles,/#top \.group\{display:flex;flex-wrap:nowrap/);
+ assert.match(styles,/overflow-x:auto/);
+ assert.match(styles,/#hud\{top:80px\}/);
+});
 test('player HUD release version stays in sync with document title',()=>{
  const match=html.match(/<title>Summitbound — ([^<]*?) (v\d+\.\d+\.\d+)<\/title>/);
  assert.ok(match,'document title has semver release');

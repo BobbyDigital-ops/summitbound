@@ -7,3 +7,20 @@
 #help{position:fixed;bottom:16px;right:14px;z-index:4;pointer-events:none;font-size:11px;color:#f1f5f7;text-shadow:0 2px 5px #081824a0;background:#0d243b9c;border-radius:9px;padding:8px 10px;max-width:330px;text-align:right}
 #tuning{position:fixed;z-index:9;right:12px;top:60px;width:min(280px,94vw);background:#0e263af2;border:1px solid #bed3e275;border-radius:14px;padding:13px;box-shadow:0 15px 35px #0009}#tuning[hidden]{display:none}#tuning .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}#tuning label{display:block;font-size:12px;margin:12px 0}#tuning label span{float:right;color:#ffe3a8}#tuning input{width:100%}#tuning small{color:#b3cadb;line-height:1.5}#victory{display:none;position:fixed;z-index:10;inset:0;background:#071a2bba;align-items:center;justify-content:center;padding:16px}#victory.open{display:flex}#victory section{max-width:440px;width:100%;text-align:center;border-radius:20px;background:#112e43eb;border:1px solid #dbe6ef65;box-shadow:0 15px 70px #0008;padding:25px}#victory h1{margin:0 0 8px;font-size:26px;color:#ffe4a4}#victory p{color:#dce8f0;line-height:1.5}
 @media (max-width:760px){#top{padding:5px 8px}#brand{font-size:13px}#top button{padding:7px;font-size:10px}#timer{font-size:10px}#hud{top:65px;left:5px;background:#08223891;padding:5px 7px;min-width:0}#hud div{font-size:9px}#hud strong{font-size:10px}#notice{top:62px;font-size:11px}#meter{top:52px;left:auto;right:12px;transform:none;width:34vw}#controls button{height:60px;width:64px}#help{bottom:8px;right:7px;max-width:200px;font-size:9px} }
+
+/* Portrait gameplay: one compact horizontally scrollable action strip,
+   not two or three wrapped rows consuming half the mobile viewport. */
+@media (max-width:760px){
+ #top{display:block;padding:6px 8px 7px}
+ #brand{line-height:1.16;margin-bottom:5px}
+ #top .group{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;
+  overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch}
+ #top .group::-webkit-scrollbar{display:none}
+ #top .group button,#routeLabel,#timer{flex-shrink:0;white-space:nowrap}
+ #hud{top:80px}#notice{top:80px}#meter{top:80px}
+ #tuning{top:76px;max-height:calc(100dvh - 94px);overflow-y:auto}
+ #tuning .row{flex-wrap:wrap;gap:7px}
+ #performanceLabel{display:block;flex:1 1 100%;min-width:0;
+  overflow-wrap:anywhere;line-height:1.35}
+}
