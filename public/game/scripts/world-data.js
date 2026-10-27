@@ -10,10 +10,10 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
- {name:'The Broken Tooth',summit:[1580,2480,945,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3150,3980,830,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[4680,5540,710,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
- {name:'Firespine Cavern',summit:[6290,7100,420,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
+ {name:'The Broken Tooth',summit:[1580,2480,800,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
+ {name:'The Windward Spire',summit:[3150,3980,555,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[4680,5540,305,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'Firespine Cavern',summit:[6290,7100,-55,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
 ];
 
 // 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
@@ -95,18 +95,23 @@ let routeSeed = 0;
 
 // Stage-specific upward targets. Every playable landing is ABOVE the prior
 // spire's launch summit (lower world Y means higher altitude).
+// 1–4 terraces are distributed vertically across a genuine cliff face.
+// At every mountain: LOW gains a little altitude, HIGH saves real climbing,
+// RIDGE is the skill-based near-summit shortcut.
 const risingTerraces={
- 1:{High:990,Middle:1030,Low:1075},
- 2:{High:875,Middle:905,Low:935},
- 3:{High:755,Middle:790,Low:820}
+ 1:{High:905,Middle:970,Low:1045},
+ 2:{High:667,Middle:719,Low:780},
+ 3:{High:420,Middle:478,Low:540}
 };
 const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
+// Increasing X with elevation carves an upward diagonal up the approach face,
+// rather than short shelves stacked in the same narrow left-hand strip.
 const terraceShift={
  1:{High:190,Middle:200,Low:-45},
- 2:{High:605,Middle:375,Low:195},
- 3:{High:315,Middle:255,Low:-15}
+ 2:{High:350,Middle:250,Low:195},
+ 3:{High:225,Middle:190,Low:-15}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
 function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
@@ -122,9 +127,9 @@ function selectTerraces(group,spire,seed){
  const count=terraceCount(spire,seed);
  const labels=count===1?['Low']:count===2?['Low','Middle']:count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
  return labels.map(label=>label==='Ridge'
-  ?[spires[spire].summit[0]+180+((seed*23+spire*11)%100),
-    spires[spire].summit[0]+318+((seed*23+spire*11)%100),
-    spires[spire].summit[2]+42,'snow','Ridge']
+  ?[spires[spire].summit[0]+245+((seed*23+spire*11)%44),
+    spires[spire].summit[0]+390+((seed*23+spire*11)%44),
+    spires[spire].summit[2]+53,'snow','Ridge']
   :lookup[label]);
 }
 
@@ -138,7 +143,7 @@ function applyRoute(seed) {
  // The fire is a new, HIGHER destination, embedded in the side of the final
  // massif. Both cave ceiling and floor must remain real collision surfaces.
  const original=caveLayouts[routeSeed];
- const floor=680+Math.round((original.floor-892)*.28);
+ const floor=260+Math.round((original.floor-892)*.12);
  const left=original.left-700;
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};

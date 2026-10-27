@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.9 - Visual Recovery */
+/** Summitbound v0.9.10 - Balanced Ascent */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.9: Visual Recovery';
+    document.title = 'Summitbound — v0.9.10: Balanced Ascent';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

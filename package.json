@@ -17,6 +17,7 @@
     "test:renderer": "node --test tests/renderer-smoke.test.cjs",
     "test:browser": "node tests/browser-smoke.cjs",
     "test:visual": "node --test tests/visual-recovery.test.cjs",
+    "test:terrain": "node --test tests/terrain-balance.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
