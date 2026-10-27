@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.13.0 - Five Peaks */
+/** Summitbound v0.14.0 - Five Peaks */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.13.0: Five Peaks';
+    document.title = 'Summitbound — v0.14.0: Five Peaks';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
