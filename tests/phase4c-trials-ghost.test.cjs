@@ -11,7 +11,7 @@ function harness(){
  const ctx=vm.createContext({Image:class Image{},document:dom,
   performance:{now:()=>1},navigator:{vibrate(){}},innerWidth:960,innerHeight:720,
   localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)}});
- for(const file of ['physics.js','world-data.js','game-state.js','time-trial.js','simulation.js'])
+ for(const file of ['physics.js','world-data.js','game-state.js','time-trial.js','climb-mechanics.js','simulation.js'])
   vm.runInContext(read(file),ctx,{filename:file});
  return {ctx,store,dom,run:s=>vm.runInContext(s,ctx)};
 }
@@ -62,9 +62,9 @@ test('Phase 4C: skip, incomplete gates, and physics tuning cannot forge ranked P
 test('Phase 4C: versioned route-specific records reject corrupt or foreign data',()=>{
  const {run,store}=harness();
  run('mode="trial";gameReset()');
- store.set('summitbound:trial:v1:route:0','{"version":1,"seed":42,"best":8,"frames":[],"splits":[]}');
+ store.set('summitbound:trial:v2:route:0','{"version":2,"seed":42,"best":8,"frames":[],"splits":[]}');
  assert.equal(run('readTrialRecord()'),null);
- store.set('summitbound:trial:v1:route:0','not-json');
+ store.set('summitbound:trial:v2:route:0','not-json');
  assert.equal(run('readTrialRecord()'),null);
 });
 test('Phase 4C: no added decorative snow bridge or detached ledge collider',()=>{
