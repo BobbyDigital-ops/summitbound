@@ -25,7 +25,7 @@ test('the final destination has an immense jagged summit above its side cave',()
 });
 test('natural snow gulley, frozen falls and dwarfed ledge pines',()=>{
  assert.match(render,/function pine\(/);
- assert.match(render,/Frozen falls:/);
+ assert.match(render,/All ice-coloured features here are climbable routes/);
  assert.match(render,/Snow tongues descend/);
  assert.match(render,/ledge\[0\]\+19/);
 });
