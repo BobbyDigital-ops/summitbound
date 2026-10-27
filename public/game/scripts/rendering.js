@@ -115,16 +115,23 @@ function drawSpire(i,paintCtx=ctx){
   const crag=(i===4 ? ridgeAt(f) :
    -(4+17*Math.pow(Math.max(0,Math.sin(f*18+i*3.7)),4))
    *(f>.21&&f<.86?1:0));
-  const rough=2.9*Math.sin(f*71+i*3.7)+2.6*Math.sin(f*151+i);
+  // Broken wind-scoured crown rather than an unvaried ruler-straight top.
+  // Keep the silhouette close to the actual flat, playable takeoff surface.
+  const rough=4.1*Math.sin(f*71+i*3.7)+3.2*Math.sin(f*151+i);
   paintCtx.lineTo(x,T-2+crag+rough);
  }
- // Wind-cut rear face: no artificial vertical grey rectangle wall.
+ // Wind-cut outer flank recedes beneath its sheer summit lip. The lower
+ // rock face is tapered and fractured rather than a rectangular vertical
+ // wall; overshooting the crest still leaves clear open-air space.
  for(let y=T+23;y<bottom;y+=27){
   const depth=y-T;
-  const flank=R+8+Math.sin(depth*.013+i)*19+Math.sin(depth*.041+i*2)*7+Math.min(38,depth*.022);
+  const recede=Math.min(i===4?95:205,depth*(i===4?.075:.18));
+  const stratified=Math.sin(depth*.0068+i)*Math.sin(depth*.0029+i*1.5)*22;
+  const flank=R+14-recede+Math.sin(depth*.014+i)*18+
+   Math.sin(depth*.047+i*2)*7+stratified;
   paintCtx.lineTo(flank,y);
  }
- paintCtx.lineTo(R+41,bottom);
+ paintCtx.lineTo(R-(i===4?80:188),bottom);
  paintCtx.lineTo(mountainContourX(i,bottom),bottom);
  for(let y=bottom-16;y>T+2;y-=14)paintCtx.lineTo(mountainContourX(i,y),y);
  paintCtx.closePath();
@@ -259,7 +266,12 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.lineTo(b-width*.3,y+44);
   paintCtx.lineTo(a+width*.58,y+51+(i%2)*19);
   paintCtx.lineTo(a+width*.25,y+88);
-  paintCtx.lineTo(a+width*.11,y+51);paintCtx.lineTo(a-9,y+14);
+  // Exposed bedrock roots back into the continuous mountain contour.
+  // The landing lip is not a detached platform suspended in the chasm.
+  const rootX=mountainContourX(i,y+88)-5;
+  paintCtx.lineTo(rootX+18,y+108);
+  paintCtx.lineTo(rootX-5,y+70);
+  paintCtx.lineTo(a-9,y+14);
   paintCtx.closePath();paintCtx.fill();
   paintCtx.strokeStyle='#9db5bc6b';paintCtx.lineWidth=2;
   paintCtx.beginPath();paintCtx.moveTo(a+11,y+20);
