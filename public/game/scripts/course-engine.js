@@ -141,7 +141,15 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
    });
   }
   for(const source of sources){
-   const profiles=shelfTimingProfiles(dest,source.surface);
+   // A shelf is not a legitimate fast-launch shortcut just because a
+   // simulator teleports a full-sprint runner onto it. The pole plant
+   // consumes 120 units, and the remaining run-up must build speed from
+   // rest. Landing momentum may allow emergent saves, not authored guarantees.
+   const maxSpeed=source.id.startsWith('s')?Infinity:
+    Math.sqrt(2*cfg.runAcceleration*Math.max(0,
+     source.surface[1]-source.surface[0]-
+     PolePhysicsEngine.PLANT_OFFSET-18));
+   const profiles=shelfTimingProfiles(dest,source.surface,maxSpeed);
    for(let t=0;t<dest.length;t++){
     if(profiles[t].safe<2)continue;
     addEdge(source.id,'l'+i+'-'+t,
