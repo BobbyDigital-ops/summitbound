@@ -402,64 +402,98 @@ function drawCave(){
  ctx.restore();
 }
 
-// 4. One frozen ice ascent per outdoor mountain; a single steel ladder in the cave.
+// Wider, irregular frozen cliff sections: a changing surface, NOT a
+// continuous, rounded tube. This changes artwork only; iceClimbPoints()
+// still owns the movement path and the existing Up/W climb behaviour.
+function iceFaceWidths(t,spire,tier){
+ const phase=spire*1.53+tier*2.31;
+ const shoulder=.83+.17*Math.sin(Math.PI*t);
+ const left=Math.max(20,(34+11*Math.sin(t*16.2+phase)+
+  6*Math.sin(t*37.5+phase*.7))*shoulder);
+ const right=Math.max(21,(36+13*Math.cos(t*12.4+phase*.8)+
+  7*Math.sin(t*29.1+phase*1.2))*shoulder);
+ return {left,right};
+}
 function drawIceClimb(i,paintCtx=ctx) {
  const routes=independentIceRoutes(i);
  for(const route of routes){
- const points=route.points;
- if(points.length<2)continue;
- const lower = points[0], upper = points[points.length-1];
- const left = [], right = [], mid = [];
- for (let y = lower.y; y >= upper.y; y -= 8) {
-  const pos = icePositionAt(i,y,route.tier);
-  const jag = Math.sin(y * .093 + i * 2.1) * 2.3 + Math.sin(y * .23) * 1.5;
-  mid.push({x:pos.x + jag, y});
- }
- mid.push({x:upper.x,y:upper.y});
- for (const pos of mid) {
-  const drift = Math.sin(pos.y * .08 + i) * 3;
-  left.push({x:pos.x-15 + drift*.3,y:pos.y});
-  right.push({x:pos.x+14 + drift*.15,y:pos.y});
- }
- paintCtx.save();
- paintCtx.lineJoin='round'; paintCtx.lineCap='round';
- // Rock-to-ice seam: a continuous band fused into the mountain face.
- paintCtx.beginPath(); left.forEach((p,j)=>j?paintCtx.lineTo(p.x,p.y):paintCtx.moveTo(p.x,p.y));
- right.slice().reverse().forEach(p=>paintCtx.lineTo(p.x,p.y));
- paintCtx.closePath(); paintCtx.fillStyle='#092d429c';paintCtx.fill();
- paintCtx.strokeStyle='#21455899';paintCtx.lineWidth=5;paintCtx.stroke();
- const ice=paintCtx.createLinearGradient(lower.x-25,0,lower.x+35,0);
- ice.addColorStop(0,'#527d92d8');ice.addColorStop(.3,'#b8f0f4db');
- ice.addColorStop(.58,'#73cbd9cc');ice.addColorStop(1,'#2a6e8ab8');
- paintCtx.beginPath();
- mid.forEach((p,j)=>j?paintCtx.lineTo(p.x,p.y):paintCtx.moveTo(p.x,p.y));
- paintCtx.strokeStyle=ice;paintCtx.lineWidth=23;paintCtx.stroke();
- paintCtx.beginPath();
- mid.forEach((p,j)=>j?paintCtx.lineTo(p.x-9,p.y):paintCtx.moveTo(p.x-9,p.y));
- paintCtx.strokeStyle='#e6fbff91';paintCtx.lineWidth=2.7;paintCtx.stroke();
- // Embedded angular ice crystal veins, not ladder rungs.
- for(let y=lower.y-17, n=0; y>upper.y+12; y-=24,n++){
-  const here=icePositionAt(i,y,route.tier);
-  const sign=n%2===0 ? -1 : 1;
-  paintCtx.strokeStyle=n%3===0?'#e7fbffc9':'#123c57a8';
-  paintCtx.lineWidth=n%3===0?2.5:1.9;
-  paintCtx.beginPath();paintCtx.moveTo(here.x+sign*4,y-11);
-  paintCtx.lineTo(here.x+sign*(12+n%3*3),y+2);
-  paintCtx.lineTo(here.x+sign*7,y+12);paintCtx.stroke();
-  if(n%3===1){
-   paintCtx.fillStyle='#e9ffffd5';paintCtx.beginPath();
-   paintCtx.moveTo(here.x-1,y-4);paintCtx.lineTo(here.x+5,y+2);
-   paintCtx.lineTo(here.x,y+8);paintCtx.lineTo(here.x-4,y+2);paintCtx.fill();
+  const points=route.points;
+  if(points.length<2)continue;
+  const lower=points[0],upper=points.at(-1);
+  const height=Math.max(1,lower.y-upper.y);
+  const sections=[];
+  for(let y=lower.y;y>upper.y;y-=9){
+   const t=(lower.y-y)/height;
+   const at=icePositionAt(i,y,route.tier);
+   const drift=2.7*Math.sin(y*.057+i*2.1+route.tier*1.9);
+   sections.push({x:at.x+drift,y,t,...iceFaceWidths(t,i,route.tier)});
   }
- }
- // Mark the places where the frozen route meets each landing terrace.
- for(const point of points.slice(0,-1)){
-  paintCtx.strokeStyle='#d7f8f9cf';paintCtx.lineWidth=3;
-  paintCtx.beginPath();paintCtx.moveTo(point.x-17,point.y-2);
-  paintCtx.lineTo(point.x-9,point.y-12);
-  paintCtx.moveTo(point.x+13,point.y-1);paintCtx.lineTo(point.x+5,point.y-10);paintCtx.stroke();
- }
- paintCtx.restore();
+  sections.push({x:upper.x,y:upper.y,t:1,...iceFaceWidths(1,i,route.tier)});
+  // Uneven left and right margins; the outline is never a uniform-radius
+  // tube and the frosted surface changes width independently on both sides.
+  const outline=(leftRatio=1,rightRatio=1)=>{
+   paintCtx.beginPath();
+   sections.forEach((p,j)=>{
+    const x=p.x-p.left*leftRatio;
+    if(j===0)paintCtx.moveTo(x,p.y);else paintCtx.lineTo(x,p.y);
+   });
+   for(let j=sections.length-1;j>=0;j--){
+    const p=sections[j];paintCtx.lineTo(p.x+p.right*rightRatio,p.y);
+   }
+   paintCtx.closePath();
+  };
+  paintCtx.save();
+  paintCtx.lineJoin='round';paintCtx.lineCap='round';
+  // Shadowed rock seams and translucent glaze tie the formation into the
+  // underlying mountain. These are drawn into the cached terrain, not per frame.
+  outline(1.10,1.10);
+  paintCtx.fillStyle='#203d5070';paintCtx.fill();
+  outline();
+  const glacier=paintCtx.createLinearGradient(lower.x-65,lower.y,upper.x+75,upper.y);
+  glacier.addColorStop(0,'#477b8fad');
+  glacier.addColorStop(.28,'#a9d8dfcc');
+  glacier.addColorStop(.57,'#8bc4d1db');
+  glacier.addColorStop(.82,'#d9eff0bc');
+  glacier.addColorStop(1,'#608da3b2');
+  paintCtx.fillStyle=glacier;paintCtx.fill();
+  // A translucent inner ice sheet is irregular and broken up by rock, not
+  // a solid cyan line following the entire playable route.
+  outline(.53,.61);
+  paintCtx.fillStyle='#b7e6e4a1';paintCtx.fill();
+  // Embedded stone windows and diagonal cracks expose the rock beneath.
+  const n=Math.max(3,Math.floor(height/44));
+  for(let k=0;k<n;k++){
+   const t=(k+.48)/n,y=lower.y-t*height;
+   const p=icePositionAt(i,y,route.tier);
+   const w=iceFaceWidths(t,i,route.tier);
+   const side=(k+i+route.tier)%2===0?-1:1;
+   const fx=p.x+side*(side<0?w.left:w.right)*.48;
+   const reach=(side<0?w.left:w.right)*.52;
+   paintCtx.fillStyle=k%3===0?'#3e6678a0':'#527b8b84';
+   paintCtx.beginPath();
+   paintCtx.moveTo(fx-side*reach*.23,y-12);
+   paintCtx.lineTo(fx+side*reach*.83,y-6);
+   paintCtx.lineTo(fx+side*reach*.63,y+14);
+   paintCtx.lineTo(fx-side*reach*.12,y+21);
+   paintCtx.closePath();paintCtx.fill();
+   // Short individual frost fractures; no straight continuous centre stripe.
+   paintCtx.strokeStyle=k%3===1?'#edfaff99':'#32677988';
+   paintCtx.lineWidth=2.1+(k%3)*.5;
+   paintCtx.beginPath();paintCtx.moveTo(p.x-side*7,y-14);
+   paintCtx.lineTo(p.x+side*(11+k%4*4),y+1);
+   paintCtx.lineTo(p.x+side*3,y+18);paintCtx.stroke();
+  }
+  // Small frost deposits at the shelf entry and summit exit.
+  for(const edge of [lower,upper]){
+   paintCtx.fillStyle='#e4f7f2b8';paintCtx.beginPath();
+   paintCtx.moveTo(edge.x-21,edge.y+1);
+   paintCtx.lineTo(edge.x-8,edge.y-8);
+   paintCtx.lineTo(edge.x+6,edge.y-6);
+   paintCtx.lineTo(edge.x+23,edge.y+2);
+   paintCtx.lineTo(edge.x+9,edge.y-1);
+   paintCtx.closePath();paintCtx.fill();
+  }
+  paintCtx.restore();
  }
 }
 

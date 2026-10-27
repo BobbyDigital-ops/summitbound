@@ -30,4 +30,5 @@ jobs:
       - run: npm run test:chasm
       - run: npm run test:procedural
       - run: npm run test:allroutes
+      - run: npm run test:ice-art
       - run: npm run build
