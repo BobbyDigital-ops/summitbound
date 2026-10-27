@@ -59,3 +59,6 @@
  width:min(310px,calc(100vw - 28px));padding:6px;gap:5px}
  #campfireActions button{font-size:11px;padding:8px}
  #campfireActions span{flex-basis:100%;text-align:center}}
+
+/* Phase 8: legible narrow release window; marker is driven by actual vault time. */
+#bar::after{content:'';position:absolute;left:60%;width:16%;top:-4px;bottom:-4px;border:1px solid #fff1a8;background:#e8cf6173;border-radius:4px;pointer-events:none}
