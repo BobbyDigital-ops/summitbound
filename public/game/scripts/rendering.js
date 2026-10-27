@@ -1015,7 +1015,7 @@ function backdropViewport(iw,ih,w,h,cameraX,cameraY){
 
 function draw(){
  const catchBtn=document.getElementById('catch');
- if(catchBtn)catchBtn.hidden=!(p.state==='AIRBORNE'||p.state==='FALLING')||catchUsed;
+ if(catchBtn)catchBtn.hidden=!(p.state==='AIRBORNE'||p.state==='FALLING')||(typeof catchUsed!=='undefined'&&catchUsed);
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
  camera.x += (targetX - camera.x) * .055; camera.y += (targetY - camera.y) * .045;
