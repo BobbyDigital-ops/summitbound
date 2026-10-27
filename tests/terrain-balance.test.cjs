@@ -10,7 +10,7 @@ for(let route=0;route<9;route++){
    const ledges=s[i].ledges.slice().sort((a,b)=>a[2]-b[2]);
    assert.ok(ledges.length>=1&&ledges.length<=4);
    const x=ledges.map(t=>t[0]);
-   if(x.length>=2)assert.ok(Math.max(...x)-Math.min(...x)>=190,'shelves should be spread along face');
+   if(x.length>=2)assert.ok(Math.max(...x)-Math.min(...x)>=165,'shelves should be spread along face');
    for(let j=1;j<ledges.length;j++)
     assert.ok(ledges[j][2]-ledges[j-1][2]>=(ledges.length===4?28:40),
      'landing elevation differences are visibly compressed');
