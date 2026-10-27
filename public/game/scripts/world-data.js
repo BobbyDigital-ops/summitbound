@@ -426,6 +426,18 @@ function rockBackingForIce(index,y,baseX){
  }
  return face;
 }
+// Source of truth for the opposite cliff boundary. Ice backing and
+// rendering must use this same physical silhouette or floating ice returns.
+function mountainFlankX(index,y){
+ const s=spires[index],R=s.summit[1],T=s.summit[2];
+ const depth=y-T,character=s.ridge?.character??.5;
+ const recede=Math.min(index===4?95:175+character*85,
+  depth*(index===4?.075:.12+character*.12));
+ const stratified=Math.sin(depth*.0068+index)*
+  Math.sin(depth*.0029+index*1.5)*22;
+ return R+14-recede+Math.sin(depth*.014+index)*18+
+  Math.sin(depth*.047+index*2)*7+stratified;
+}
 function mountainContourX(index,y){
  const nodes=mountainContourNodes(index);
  if(y<=nodes[0].y) return rockBackingForIce(index,y,nodes[0].x);
