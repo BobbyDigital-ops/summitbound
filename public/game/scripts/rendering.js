@@ -675,8 +675,8 @@ function mountainCache(i){
  // Mobile auto gets a sharper foreground raster, not a sharper/upscaled
  // distant background. Larger mountain sheets remain capped per dimension.
  const scale=graphicsQuality==='low'?.42:
-  graphicsQuality==='high'?1:(innerWidth<950?.72:.94);
- const maxAxis=graphicsQuality==='high'?2600:(innerWidth<950?2304:2300);
+  graphicsQuality==='high'?1:(innerWidth<950?.72:.88);
+ const maxAxis=graphicsQuality==='high'?2600:(innerWidth<950?2304:1800);
  const pixelScale=Math.min(1,scale,maxAxis/Math.max(width,height));
  const image=document.createElement('canvas');
  image.width=Math.ceil(width*pixelScale);image.height=Math.ceil(height*pixelScale);
