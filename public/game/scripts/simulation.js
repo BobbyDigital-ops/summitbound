@@ -432,7 +432,15 @@ function loop(now){
 function retry(){
  if(mode==='trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
  if(mode==='hardcore'){gameReset();hint('HARDCORE RUN RESTARTED',2);return;}
- if(typeof FEATURED_COURSE!=='undefined')practiceRespawnFromTakeoff();
+ if(typeof FEATURED_COURSE!=='undefined'){
+  // The manual Retry Peak button also works before making a new vault:
+  // if standing on a newly reached summit, practice that peak directly.
+  const standing=isGround()?currentPlatform():null;
+  if(standing&&['summit','ledge'].includes(standing.kind))
+   practiceTakeoff={spire:standing.spire,platformId:standing.id,
+    facingDir:p.facingDir||1};
+  practiceRespawnFromTakeoff();
+ }
  else if(caveActivated)caveRespawn();
  else spawn(Math.min(lastSafeStage,3),true);
 }
