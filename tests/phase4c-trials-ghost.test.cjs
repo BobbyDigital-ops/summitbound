@@ -62,9 +62,9 @@ test('Phase 4C: skip, incomplete gates, and physics tuning cannot forge ranked P
 test('Phase 4C: versioned route-specific records reject corrupt or foreign data',()=>{
  const {run,store}=harness();
  run('mode="trial";gameReset()');
- store.set('summitbound:trial:v4:route:0','{"version":4,"seed":42,"best":8,"frames":[],"splits":[]}');
+ store.set('summitbound:trial:v5:route:0','{"version":5,"seed":42,"best":8,"frames":[],"splits":[]}');
  assert.equal(run('readTrialRecord()'),null);
- store.set('summitbound:trial:v4:route:0','not-json');
+ store.set('summitbound:trial:v5:route:0','not-json');
  assert.equal(run('readTrialRecord()'),null);
 });
 test('Phase 4C: no added decorative snow bridge or detached ledge collider',()=>{
