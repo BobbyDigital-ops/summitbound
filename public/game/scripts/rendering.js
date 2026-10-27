@@ -679,6 +679,27 @@ function drawClimbingRoutes(i){
  else if(i>0) drawIceClimb(i);
 }
 
+// Rear/three-quarter wall-facing silhouette on ice. This temporary painted
+// overlay masks the front-facing sprite's facial detail until the planned
+// full character asset overhaul; weight transfer uses the same climbBeat
+// distance as the axes, so resting stops ALL climbing motion immediately.
+function drawClimberWallFacing(beat){
+ const step=Math.sin(beat*Math.PI*.72),shift=step*2.2;
+ ctx.save();ctx.translate(shift,0);
+ ctx.fillStyle='#78212f';ctx.beginPath();ctx.ellipse(0,-72,13,12,0,0,PI*2);ctx.fill();
+ ctx.fillStyle='#bf3c47';ctx.beginPath();
+ ctx.moveTo(-17,-61);ctx.quadraticCurveTo(-19,-43,-14,-26);
+ ctx.lineTo(13,-26);ctx.quadraticCurveTo(20,-44,17,-61);
+ ctx.quadraticCurveTo(0,-65,-17,-61);ctx.fill();
+ ctx.fillStyle='#8d2f40';ctx.beginPath();
+ ctx.roundRect(-10,-55,20,26,5);ctx.fill();
+ ctx.strokeStyle='#e17d72';ctx.lineWidth=2.1;
+ ctx.beginPath();ctx.moveTo(-12,-54);ctx.lineTo(-7,-33);
+ ctx.moveTo(12,-54);ctx.lineTo(7,-33);ctx.stroke();
+ ctx.strokeStyle='#482d34';ctx.lineWidth=3;ctx.beginPath();
+ ctx.moveTo(-14,-31);ctx.lineTo(13,-31);ctx.stroke();
+ ctx.restore();
+}
 function drawIcePicks(){
  if(!p.climb || !p.climb.isIce)return;
  // Continuous alternation tied to actual climbing distance; release Up and
@@ -758,6 +779,40 @@ function restingStaffEnds(gripX, gripY, direction, materialLength) {
 
 // Consistent weathered wooden shaft for both the carried and the bending state.
 // Only paints the existing points; vault motion, reach and spring physics are untouched.
+// Produce a curved pole whose sampled MATERIAL ARC LENGTH stays fixed.
+// The physical hand separation is limited to the available pole length;
+// no longer draw a stretched straight shaft at extreme launch poses.
+function vaultStaffArc(ax,ay,handX,handY,materialLength){
+ const dx=handX-ax,dy=handY-ay,chord=Math.hypot(dx,dy);
+ const scale=chord>materialLength?materialLength/chord:1;
+ const px=ax+dx*scale,py=ay+dy*scale,ux=-(py-ay)/Math.max(1,chord*scale),
+  uy=(px-ax)/Math.max(1,chord*scale);
+ const sample=(curvature,t)=>{
+  const cx1=ax+(px-ax)*.28+ux*curvature,cy1=ay+(py-ay)*.28+uy*curvature;
+  const cx2=ax+(px-ax)*.72+ux*curvature,cy2=ay+(py-ay)*.72+uy*curvature;
+  const r=1-t;
+  return {x:r*r*r*ax+3*r*r*t*cx1+3*r*t*t*cx2+t*t*t*px,
+   y:r*r*r*ay+3*r*r*t*cy1+3*r*t*t*cy2+t*t*t*py};
+ };
+ const lengthOf=bend=>{
+  let old=sample(bend,0),length=0;
+  for(let i=1;i<=64;i++){
+   const next=sample(bend,i/64);
+   length+=Math.hypot(next.x-old.x,next.y-old.y);old=next;
+  }
+  return length;
+ };
+ let lo=0,hi=Math.max(400,materialLength*3);
+ if(lengthOf(0)<materialLength){
+  for(let i=0;i<18;i++){
+   const mid=(lo+hi)*.5;
+   if(lengthOf(mid)>materialLength)hi=mid;else lo=mid;
+  }
+ }
+ const bend=(lo+hi)*.5,points=[];
+ for(let i=0;i<=40;i++)points.push(sample(bend,i/40));
+ return points;
+}
 function paintWoodenStaff(points, gripFraction) {
  if(points.length < 2) return;
  ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
@@ -963,37 +1018,10 @@ function draw(){
  }
  
  if(p.vault){
-  const ax = p.anchorX, ay = p.anchorY, px = p.x + 3, py = p.y - 5;
-  const dx = px - ax, dy = py - ay, chord = Math.hypot(dx, dy) || 1;
-  const nx = -dy / chord, ny = dx / chord, L = cfg.poleLength;
-  const curveLen = (bend) => {
-   let lx = ax, ly = ay, total = 0;
-   const cx1 = ax + (px - ax) * .28 + nx * bend, cy1 = ay + (py - ay) * .28 + ny * bend;
-   const cx2 = ax + (px - ax) * .72 + nx * bend, cy2 = ay + (py - ay) * .72 + ny * bend;
-   for(let i = 1; i <= 24; i++){
-    let t = i / 24, r = 1 - t;
-    let x = r * r * r * ax + 3 * r * r * t * cx1 + 3 * r * t * t * cx2 + t * t * t * px;
-    let y = r * r * r * ay + 3 * r * r * t * cy1 + 3 * r * t * t * cy2 + t * t * t * py;
-    total += Math.hypot(x - lx, y - ly); lx = x; ly = y;
-   }
-   return total;
-  };
-  let low = 0, high = 400;
-  for(let k = 0; k < 13; k++){
-   let mid = (low + high) / 2;
-   if(curveLen(mid) > L) high = mid; else low = mid;
-  }
-  const bend = (low + high) / 2, cx1 = ax + (px - ax) * .28 + nx * bend, cy1 = ay + (py - ay) * .28 + ny * bend, cx2 = ax + (px - ax) * .72 + nx * bend, cy2 = ay + (py - ay) * .72 + ny * bend;
-  const shaft=[{x:ax,y:ay}];
-  for(let q=1;q<=30;q++){
-   const t=q/30, r=1-t;
-   shaft.push({
-    x:r*r*r*ax+3*r*r*t*cx1+3*r*t*t*cx2+t*t*t*px,
-    y:r*r*r*ay+3*r*r*t*cy1+3*r*t*t*cy2+t*t*t*py
-   });
-  }
+  const shaft=vaultStaffArc(p.anchorX,p.anchorY,p.x+3,p.y-5,cfg.poleLength);
   paintWoodenStaff(shaft,.88);
-  ctx.fillStyle = '#293b43'; ctx.beginPath(); ctx.arc(ax, ay, 5.2, 0, PI * 2); ctx.fill();
+  ctx.fillStyle='#293b43';ctx.beginPath();
+  ctx.arc(p.anchorX,p.anchorY,5.2,0,PI*2);ctx.fill();
  } else if(p.state !== 'CLIMBING'){
   // Match the 195-world-unit pole used by the physics engine at rest.
   const ends=restingStaffEnds(p.x,p.y-13,p.facingDir,cfg.poleLength);
@@ -1022,7 +1050,10 @@ function draw(){
    ctx.translate(Math.sin(phase)*1.5,Math.cos(phase)*.7);
    ctx.rotate(Math.sin(phase)*.018);
   }
+  if(p.state==='CLIMBING'&&p.climb?.isIce)ctx.scale(.88,1.04);
   ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
+  if(p.state==='CLIMBING'&&p.climb?.isIce)
+   drawClimberWallFacing(p.climb.climbBeat);
   // Avoid ghosted/doubled hats: never alpha-overlay mismatched sprite frames.
   ctx.restore();
  } else {
