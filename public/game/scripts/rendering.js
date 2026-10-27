@@ -915,6 +915,22 @@ function draw(){
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCaveLadder();
  
+ // PB ghost shares the existing world transform; no canvas or terrain reraster.
+ if(typeof ghostPositionAt==='function'){
+  const ghost=ghostPositionAt();
+  if(ghost){
+   ctx.save();ctx.globalAlpha=.30;
+   if(climberSheet.complete&&climberSheet.naturalWidth){
+    ctx.translate(ghost[1],ghost[2]+22);
+    ctx.scale(ghost[4]<0?-1:1,1);
+    ctx.drawImage(climberSheet,ghost[3]*200,0,200,256,-39,-93,78,100);
+   }else{
+    ctx.fillStyle='#8be4e9';ctx.fillRect(ghost[1]-9,ghost[2]-30,18,48);
+   }
+   ctx.restore();
+  }
+ }
+ 
    if(trail.length > 2){
   ctx.strokeStyle = '#ffd69b78'; ctx.lineWidth = 2; ctx.setLineDash([5, 6]);
   ctx.beginPath(); trail.forEach((v, i) => i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y)); ctx.stroke(); ctx.setLineDash([]);
@@ -1037,6 +1053,7 @@ function draw(){
   'Stepping onto the summit':
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
  if(subEl.textContent!==status)subEl.textContent=status;
+ if(typeof updateTrialHud==='function')updateTrialHud();
  const timerEl=document.getElementById('timer'),timeLabel=formatTime(elapsed);
  if(timerEl.textContent!==timeLabel)timerEl.textContent=timeLabel;
 }
