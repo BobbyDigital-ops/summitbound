@@ -124,7 +124,7 @@ function updateCaveCampfire(){
   mode==='practice'&&isGround()&&p.standingOn==='cave4'&&
   Math.abs(p.x-cg.fireX)<=46;
  if(Math.abs(p.x-cg.fireX)>72)caveFireDismissed=false;
- const show=atFire&&!caveFireDismissed;
+ const show=atFire&&!(typeof caveFireDismissed==='boolean'&&caveFireDismissed);
  if(actions.hidden===show)actions.hidden=!show;
 }
 function continueCaveAscent(){
