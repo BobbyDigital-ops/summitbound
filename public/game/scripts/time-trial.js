@@ -17,6 +17,24 @@ function medalTargets(seed=routeSeed){
  const gold=Math.ceil((36+ascent+ladder)*1.04/5)*5;
  return {gold,silver:Math.ceil(gold*1.32/5)*5,bronze:Math.ceil(gold*1.76/5)*5};
 }
+// Cumulative stage gates spread the course target across the actual
+// climbing distance of each receiving mountain plus a leap/run budget.
+function stageMedalTargets(stage,seed=routeSeed){
+ const parts=spires.slice(1,4).map(m=>9+
+  (m.ledges.length?Math.max(0,m.ledges.at(-1)[2]-m.summit[2])/62:0));
+ parts.push(9+Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125);
+ const slice=parts.slice(0,Math.max(1,Math.min(4,stage)))
+  .reduce((sum,v)=>sum+v,0);
+ const ratio=slice/parts.reduce((sum,v)=>sum+v,0);
+ const medal=medalTargets(seed);
+ return {gold:medal.gold*ratio,silver:medal.silver*ratio,
+  bronze:medal.bronze*ratio};
+}
+function stockPhysicsForTrial(){
+ return cfg.gravity===800&&cfg.arcadeLift===1.18&&cfg.arcadeRange===.84&&
+  cfg.arcadeFlightTempo===.88&&cfg.brakingDecel===2000&&
+  cfg.maxRunSpeed===360&&cfg.airborneSteerForce===520;
+}
 function trialRecordKey(seed=routeSeed){
  return 'summitbound:trial:v'+TRIAL_RECORD_VERSION+':route:'+seed;
 }
@@ -35,7 +53,7 @@ function readTrialRecord(seed=routeSeed){
  }catch{return null;}
 }
 function resetTimeTrial(){
- trialRun={samples:[],splits:[],nextSample:0,invalid:false};
+ trialRun={samples:[],splits:[],nextSample:0,invalid:!stockPhysicsForTrial()};
  trialGhostCursor=0;trialLastSplit='';
  trialGhost=mode==='trial'?readTrialRecord():null;
  const ghostButton=document.getElementById('ghostToggle');
@@ -53,6 +71,7 @@ function trialSnapshot(){
 }
 function trialTick(){
  if(mode!=='trial'||completed||trialRun.invalid)return;
+ if(!stockPhysicsForTrial()){invalidateTimeTrial();return;}
  if(elapsed+1e-6<trialRun.nextSample)return;
  if(trialRun.samples.length<TRIAL_MAX_SAMPLES)trialRun.samples.push(trialSnapshot());
  else trialRun.invalid=true; // An overly long run must not exhaust storage.
@@ -66,7 +85,9 @@ function trialSplit(stage){
  const secs=trialRun.splits[stage-1]-prior;
  const old=trialGhost?.splits?.[stage-1];
  const delta=Number.isFinite(old)?' · vs PB '+(elapsed<=old?'-':'+')+Math.abs(elapsed-old).toFixed(1)+'s':'';
- trialLastSplit='GATE '+stage+' / 4 · '+secs.toFixed(1)+'s'+delta;
+ const gates=stageMedalTargets(stage);
+ const gateMedal=medalForTime(elapsed,gates);
+ trialLastSplit='GATE '+stage+' / 4 · '+gateMedal+' · '+secs.toFixed(1)+'s'+delta;
  updateTrialHud();
 }
 function medalForTime(seconds,targets=medalTargets()){
@@ -78,7 +99,8 @@ function medalForTime(seconds,targets=medalTargets()){
 function finishTimeTrial(){
  if(mode!=='trial')return '';
  trialSplit(4);
- const medal=medalForTime(elapsed),valid=!trialRun.invalid;
+ const medal=medalForTime(elapsed),valid=!trialRun.invalid&&stockPhysicsForTrial()&&
+  trialRun.splits.length===4&&trialRun.splits.every(Number.isFinite);
  if(valid&&(!trialGhost||elapsed<trialGhost.best)){
   // Cap bytes and only store a validated FULL uninterrupted run.
   const record={version:TRIAL_RECORD_VERSION,seed:routeSeed,
@@ -131,6 +153,14 @@ function updateTrialHud(){
   const text='G '+formatTime(target.gold)+' · S '+formatTime(target.silver)+
    ' · B '+formatTime(target.bronze);
   if(goals.textContent!==text)goals.textContent=text;
+ }
+ const nextGate=document.getElementById('trialNextGate');
+ if(nextGate){
+  const next=stageMedalTargets(Math.min(4,trialRun.splits.length+1));
+  const phase=trialRun.splits.length+1;
+  const line='GATE '+Math.min(4,phase)+' TARGETS · G '+formatTime(next.gold)+
+   ' / S '+formatTime(next.silver)+' / B '+formatTime(next.bronze);
+  if(nextGate.textContent!==line)nextGate.textContent=line;
  }
  const best=document.getElementById('trialBest');
  if(best){
