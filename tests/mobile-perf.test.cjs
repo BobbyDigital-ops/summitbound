@@ -24,6 +24,15 @@ test('keyboard, pointer and vault controls still attached',()=>{
  assert.match(input,/control\(document\.getElementById\('up'\), 'up'\)/);
  assert.match(input,/release\(\)/);
 });
+test('frame pacing retains 120Hz physics but slows stationary mobile painting',()=>{
+ assert.match(sim,/for\(let n = 0; acc >= DT/);
+ assert.match(sim,/const stationary=innerWidth<950/);
+ assert.match(sim,/renderGap=graphicsQuality==='low'\|\|stationary\?31:0/);
+ assert.match(sim,/graphicsQuality==='high'\?2:\(innerWidth<950\?1:1\.6\)/);
+ assert.match(sim,/p95/);
+ assert.match(render,/if\(stageEl\.textContent!==stageText\)/);
+ assert.match(render,/if\(timerEl\.textContent!==timeLabel\)/);
+});
 test('player HUD release version stays in sync with document title',()=>{
  const match=html.match(/<title>Summitbound — ([^<]*?) (v\d+\.\d+\.\d+)<\/title>/);
  assert.ok(match,'document title has semver release');

@@ -171,27 +171,51 @@ function tick(dt){
 }
 
 function resize(){
- const maxRatio=graphicsQuality==='low'?1:graphicsQuality==='high'?2:(innerWidth<950?1.15:1.6);
+ // Native portrait screens benefit far more from a bounded canvas than
+ // from an extra 15% DPR in every direction. High remains an opt-in.
+ const maxRatio=graphicsQuality==='low'?1:graphicsQuality==='high'?2:(innerWidth<950?1:1.6);
  const ratio=Math.min(devicePixelRatio||1,maxRatio);
  canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
 }
 
-let perfStart=0,perfFrames=0,lastRenderedAt=0;
+let perfStart=0,perfFrames=0,perfRendered=0,lastRenderedAt=0;
+let perfDrawSamples=[];
 function loop(now){
  let delta = Math.min(.05, (now - prev) / 1000); prev = now;
  acc += delta;
  for(let n = 0; acc >= DT && n < 7; n++, acc -= DT) tick(DT);
- if(graphicsQuality!=='low'||now-lastRenderedAt>=31){
-  draw();lastRenderedAt=now;
+ // Physics still ticks at 120 Hz. When the player is stationary on a
+ // mobile device, a 30 Hz snowy idle render saves battery and GPU fill
+ // without affecting the first frame of an input/movement/vault.
+ const stationary=innerWidth<950&&graphicsQuality!=='high'&&isGround()&&
+  Math.abs(p.vx)<2&&!p.vault&&!fingers.left.size&&!fingers.right.size&&
+  !keys.has('arrowleft')&&!keys.has('arrowright')&&!keys.has('a')&&!keys.has('d');
+ const renderGap=graphicsQuality==='low'||stationary?31:0;
+ if(!lastRenderedAt||now-lastRenderedAt>=renderGap){
+  const before=performance.now();
+  draw();lastRenderedAt=now;perfRendered++;
+  // Samples are captured at presentation time; inexpensive stats are
+  // only sorted and displayed once a second in the optional Tune panel.
+  const cost=performance.now()-before;
+  perfDrawSamples.push(cost);
+  if(perfDrawSamples.length>120)perfDrawSamples.shift();
  }
  perfFrames++;
  if(now-perfStart>1200){
-  const fps=perfFrames*1000/Math.max(1,now-perfStart);
+  const elapsedMs=Math.max(1,now-perfStart);
+  const fps=Math.round(perfRendered*1000/elapsedMs);
+  const samples=[...perfDrawSamples].sort((a,b)=>a-b);
+  const avg=samples.reduce((sum,v)=>sum+v,0)/Math.max(1,samples.length);
+  const p95=samples[Math.min(samples.length-1,Math.floor(samples.length*.95))]||0;
+  const mem=((renderStats.terrainBytes+renderStats.backdropBytes)/1048576).toFixed(0);
   const indicator=document.getElementById('performanceLabel');
-  if(indicator)indicator.textContent='Loop '+Math.round(fps)+' fps';
-  perfStart=now;perfFrames=0;
+  if(indicator)indicator.textContent=
+   'Render '+fps+' fps · draw '+avg.toFixed(1)+' / p95 '+p95.toFixed(1)+
+   ' ms · scene '+mem+' MB · builds '+renderStats.terrainBuilds+
+   ' (evict '+renderStats.terrainEvictions+')';
+  perfStart=now;perfFrames=0;perfRendered=0;
  }
  requestAnimationFrame(loop);
 }

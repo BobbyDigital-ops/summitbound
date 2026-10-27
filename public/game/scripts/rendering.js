@@ -872,17 +872,27 @@ function draw(){
  }
  ctx.globalAlpha=1;
 
- // Check rung proximity for Climb up button & hint
- const rungXTarget = climbEntryX;
- const nearRungs = p.state === 'CLIMBING' || (isGround() && ['ledge','cave'].includes(currentPlatform()?.kind) && Math.abs(p.x - rungXTarget(currentPlatform())) < 45);
- document.getElementById('up').hidden = !nearRungs;
-
- meter.style.display = p.vault ? 'block' : 'none';
- if(p.vault) needle.style.left = Math.min(100, p.vault.elapsed / p.vault.rideDuration * 100) + '%';
- stageEl.textContent = completed ? 'ASCENT COMPLETE' : `LEAP ${Math.min(atStage + 1, 4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
- let status = completed ? 'Checkpoint reached.' : p.state === 'CLIMBING' ? (p.climb?.isIce ? 'Hold ↑ to ice climb · Release to rest' : 'Hold ↑ on cave ladder · Release to rest') : p.state === 'STEP_OFF' ? 'Stepping onto the summit' : `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_', ' ')}`;
- subEl.textContent = status;
- document.getElementById('timer').textContent = formatTime(elapsed);
+ // Avoid repeated DOM mutations that can trigger style/layout work
+ // dozens of times each second even when standing absolutely still.
+ const nearRungs=p.state==='CLIMBING'||(isGround()&&
+  ['ledge','cave'].includes(currentPlatform()?.kind)&&
+  Math.abs(p.x-climbEntryX(currentPlatform()))<45);
+ const upControl=document.getElementById('up');
+ if(upControl.hidden===nearRungs)upControl.hidden=!nearRungs;
+ const meterDisplay=p.vault?'block':'none';
+ if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
+ if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
+ const stageText=completed?'ASCENT COMPLETE':
+  `LEAP ${Math.min(atStage+1,4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
+ if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
+ const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
+  (p.climb?.isIce?'Hold ↑ to ice climb · Release to rest':
+   'Hold ↑ on cave ladder · Release to rest'):p.state==='STEP_OFF'?
+  'Stepping onto the summit':
+  `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
+ if(subEl.textContent!==status)subEl.textContent=status;
+ const timerEl=document.getElementById('timer'),timeLabel=formatTime(elapsed);
+ if(timerEl.textContent!==timeLabel)timerEl.textContent=timeLabel;
 }
 
 
