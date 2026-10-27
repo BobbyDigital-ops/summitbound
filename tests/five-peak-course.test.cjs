@@ -68,8 +68,10 @@ test('Five Peaks: every ice pixel route has real rock behind it, not floating in
     const y=route.points.at(-1).y+(route.points[0].y-route.points.at(-1).y)*k/30;
     const x=run('iceXOnPath('+JSON.stringify(route.points)+','+y+')');
     const boundary=run('mountainContourX('+peak+','+y+')');
-    assert.ok(x-boundary>=26,
-     'ice face unsupported: peak '+peak+' route '+route.tier+' y '+y+' rock inset '+(x-boundary));
+    const outer=run('mountainFlankX('+peak+','+y+')');
+    assert.ok(x-boundary>=26&&outer-x>=25,
+     'ice face unsupported: peak '+peak+' route '+route.tier+' y '+y+
+     ' rock left '+(x-boundary)+' right '+(outer-x));
    }
   }
  }
