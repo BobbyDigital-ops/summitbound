@@ -115,9 +115,9 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
 // Shelf lip widths and the modest seeded variation are calibrated with actual
 // PolePhysicsEngine ride/release/flight trajectories and braking room.
 const cliffProfiles={
- 1:{Low:[395,1060,160],Middle:[492,1028,125],High:[565,995,102],Ridge:[604,974,130]},
- 2:{Low:[402,760,162],Middle:[495,728,130],High:[565,695,103],Ridge:[605,674,135]},
- 3:{Low:[395,515,162],Middle:[495,483,125],High:[566,450,104],Ridge:[605,429,135]}
+ 1:{Low:[395,1086,160],Middle:[492,1047,125],High:[565,1009,102],Ridge:[604,975,130]},
+ 2:{Low:[402,786,162],Middle:[495,747,130],High:[565,709,103],Ridge:[605,675,135]},
+ 3:{Low:[395,541,162],Middle:[495,502,125],High:[566,464,104],Ridge:[605,430,135]}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
 function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
