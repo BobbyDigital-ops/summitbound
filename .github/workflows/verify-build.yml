@@ -41,4 +41,5 @@ jobs:
       - run: npm run test:phase4c
       - run: npm run test:phase5
       - run: npm run test:phase6
+      - run: npm run test:phase7
       - run: npm run build
