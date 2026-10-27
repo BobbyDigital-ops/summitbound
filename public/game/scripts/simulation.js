@@ -58,7 +58,11 @@ function climbStart(plat){
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
  const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
  const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
- p.climb={originX:rungX,originY:p.y,targetX:exit?.x ?? (goal.left+40),
+ const lipX=exit?.x ?? (goal.left+40);
+ // Ice reaches the snow lip at lipX; a short controlled step places both
+ // feet inside the walkable ridge. The cave ladder remains unchanged.
+ const stepX=isIce?Math.min(goal.right-72,lipX+20):lipX;
+ p.climb={originX:rungX,originY:p.y,targetX:stepX,lipX,
   targetY:goal.top-22,spire:plat.spire,climbBeat:0,exitTime:0,
   isIce,tierIndex};
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
@@ -81,7 +85,9 @@ function tick(dt){
  
  if(p.state === 'STEP_OFF'){
   const c = p.climb; c.exitTime += dt;
-  const delta = c.targetX - p.x, advance = Math.sign(delta) * Math.min(Math.abs(delta), 175 * dt);
+  const delta = c.targetX - p.x;
+  const advance = Math.sign(delta)*Math.min(Math.abs(delta),
+   (c.isIce?115:175)*dt);
   p.x += advance;
   if(Math.abs(c.targetX - p.x) < .5){
    const stage = c.spire; p.x = c.targetX; p.state = 'GROUNDED'; p.vx = 0; p.vy = 0; p.surface = 'snow'; p.standingOn = 's' + stage; p.groundedFor = .4; lastSafeStage = stage;

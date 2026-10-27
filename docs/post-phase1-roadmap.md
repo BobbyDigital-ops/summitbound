@@ -2,7 +2,7 @@
 
 **Approved and retained:** v0.9.16 procedural mountain layout template (separate frozen branch `level-template-v0.9.16`). The high, middle and lower alternative landings, difficult jumps, painterly mountain atmosphere, Up/W climbing, pole physics and controls must survive all later phases. The Phase 1 sharpness optimisations must also remain subject to phone profiling.
 
-## Phase 3 — ice connections and snowy summit exits
+## Phase 3 — ice connections and snowy summit exits (implemented v0.9.19; awaiting visual review)
 - Keep the now-broad, irregular, non-tubular ice faces. Let them merge/branch **only when one real climb passes a higher shelf**; otherwise maintain separate accessible routes.
 - Transition each face gently beneath the summit snow cap, not a blue strip with a blunt end. Root upper ice in real rock/snow geometry.
 - Maintain independently reachable summit exits with no sudden clipping or teleport, preserve slow manual climb and legitimate checkpoint behaviour.
@@ -37,3 +37,11 @@
 - Reject near-duplicates, unreachable shortcuts, camera-hidden options and memory-heavy mountain caches. Check 16:9 and portrait gameplay captures for human signoff.
 - The golden-geometry test `tests/approved-level-template.test.cjs` pins seven visually approved seeds. Any change to those fingerprints requires explicit visual review, not just updating numbers to make CI green.
 - Full campaign generation, procedural ice network routing and visual-uniqueness scoring remain future deliverables, **not yet implemented**.
+
+## Phase 3 implementation checkpoint (v0.9.19)
+
+- `iceRouteNetwork` derives each ascent from its original ice curve; a low route can join a higher route **only** when it passes within 35 game units of that higher shelf's entry and its crossing lies inside the higher shelf. No forced trunk and no changes to ledge physics.
+- After a join, the lower and upper climb reuse exactly the same segment coordinates and exit. Isolated routes remain independent. The runtime caches the graph per mountain, invalidated on New Route, to preserve mobile performance.
+- The static mountain cache draws only each unique ice segment (children stop at their merge), rather than overpainting a cyan trunk several times. Frozen surfaces end UNDER the top snow; irregular windblown white drifts soften the join along the summit.
+- After climbing, ice exits require a short 20-unit step onto a legally walkable snow plateau. Ladder exit unchanged.
+- New test suites `test:ice-network` and `test:ice-snow` cover all 997 route seeds and artwork invariants. **Visual approval and a real touch-device climb are still required.**

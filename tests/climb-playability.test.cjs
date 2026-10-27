@@ -56,12 +56,15 @@ for(let seed=0;seed<9;seed++){
     const exit=vm.runInContext('iceClimbPoints('+spire+','+tier+').at(-1)',ctx);
     assert.equal(ctx.p.state,'CLIMBING',id+' cannot start by holding Up');
     assert.equal(ctx.p.climb.tierIndex,tier,id+' started another route');
-    assert.equal(ctx.p.climb.targetX,exit.x,id+' has wrong summit target');
+    assert.equal(ctx.p.climb.lipX,exit.x,id+' ice lip changed');
+    assert.ok(ctx.p.climb.targetX>=exit.x+17&&ctx.p.climb.targetX<=exit.x+21,
+     id+' does not step onto the snow beyond the ice lip');
     const frames=vm.runInContext('(()=>{let n=0;while(p.state!=="GROUNDED" && n<1800){tick(1/120);n++;}return n;})()',ctx);
     assert.ok(frames<1800,id+' never finishes ascent');
     assert.equal(ctx.p.standingOn,'s'+spire,id+' dismount misses summit');
     assert.equal(ctx.lastSafeStage,spire,id+' failed to activate safe summit');
-    assert.ok(Math.abs(ctx.p.x-exit.x)<.5,id+' used wrong exit');
+    assert.ok(Math.abs(ctx.p.x-ctx.p.climb.targetX)<.5,
+     id+' did not complete the step onto the snowy ridge');
     const summit=vm.runInContext('spires['+spire+'].summit',ctx);
     assert.ok(ctx.p.x>=summit[0]+3&&ctx.p.x<=summit[1]-3,
      id+' exit not on physical summit');

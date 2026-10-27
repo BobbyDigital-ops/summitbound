@@ -1,3 +1,15 @@
+# Summitbound — v0.9.19 Natural Ice Routes (Phase 3)
+
+**Done:** natural ice-route network that conditionally shares the upper climb only where a lower ice path actually passes through a higher shelf's ice entrance. Other shelves retain independent climbs. Snow-covered summit caps now overlap and bury the formerly blunt cyan tops, with irregular frost tongues and a brief on-ridge step-off.
+
+**Unchanged:** approved v0.9.16 mountain geometry (protected by level-template snapshot and golden-seed tests), pole physics, controls, manual 62-unit/s climbing speed and v0.9.18 mobile sharpness/cache improvements. Branch `main` remains untouched.
+
+**Validation:** existing climbs and all 997 seeded layouts, conditional ice-route-network coverage, cached renderer, snow-crest artwork, browser startup and production build. Automated checks cannot establish visual fidelity on a physical phone: preview review is still necessary.
+
+**Next:** Phase 4 (mountain snow, rock, trees and ridge polish), Phase 5 (cave and campfire), Phase 6 (wall-facing climber/axe animation and pole rendering), Phase 7 (Android validation). See `docs/post-phase1-roadmap.md`.
+
+---
+
 # Summitbound — active development v0.9.18 (Sharper Mobile)
 
 **Phase 1 optimisation delivered:** mobile mountain textures have selectively improved clarity; portrait Auto canvas rendering is capped at 1.20 DPR and safely downgrades to 1x only after repeated expensive draw samples. Terrain/background caching, idle pacing and the original vault physics remain intact.
