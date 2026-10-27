@@ -1197,7 +1197,7 @@ function draw(){
  const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
   (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
    'Hold ↑ through rock tunnel · Release to rest'):
-  p.vault?`POLE ${p.vault.elapsed/p.vault.rideDuration<.18?'LOADING':p.vault.elapsed/p.vault.rideDuration<.45?'HIGH ARC':p.vault.elapsed/p.vault.rideDuration<.9?'LONG ARC':'OVERHOLD'} · ${Math.round(Math.abs(p.vault.initialVx)/cfg.maxRunSpeed*100)}% RUN-UP`:
+  p.vault?`POLE ${p.vault.elapsed/p.vault.rideDuration<.15?'LOADING':p.vault.elapsed/p.vault.rideDuration<.30?'VERTICAL':p.vault.elapsed/p.vault.rideDuration<.47?'HIGH ARC':p.vault.elapsed/p.vault.rideDuration<.72?'DISTANCE':p.vault.elapsed/p.vault.rideDuration<.94?'FADING':'OVERHELD'} · ${Math.round(Math.abs(p.vault.initialVx)/cfg.maxRunSpeed*100)}% RUN-UP`:
   isGround()?`RUN-UP ${Math.round(Math.abs(p.vx)/cfg.maxRunSpeed*100)}% · SPEED ${Math.round(Math.abs(p.vx))}/${cfg.maxRunSpeed}`:
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
  if(subEl.textContent!==status)subEl.textContent=status;
