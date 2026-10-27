@@ -29,7 +29,7 @@ function stageMedalTargets(stage,seed=routeSeed){
 function stockPhysicsForTrial(){
  return cfg.gravity===800&&cfg.arcadeLift===1.18&&cfg.arcadeRange===.84&&
   cfg.arcadeFlightTempo===.88&&cfg.brakingDecel===2000&&
-  cfg.maxRunSpeed===450&&cfg.runAcceleration===1050&&cfg.airborneSteerForce===225&&cfg.maxAirborneSpeed===1050;
+  cfg.maxRunSpeed===450&&cfg.runAcceleration===1050&&cfg.airborneSteerForce===90&&cfg.maxAirborneSpeed===1050;
 }
 function trialRecordKey(seed=routeSeed){
  return 'summitbound:trial:v'+TRIAL_RECORD_VERSION+':route:'+seed;
