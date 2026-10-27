@@ -71,33 +71,28 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
  const failures=[],summary=[];
  if(spec.peakCount!==spires.length)failures.push('wrong peak count');
  for(let i=1;i<spires.length;i++){
-  const prev=spires[i-1],peak=spires[i];
-  if(i<4){
-   const profiles=shelfTimingProfiles(peak.ledges,prev.summit);
-   const routes=iceRouteNetwork(i);
-   peak.ledges.forEach((ledge,tier)=>{
-    const p=profiles[tier],path=routes[tier]?.points;
-    if(!p||p.safe<2||p.hits<2)failures.push('unreachable peak '+i+' ledge '+tier);
-    if(!path?.length||path.at(-1).x<peak.summit[0]+3||
-     path.at(-1).x>peak.summit[1]-3)
-     failures.push('disconnected ice summit '+i+'/'+tier);
-    if(path)for(let n=0;n<=12;n++){
-     const y=path.at(-1).y+(path[0].y-path.at(-1).y)*n/12;
-     const x=iceXOnPath(path,y),rock=mountainContourX(i,y);
-     const flank=mountainFlankX(i,y);
-     if(x-rock<26||flank-x<25)
-      failures.push('unsupported ice '+i+'/'+tier+'/'+n);
-    }
-   });
-   summary.push({peak:i,landings:profiles.map(x=>x.safe),
-    minClearance:Math.min(...peak.ledges.map(l=>l[0]-prev.summit[1]))});
-  } else {
-   const cave=peak.cave;
-   if(cave.left-prev.summit[1]<420)failures.push('final cave leap too short');
-   if(caveGeometry().ladderX<peak.summit[0]+3||
-    caveGeometry().ladderX>peak.summit[1]-3)
-     failures.push('cave tunnel ladder cannot reach summit');
-  }
+  const previous=spires[i-1],peak=spires[i];
+  const profiles=shelfTimingProfiles(peak.ledges,previous.summit);
+  const routes=iceRouteNetwork(i);
+  peak.ledges.forEach((ledge,tier)=>{
+   const p=profiles[tier],path=routes[tier]?.points;
+   if(!p||p.safe<2||p.hits<2)failures.push('unreachable peak '+i+' ledge '+tier);
+   if(!path?.length||path.at(-1).x<peak.summit[0]+3||
+      path.at(-1).x>peak.summit[1]-3)
+    failures.push('disconnected ice summit '+i+'/'+tier);
+   if(path)for(let n=0;n<=16;n++){
+    const y=path.at(-1).y+(path[0].y-path.at(-1).y)*n/16;
+    const x=iceXOnPath(path,y),rock=mountainContourX(i,y),flank=mountainFlankX(i,y);
+    if(x-rock<26||flank-x<25)
+     failures.push('unsupported ice '+i+'/'+tier+'/'+n);
+   }
+  });
+  const checkpoint=featuredCheckpointAtPeak(i);
+  if(checkpoint?.type==='campsite'&&peak.ledges.length!==1)
+   failures.push('checkpoint mountain needs exactly one real landing ledge '+i);
+  const minGap=Math.min(...peak.ledges.map(l=>l[0]-previous.summit[1]));
+  if(minGap<400)failures.push('crossing not sufficiently wide '+i);
+  summary.push({peak:i,landings:profiles.map(x=>x.safe),minClearance:minGap});
  }
  return {valid:failures.length===0,failures,summary};
 }
@@ -123,7 +118,7 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
   if(peak.cave)addEdge('cave'+i,'s'+i,'tunnel-ladder',1);
   peak.ledges.forEach((ledge,t)=>{
    const points=routeResolver?routeResolver(peakSet,i,t):
-    peakSet===spires&&i>=1&&i<=3?iceRouteNetwork(i)[t]?.points:null;
+    peakSet===spires&&i>=1&&i<=4?iceRouteNetwork(i)[t]?.points:null;
    if(!points||points.at(-1).x<peak.summit[0]+3||
     points.at(-1).x>peak.summit[1]-3)
     issues.push('climb route missing real summit exit: '+i+'/'+t);
@@ -131,9 +126,7 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
   });
  });
  for(let i=1;i<peakSet.length;i++){
-  const target=peakSet[i],dest=target.cave?
-   [[target.cave.left,target.cave.right,target.cave.floor,'rock','Cave']]:
-   target.ledges;
+  const target=peakSet[i],dest=target.ledges;
   const sources=[{id:'s'+(i-1),surface:peakSet[i-1].summit}];
   // Launches from lower/middle/high real shelves become available only when
   // there is enough surface for a full run-up and a physics-verified arrival.
@@ -146,7 +139,7 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
    const profiles=shelfTimingProfiles(dest,source.surface);
    for(let t=0;t<dest.length;t++){
     if(profiles[t].safe<2)continue;
-    addEdge(source.id,target.cave?'cave'+i:'l'+i+'-'+t,
+    addEdge(source.id,'l'+i+'-'+t,
      source.id.startsWith('s')?'vault':'ledge-shortcut',profiles[t].safe);
    }
    if(source.id.startsWith('s')&&!profiles.some(p=>p.safe>=2))
@@ -166,7 +159,7 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
  if(!reachable.has('s'+(peakSet.length-1)))
   issues.push('the final summit cannot be reached');
  for(const cp of spec.checkpoints||[]){
-  const id=cp.type==='cave'?'cave'+cp.peak:'s'+cp.peak;
+  const id=cp.type==='campsite'?'l'+cp.peak+'-'+(cp.ledge??0):'s'+cp.peak;
   if(!reachable.has(id))issues.push('unreachable checkpoint '+id);
  }
  return {valid:issues.length===0,issues,
