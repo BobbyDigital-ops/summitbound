@@ -1,7 +1,7 @@
 name: Verify Summitbound build
 on:
   push:
-    branches: [main, 'dev/mega-v092-v097', 'dev/visual-recovery-v099-v0912', 'dev/vault-dynamics-v0130']
+    branches: [main, 'dev/mega-v092-v097', 'dev/visual-recovery-v099-v0912', 'dev/vault-dynamics-v0130', 'dev/five-peaks-challenge-and-bleak-art']
   workflow_dispatch:
 permissions:
   contents: read
