@@ -10,10 +10,12 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
- {name:'The Broken Tooth',summit:[1490,2480,800,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3040,3980,555,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[4580,5540,305,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
- {name:'Firespine Cavern',summit:[6290,7100,-55,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
+ // Narrower, progressively stepped rock crests replace the huge rectangular
+ // summit blocks. Wide enough for real takeoff run-ups, with longer canyons.
+ {name:'The Broken Tooth',summit:[1260,2020,800,'snow'],ledges:[]},
+ {name:'The Windward Spire',summit:[2380,3140,555,'snow'],ledges:[]},
+ {name:'The Lantern Crag',summit:[3490,4250,305,'snow'],ledges:[]},
+ {name:'Firespine Cavern',summit:[4960,5810,-55,'snow'],ledges:[],cave:{left:4810,right:5035,floor:235,ceiling:85}}
 ];
 
 // 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
@@ -106,16 +108,16 @@ const risingTerraces={
 const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  2:{High:895,Middle:1010,Low:1125},
  3:{High:810,Middle:935,Low:1050}};
-// Increasing X with elevation carves an upward diagonal up the approach face,
-// rather than short shelves stacked in the same narrow left-hand strip.
-// Each tier has an authored X and Y envelope, measured against *actual* pole
-// release trajectories. Small deterministic variations preserve replayability
-// without turning a fair jump into an impossible or accidental one.
-// These profiles ascend from the previous summit: larger Y = easier/lower.
+// Author all shelves against the takeoff summit's RIGHT edge, not against
+// the next mountain's LEFT edge. No low-tier landing begins before 390 units,
+// rather than the previous easy ~240–260-unit steps. High/Ridge save climbing
+// at the cost of sharply narrower, more distant and higher airborne targets.
+// Shelf lip widths and the modest seeded variation are calibrated with actual
+// PolePhysicsEngine ride/release/flight trajectories and braking room.
 const cliffProfiles={
- 1:{Low:[260,1060,205],Middle:[375,1025,165],High:[465,990,145],Ridge:[530,960,130]},
- 2:{Low:[260,790,215],Middle:[370,750,180],High:[445,710,150],Ridge:[515,670,130]},
- 3:{Low:[240,545,210],Middle:[345,505,175],High:[455,460,150],Ridge:[510,425,135]}
+ 1:{Low:[395,1060,160],Middle:[492,1028,125],High:[565,995,102],Ridge:[604,974,130]},
+ 2:{Low:[402,760,162],Middle:[495,728,130],High:[565,695,103],Ridge:[605,674,135]},
+ 3:{Low:[395,515,162],Middle:[495,483,125],High:[566,450,104],Ridge:[605,429,135]}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
 function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
@@ -145,7 +147,8 @@ function applyRoute(seed) {
  // massif. Both cave ceiling and floor must remain real collision surfaces.
  const original=caveLayouts[routeSeed];
  const floor=235+Math.round((original.floor-892)*.12);
- const left=original.left-775;
+ // The final chasm is deliberately longer than any easy lower-tier hop.
+ const left=spires[3].summit[1]+560+Math.round((original.left-6850)*.15);
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};
 
@@ -181,7 +184,10 @@ function iceClimbPoints(spireIndex,fromTier=null){
  const ledge=s.ledges[fromTier];
  if(!ledge)return [];
  const startX=ledge[1]-30,startY=ledge[2]-22;
- const endX=s.summit[0]+40+fromTier*60,endY=s.summit[2]-22;
+ // Exit near the chosen route's own upper face. Never funnel every ledge
+ // backwards to the left corner of the summit.
+ const endX=Math.min(s.summit[1]-90,Math.max(s.summit[0]+48,startX+26));
+ const endY=s.summit[2]-22;
  const spread=endX-startX,climbHeight=startY-endY;
  const bend={x:startX+spread*.28,y:startY-climbHeight*.64};
  return [
