@@ -1,3 +1,13 @@
+# v0.12.1 testing note — full-speed vaults and quick retry
+
+Practice retries now remember the **actual successful pole plant source**. Failed vaults restart there; manually pressing Retry Peak on solid terrain restarts from the current terrain. No momentum is granted on spawn and the last legitimate campsite checkpoint is preserved. Time Trial and Hardcore are not changed by this practice assist.
+
+Vault physics is more run-up-driven: 450 max running speed, 1050 acceleration, and approximately 25% more horizontal velocity at full-speed optimal release than v0.12.0. Terrain validity is tested with real 300/375/450-speed samples. Historical golden geometry is protected by a separate frozen test sampler. The graph does not falsely count a narrow shelf as a fully-powered launch site; the maximum speed of a ledge shortcut must be reachable using its own runway minus pole-plant clearance.
+
+**Outstanding:** gameplay feel and actual success rates, speedrun medal calibration, rugged visual overhaul, future emergency axe catch and curated 100-level generator.
+
+---
+
 # Five Peaks — v0.12 campsite-only architecture
 
 Current curated level: Wolvesgate → Broken Tooth → Windward Camp → Lantern Crag → Firespine Camp. Five peaks, four leap crossings, two checkpoint mountains.
