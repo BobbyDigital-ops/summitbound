@@ -184,8 +184,17 @@ function selectTerraces(spire,seed){
    if(ledges.some(t=>t[2]<=top+68))continue;
    const layout={ledges,summit:[left,right,top,'snow'],
     ridge:{character:rand(),roughness:.70+rand()*.7}};
+   // Stage-based difficulty curve: the opening leap permits a broader
+   // high landing, while later peaks preferentially select tighter safe
+   // first-contact AND pole-release windows. Lower shelves remain forgiving.
+   // Fallback keeps EVERY procedural route physically possible.
+   const high=timingProfiles.at(-1),low=timingProfiles[0];
+   const precisionCap=spire===1?20:spire===2?13:9;
+   const windowCap=spire===1?9:spire===2?7:5;
+   const graded=high.safe<=precisionCap&&
+     high.releaseWindows<=windowCap&&low.safe>=Math.max(18,high.safe*1.6);
    if(PRESERVED_LEVEL_SEEDS.has(seed)||
-      routeHasMeaningfulRiskReward(timingProfiles)){
+      (routeHasMeaningfulRiskReward(timingProfiles)&&graded)){
     if(authored)generatorFallbacks++;
     return layout;
    }
