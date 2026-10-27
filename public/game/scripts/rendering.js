@@ -148,12 +148,7 @@ function drawSpire(i,paintCtx=ctx){
  // rock face is tapered and fractured rather than a rectangular vertical
  // wall; overshooting the crest still leaves clear open-air space.
  for(let y=T+23;y<bottom;y+=27){
-  const depth=y-T;
-  const recede=Math.min(i===4?95:175+ridgeCharacter*85,
-   depth*(i===4?.075:.12+ridgeCharacter*.12));
-  const stratified=Math.sin(depth*.0068+i)*Math.sin(depth*.0029+i*1.5)*22;
-  const flank=R+14-recede+Math.sin(depth*.014+i)*18+
-   Math.sin(depth*.047+i*2)*7+stratified;
+  const flank=mountainFlankX(i,y);
   paintCtx.lineTo(flank,y);
  }
  paintCtx.lineTo(R-(i===4?80:188),bottom);
