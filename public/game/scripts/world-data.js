@@ -217,6 +217,9 @@ function selectTerraces(spire,seed){
 }
 
 function applyRoute(seed){
+ // The player sees one reviewed five-peak course. Historical seeds remain
+ // in source for design benchmarks but cannot become playable by accident.
+ if(typeof isFeaturedCourse==='function'&&isFeaturedCourse())seed=0;
  routeSeed=((Math.trunc(seed)%997)+997)%997;
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
  if(typeof iceRouteCache!=='undefined')iceRouteCache.clear();
@@ -233,6 +236,8 @@ function applyRoute(seed){
  spires[4].cave={left,right:left+original.right-original.left,
   floor,ceiling:floor-150};
  spires[4].summit=[left+150,left+1070,Math.min(-55,floor-260),'snow'];
+ if(typeof installFeaturedCourseGeometry==='function')
+  installFeaturedCourseGeometry(spires);
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge')platforms.splice(k,1);
   for(let i=1;i<=4;i++){
@@ -252,7 +257,10 @@ function applyRoute(seed){
    left:cave.left,right:cave.right,top:cave.floor});
  }
  const label=document.getElementById('routeLabel');
- if(label)label.textContent='Route '+(routeSeed+1);
+ if(label)label.textContent=
+  typeof FEATURED_COURSE!=='undefined'?
+  'FIVE PEAKS · 1 / '+FEATURED_COURSE.campaignSize:
+  'Route '+(routeSeed+1);
 }
 
 
@@ -403,16 +411,31 @@ function mountainContourNodes(index) {
  nodes.push({x:lowest-145,y:2100});
  return nodes;
 }
+function rockBackingForIce(index,y,baseX){
+ if(index<1||index>3)return baseX;
+ // A real solid bedrock buttress exists behind *every* drawable ice route.
+ // A 64-unit inset keeps the rendered ice face from hanging in empty sky.
+ // Transition zones outside the climb use a tapered rock shoulder.
+ let face=baseX;
+ for(const route of iceRouteNetwork(index)){
+  const points=route.points,top=points.at(-1).y,bottom=points[0].y;
+  if(y<top-36||y>bottom+45)continue;
+  const fade=Math.min(1,(y-(top-36))/36,(bottom+45-y)/45);
+  const x=iceXOnPath(points,y);
+  face=Math.min(face,x-64*Math.max(0,fade));
+ }
+ return face;
+}
 function mountainContourX(index,y){
  const nodes=mountainContourNodes(index);
- if(y<=nodes[0].y) return nodes[0].x;
+ if(y<=nodes[0].y) return rockBackingForIce(index,y,nodes[0].x);
  for(let i=0;i<nodes.length-1;i++){
   const a=nodes[i],b=nodes[i+1];
   if(y<=b.y){
    const t=Math.max(0,Math.min(1,(y-a.y)/(b.y-a.y)));
    const jag=Math.sin(Math.PI*t)*(Math.sin(y*.071+index*2.2)*4-7);
-   return a.x+(b.x-a.x)*t+jag;
+   return rockBackingForIce(index,y,a.x+(b.x-a.x)*t+jag);
   }
  }
- return nodes[nodes.length-1].x;
+ return rockBackingForIce(index,y,nodes[nodes.length-1].x);
 }
