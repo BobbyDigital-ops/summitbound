@@ -6,7 +6,7 @@ const slateTexture = new Image(); slateTexture.src='/game/rock-slate-seamless.pn
 // Replaced the inverted vector fir and pasted-on shrub sprites with the
 // established native painted cliff and tree pass. Art files remain for archival reference.
 
-const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,runAcceleration:1050,maxRunSpeed:450,brakingDecel:2000,poleLength:195,poleStiffness:120,poleDamping:4.5,bendingStiffness:40,maxDeformation:.52,energyRetention:.96,playerMass:70,airborneSteerForce:225,maxAirborneSpeed:1050,rockFriction:.88,snowFriction:.48,iceFriction:.05,simSpeed:1};
+const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,runAcceleration:1050,maxRunSpeed:450,brakingDecel:2000,poleLength:195,poleStiffness:120,poleDamping:4.5,bendingStiffness:40,maxDeformation:.52,energyRetention:.96,playerMass:70,airborneSteerForce:90,maxAirborneSpeed:1050,rockFriction:.88,snowFriction:.48,iceFriction:.05,simSpeed:1};
 
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
