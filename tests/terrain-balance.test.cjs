@@ -11,7 +11,11 @@ for(let route=0;route<9;route++){
    assert.ok(ledges.length>=1&&ledges.length<=4);
    const x=ledges.map(t=>t[0]);
    if(x.length>=2)assert.ok(Math.max(...x)-Math.min(...x)>=160,'shelves should be spread along face');
-   for(let j=1;j<ledges.length;j++) assert.ok(ledges[j][2]-ledges[j-1][2] >=55,'visibly separated shelf heights');
+   for(let j=1;j<ledges.length;j++)
+    assert.ok(ledges[j][2]-ledges[j-1][2]>=(ledges.length===4?28:40),
+     'landing elevation differences are visibly compressed');
+   assert.ok(ledges.at(-1)[2]-ledges[0][2]>=95,
+    'the mountain has no meaningful high/low landing alternatives');
    for(const ledge of ledges){
     assert.ok(ledge[2]<s[i-1].summit[2],'every landing must gain altitude');
     assert.ok(ledge[2]>s[i].summit[2]+32,'ledge must be visibly beneath peak');

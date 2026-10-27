@@ -39,17 +39,17 @@ let routeSeed=0;
 // normally has 3 choices; a few have 2 or 4. Takeoff Y is the reference.
 const MOUNTAIN_DESIGNS={
  1:{name:'Broken Tooth',difficulty:'precision / ledge width',
-    near:393,mid:496,far:602,baseAltitude:800},
+    near:385,mid:470,far:545,baseAltitude:800},
  2:{name:'Windward Spire',difficulty:'range / high-near inversions',
-    near:399,mid:510,far:619,baseAltitude:555},
+    near:385,mid:475,far:550,baseAltitude:555},
  3:{name:'Lantern Crag',difficulty:'verticality / narrow high shelves',
-    near:397,mid:493,far:605,baseAltitude:305}
+    near:383,mid:468,far:545,baseAltitude:305}
 };
 // Most layouts must SHOW three distinct options in the same camera view.
 // No one-shelf route is allowed; the rare alternatives contain 2 or 4.
 function terraceCount(spire,seed){
- const n=((seed+spire*11)%17);
- return n===2||n===11?2:n===8||n===15?4:3;
+ const n=((seed*5+spire*4)%19);
+ return n===1||n===16?2:n===6||n===14?4:3;
 }
 function seededRandom(seed,spire){
  let state=(Math.imul(seed+1,2654435761)^Math.imul(spire+11,1597334677))>>>0;
@@ -115,17 +115,19 @@ function selectTerraces(spire,seed){
  const near=design.near,far=design.far;
  // Separate altitude bands so a mountain can't render as 2 similarly
  // elevated shelves. Horizontal order is independently shuffled.
- const altitudeBands=count===2?[[35,61],[165,199]]:
-  count===3?[[30,56],[99,130],[171,205]]:
-  [[28,47],[79,104],[137,165],[197,224]];
- const widthBands=count===2?[[108,153],[167,230]]:
-  count===3?[[100,135],[141,190],[196,244]]:
-  [[94,120],[130,158],[166,199],[208,252]];
+ // The real pole can land reliably up to ~145 units uphill. Keep every
+ // shelf inside that flight envelope; tower height above shelves can vary.
+ const altitudeBands=count===2?[[30,50],[119,143]]:
+  count===3?[[29,46],[73,91],[121,144]]:
+  [[20,35],[54,69],[91,107],[125,145]];
+ const widthBands=count===2?[[110,150],[178,235]]:
+  count===3?[[100,140],[145,184],[192,237]]:
+  [[100,126],[136,164],[173,200],[204,243]];
  const horizontal=count===2?[near,far]:
   count===3?[near,design.mid,far]:
-  [near,near+60,design.mid+22,far];
+  [near,near+59,design.mid+35,far+9];
  let best=null,bestScore=-Infinity;
- for(let attempt=0;attempt<620;attempt++){
+ for(let attempt=0;attempt<(count===4?1500:520);attempt++){
   const zones=[...horizontal],widthSlots=[...widthBands];
   for(let i=zones.length-1;i>0;i--){
    const j=Math.floor(rand()*(i+1));
@@ -144,14 +146,19 @@ function selectTerraces(spire,seed){
   });
   const sorted=[...ledges].sort((a,b)=>a[2]-b[2]);
   const xs=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
-  if(Math.max(...xs)-Math.min(...xs)<175)continue;
-  if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<55))continue;
-  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<38)))continue;
+  if(Math.max(...xs)-Math.min(...xs)<160)continue;
+  if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<(count===4?29:40)))continue;
+  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<35)))continue;
   if(!viableShelves(ledges,previous))continue;
   const left=previous[1]+346+Math.floor(rand()*14);
-  const right=Math.max(...ends)+230+Math.floor(rand()*65);
-  const top=design.baseAltitude+Math.floor(rand()*25)-12;
-  if(ledges.some(t=>t[2]<top+43||t[0]<left+24))continue;
+  // Summit height and width vary independently of the shelf arrangement.
+  // Its safe takeoff run-up must not disappear even on a short high peak.
+  const right=Math.max(...ends)+215+Math.floor(rand()*200);
+  const highest=Math.min(...ledges.map(t=>t[2]));
+  const upper=Math.min(design.baseAltitude+67,highest-55);
+  const lower=Math.min(design.baseAltitude-60,upper-8);
+  const top=lower+Math.floor(rand()*(upper-lower+1));
+  if(ledges.some(t=>t[2]<top+55||t[0]<left+24))continue;
   // Prefer compositions whose shelves do not read as a staircase.
   const rangeY=sorted.at(-1)[2]-sorted[0][2];
   const sizes=ledges.map(t=>t[1]-t[0]);
@@ -163,7 +170,7 @@ function selectTerraces(spire,seed){
     ridge:{character:rand(),roughness:.75+rand()*.6}};
   }
   // Don't spend the entire candidate budget after a strong, playable map.
-  if(bestScore>310&&attempt>55)break;
+  if(bestScore>255&&attempt>55)break;
  }
  if(best)return best;
  throw Error('Cannot map playable, distinct shelves for '+design.name+
@@ -180,11 +187,12 @@ function applyRoute(seed){
   spires[i].ridge=generated.ridge;
  }
  const original=caveLayouts[routeSeed%9];
- const floor=235+Math.round((original.floor-892)*.12);
+ // Keep the last cave uphill even when an unusually high third summit was generated.
+ const floor=Math.min(235,spires[3].summit[2]-50)+Math.round((original.floor-892)*.04);
  const left=spires[3].summit[1]+560+Math.round((original.left-6850)*.15);
  spires[4].cave={left,right:left+original.right-original.left,
   floor,ceiling:floor-150};
- spires[4].summit=[left+150,left+1070,-55,'snow'];
+ spires[4].summit=[left+150,left+1070,Math.min(-55,floor-260),'snow'];
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge')platforms.splice(k,1);
   for(let i=1;i<=4;i++){

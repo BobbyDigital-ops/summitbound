@@ -18,7 +18,7 @@ vm.runInContext(`
 test('procedural routes are deterministic, varied, and maintain live collision geometry',()=>{
  const configurations=new Set(),topHeights=new Set(),widths=new Set();
  let highNearLowFar=0,lowNearHighFar=0;
- for(const seed of [...Array.from({length:48},(_,i)=>i),99,250,996]){
+ for(const seed of [...Array.from({length:85},(_,i)=>i),99,250,512,996]){
   vm.runInContext('applyRoute('+seed+')',ctx);
   const stages=vm.runInContext('spires',ctx);
   const signature=JSON.stringify(stages.map(s=>[s.summit,s.ledges,s.cave]));
@@ -30,6 +30,16 @@ test('procedural routes are deterministic, varied, and maintain live collision g
     Array.from(m.summit.slice(0,3)),'summit collider not regenerated');
    topHeights.add(m.summit[2]);widths.add(Math.round(m.summit[1]-m.summit[0]));
    assert.ok(ledges.length>=2&&ledges.length<=4);
+   if(seed===0)assert.equal(ledges.length,3,'default route must show three choices');
+   const elevations=[...ledges].map(t=>t[2]).sort((a,b)=>a-b);
+   assert.ok(elevations.at(-1)-elevations[0]>=95,
+    'shelves are too level to read as separate landing routes');
+   for(let j=1;j<elevations.length;j++)assert.ok(
+    elevations[j]-elevations[j-1]>=(ledges.length===4?28:40),
+    'shelf elevation levels visually overlap');
+   const lengths=ledges.map(t=>t[1]-t[0]);
+   assert.ok(Math.max(...lengths)-Math.min(...lengths)>=38,
+    'platform widths lack clear visual variety');
    if(seed<9)assert.ok(ledges.length>=2,'ordinary route must offer alternatives');
    assert.equal(ctx.platforms.filter(p=>p.kind==='ledge'&&p.spire===i).length,
     ledges.length,'stale or missing ledge collision');
@@ -45,9 +55,9 @@ test('procedural routes are deterministic, varied, and maintain live collision g
    }
   }
  }
- assert.equal(configurations.size,51,'different seeds repeated identical mountains');
+ assert.equal(configurations.size,89,'different seeds repeated identical mountains');
  assert.ok(topHeights.size>20,'mountain height is not varied');
- assert.ok(widths.size>50,'mountain width is not varied');
+ assert.ok(widths.size>65,'mountain width is not varied');
  assert.ok(highNearLowFar>0&&lowNearHighFar>0,
   'height incorrectly dictates jump distance');
  vm.runInContext('applyRoute(17)',ctx);
