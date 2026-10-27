@@ -24,8 +24,9 @@ function getLanding(plat){
  p.standingOn = plat.id; p.surface = plat.surfaceType; p.groundedFor = 0;
  if(plat.kind === 'cave'){
   atStage = 4; lastSafeStage = 4; caveActivated = true; landingHistory[3] = 'Cave checkpoint';
-  hint('CHECKPOINT! WARM CAMPFIRE — CLIMB INSIDE THE CAVE', 4); haptic([25,45,25]);
-  win(); return;
+  hint('CHECKPOINT! WARM CAMPFIRE — CLIMB THE LADDER TO THE FINAL SUMMIT', 4); haptic([25,45,25]);
+  // Keep the cave as the retry checkpoint; finish only after the ladder exit.
+  return;
  }
  if(plat.spire > atStage){
   atStage = plat.spire;
@@ -44,7 +45,7 @@ function getLanding(plat){
 
 function win(){
  completed = true; p.vx = 0; p.vy = 0; p.state = 'GROUNDED'; haptic([35,60,35]);
- document.getElementById('victoryText').textContent = `Four canyon leaps completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ') || 'direct ascent'}. The cave is your checkpoint; the fastest path avoids long climbs.`;
+ document.getElementById('victoryText').textContent = `Four canyon leaps and final summit climb completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ') || 'direct ascent'}. The cave is your checkpoint; the fastest path avoids long climbs.`;
  document.getElementById('victory').classList.add('open');
  hint('CAVE OF EMBERS — ASCENT COMPLETE!', 5);
 }

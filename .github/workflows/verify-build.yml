@@ -26,4 +26,5 @@ jobs:
       - run: npm run test:browser
       - run: npm run test:visual
       - run: npm run test:terrain
+      - run: npm run test:climb
       - run: npm run build
