@@ -10,9 +10,9 @@ const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,r
 
 const spires = [
  {name:'Wolvesgate',summit:[0,900,1100,'snow'],ledges:[]},
- {name:'The Broken Tooth',summit:[1580,2480,800,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
- {name:'The Windward Spire',summit:[3150,3980,555,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
- {name:'The Lantern Crag',summit:[4680,5540,305,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
+ {name:'The Broken Tooth',summit:[1490,2480,800,'snow'],ledges:[[1660,1738,1010,'rock','High'],[1570,1738,1130,'snow','Middle'],[1490,1738,1240,'rock','Low']]},
+ {name:'The Windward Spire',summit:[3040,3980,555,'snow'],ledges:[[3350,3428,895,'rock','High'],[3260,3428,1010,'ice','Middle'],[3180,3428,1125,'snow','Low']]},
+ {name:'The Lantern Crag',summit:[4580,5540,305,'snow'],ledges:[[5110,5188,810,'snow','High'],[5020,5188,935,'rock','Middle'],[4940,5188,1050,'ice','Low']]},
  {name:'Firespine Cavern',summit:[6290,7100,-55,'snow'],ledges:[],cave:{left:6850,right:7075,floor:892,ceiling:756}}
 ];
 
@@ -169,37 +169,46 @@ function applyRoute(seed) {
 
 
 /**
- * A single shared ice route per outdoor spire, passing through the existing
- * ledge entry points. Route geometry follows seeded ledges; it never modifies
- * collision platforms or vault parameters.
+ * Independent ice ascent from EACH actual landing. Never merge all branches
+ * at one trunk. Different shelves get different entrance AND summit-exit X.
+ * Most of the initial climb is near-vertical, with a short rock-following
+ * traverse as the route approaches its own section of the upper crest.
  */
 function iceClimbPoints(spireIndex,fromTier=null){
  const s=spires[spireIndex];
- if(!s||spireIndex===0||s.cave)return [];
- const selected=fromTier===null?s.ledges:[s.ledges[fromTier]];
- const nodes=selected.map((t,i)=>({x:t[1]-30,y:t[2]-22,tierIndex:fromTier===null?i:fromTier})).sort((a,b)=>b.y-a.y);
- nodes.push({x:s.summit[0]+55,y:s.summit[2]-22,tierIndex:-1});
- return nodes;
+ if(!s||spireIndex<1||spireIndex>3||s.cave)return [];
+ if(fromTier===null) return s.ledges.length ? iceClimbPoints(spireIndex,0) : [];
+ const ledge=s.ledges[fromTier];
+ if(!ledge)return [];
+ const startX=ledge[1]-30,startY=ledge[2]-22;
+ const endX=s.summit[0]+40+fromTier*60,endY=s.summit[2]-22;
+ const spread=endX-startX,climbHeight=startY-endY;
+ const bend={x:startX+spread*.28,y:startY-climbHeight*.64};
+ return [
+  {x:startX,y:startY,tierIndex:fromTier},
+  {...bend,tierIndex:fromTier},
+  {x:endX,y:endY,tierIndex:fromTier}
+ ];
 }
-function icePositionAt(spireIndex,y,fromTier=null){
+function icePositionAt(spireIndex,y,fromTier=0){
  const points=iceClimbPoints(spireIndex,fromTier);
  if(!points.length)return null;
  if(y>=points[0].y)return {x:points[0].x,y};
  for(let k=0;k<points.length-1;k++){
   const a=points[k],b=points[k+1];
   if(y>=b.y){
-   const q=Math.max(0,Math.min(1,(a.y-y)/(a.y-b.y)));
-   const h=q*q*(3-2*q);
-   return {x:a.x+(b.x-a.x)*h,y};
+   const t=Math.max(0,Math.min(1,(a.y-y)/(a.y-b.y)));
+   // Smooth tool placement at a change of slope, no abrupt sideways snap.
+   const eased=t*t*(3-2*t);
+   return {x:a.x+(b.x-a.x)*eased,y};
   }
  }
  return {x:points.at(-1).x,y};
 }
 function independentIceRoutes(i){
- const s=spires[i];if(!s||!s.ledges.length)return [];
- const xs=s.ledges.map(t=>t[1]-30);
- if(Math.max(...xs)-Math.min(...xs)<105)return [{tier:null,points:iceClimbPoints(i)}];
- return s.ledges.map((t,k)=>({tier:k,points:iceClimbPoints(i,k)}));
+ const s=spires[i];
+ if(!s||i<1||i>3)return [];
+ return s.ledges.map((_,tier)=>({tier,points:iceClimbPoints(i,tier)}));
 }
 
 function climbEntryX(platform) {

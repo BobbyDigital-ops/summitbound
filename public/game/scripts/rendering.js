@@ -402,8 +402,8 @@ function drawIceClimb(i,paintCtx=ctx) {
  mid.push({x:upper.x,y:upper.y});
  for (const pos of mid) {
   const drift = Math.sin(pos.y * .08 + i) * 3;
-  left.push({x:pos.x-23 + drift,y:pos.y});
-  right.push({x:pos.x+21 + drift*.5,y:pos.y});
+  left.push({x:pos.x-15 + drift*.3,y:pos.y});
+  right.push({x:pos.x+14 + drift*.15,y:pos.y});
  }
  paintCtx.save();
  paintCtx.lineJoin='round'; paintCtx.lineCap='round';
@@ -417,10 +417,10 @@ function drawIceClimb(i,paintCtx=ctx) {
  ice.addColorStop(.58,'#73cbd9cc');ice.addColorStop(1,'#2a6e8ab8');
  paintCtx.beginPath();
  mid.forEach((p,j)=>j?paintCtx.lineTo(p.x,p.y):paintCtx.moveTo(p.x,p.y));
- paintCtx.strokeStyle=ice;paintCtx.lineWidth=34;paintCtx.stroke();
+ paintCtx.strokeStyle=ice;paintCtx.lineWidth=23;paintCtx.stroke();
  paintCtx.beginPath();
  mid.forEach((p,j)=>j?paintCtx.lineTo(p.x-9,p.y):paintCtx.moveTo(p.x-9,p.y));
- paintCtx.strokeStyle='#e6fbff91';paintCtx.lineWidth=4;paintCtx.stroke();
+ paintCtx.strokeStyle='#e6fbff91';paintCtx.lineWidth=2.7;paintCtx.stroke();
  // Embedded angular ice crystal veins, not ladder rungs.
  for(let y=lower.y-17, n=0; y>upper.y+12; y-=24,n++){
   const here=icePositionAt(i,y,route.tier);

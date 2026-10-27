@@ -55,7 +55,11 @@ function climbStart(plat){
  const rungX = climbEntryX(plat);
  if(Math.abs(p.x - rungX) > 28) return;
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
- p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0, isIce:plat.kind !== 'cave',tierIndex:plat.kind==='ledge'?Number(plat.id.split('-')[1]):null};
+ const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
+ const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
+ p.climb={originX:rungX,originY:p.y,targetX:exit?.x ?? (goal.left+40),
+  targetY:goal.top-22,spire:plat.spire,climbBeat:0,exitTime:0,
+  isIce,tierIndex};
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 

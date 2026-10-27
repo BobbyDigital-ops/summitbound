@@ -11,13 +11,16 @@ for(let seed=0;seed<9;seed++){
    allCounts.add(ledges.length);
    assert.ok(ledges.length>=1&&ledges.length<=4);
    const routes=vm.runInContext('independentIceRoutes('+i+')',ctx);
-   assert.ok(routes.length>=1&&routes.length<=ledges.length);
+   assert.equal(routes.length,ledges.length,'each ledge gets its own wall');
+   assert.equal(new Set(routes.map(r=>r.points.at(-1).x)).size,ledges.length,'summit exits never merge');
    for(let k=0;k<ledges.length;k++){
     const points=vm.runInContext('iceClimbPoints('+i+','+k+')',ctx);
-    assert.equal(points.length,2);
+    assert.equal(points.length,3);
     assert.equal(points[0].x,ledges[k][1]-30);
     assert.equal(points[0].y,ledges[k][2]-22);
-    assert.ok(points[0].y>points[1].y);
+    assert.ok(points[0].y>points[1].y&&points[1].y>points[2].y);
+    assert.ok(Math.abs(points[1].x-points[0].x)<Math.abs(points[2].x-points[0].x)*.4+1);
+    assert.ok(points[2].x>=vm.runInContext('spires['+i+'].summit[0]',ctx)+40);
    }
   }
  });
