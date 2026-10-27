@@ -31,6 +31,6 @@ test('wall terrain variation and slow paced ice tools retained',()=>{
  const sim=fs.readFileSync('public/game/scripts/simulation.js','utf8');
  assert.match(r,/function cliffMicroTerrain/);
  assert.match(r,/function drawIcePicks/);
- assert.match(r,/Math\.floor\(\(p\.climb\?\.climbBeat \|\| 0\) \/ 2\)/);
+ assert.match(r,/const beat=p\.climb\.climbBeat\*Math\.PI\*\.72/);
  assert.match(sim,/climbBeat \+= \(oldY - p\.y\) \/ 24/);
 });
