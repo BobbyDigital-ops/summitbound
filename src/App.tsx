@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.21 - Precision Routes */
+/** Summitbound v0.9.22 - Time Trials */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.21: Precision Routes';
+    document.title = 'Summitbound — v0.9.22: Time Trials';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
