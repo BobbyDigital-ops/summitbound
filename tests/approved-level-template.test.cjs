@@ -27,6 +27,8 @@ for(const [seed,hash] of reference){
 test('seeded level generation still requires real landing and braking validation',()=>{
  const source=fs.readFileSync('public/game/scripts/world-data.js','utf8');
  assert.match(source,/routeSeed=\(\(Math\.trunc\(seed\)%997\)\+997\)%997/);
- assert.match(source,/if\(!viableShelves\(ledges,previous\)\)continue/);
+ assert.match(source,/if\(!timingProfiles\.every\(s=>s\.hits>=3&&s\.safe>=2\)\)continue/);
+ assert.match(source,/PRESERVED_LEVEL_SEEDS\.has\(seed\)/);
+ assert.match(source,/routeHasMeaningfulRiskReward\(timingProfiles\)/);
  assert.match(source,/MOUNTAIN_ARCHETYPES/);
 });
