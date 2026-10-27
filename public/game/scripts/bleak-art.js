@@ -78,8 +78,7 @@ drawSpire=function bleakSpire(i,g=ctx){
     Math.sin(y*.032+i)*6,
    i*917+11);
   bleakRockMass(g,i,summit[0],summit[1],summit[2],
-   y=>summit[0]-Math.min(260,Math.max(0,y-summit[2])*.37)+
-      Math.sin(y*.027+i*2)*6,
+   y=>ridgeUpperWallX(i,y),
    y=>mountainFlankX(i,y),i*917+237);
   // Black void between the broken crowns: progressively pinches closed
   // in the rock below. Transparent above so the player can really fall.
