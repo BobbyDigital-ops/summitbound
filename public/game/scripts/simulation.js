@@ -10,7 +10,10 @@ function caveRespawn(){
 }
 
 function fail(){
- if(mode === 'hardcore'){
+ if(mode === 'trial'){
+  gameReset();hint('TIME TRIAL FAILED — RACE RESTARTED',2);return;
+ }
+ if(mode === 'hardcore'){ 
   hint('Hardcore: back to the beginning!', 3); gameReset();
  } else {
   if(caveActivated){ caveRespawn(); return; }
@@ -24,13 +27,15 @@ function getLanding(plat){
  p.standingOn = plat.id; p.surface = plat.surfaceType; p.groundedFor = 0;
  if(plat.kind === 'cave'){
   atStage = 4; lastSafeStage = 4; caveActivated = true; landingHistory[3] = 'Cave checkpoint';
+  if(typeof trialSplit==='function')trialSplit(4);
   hint('CHECKPOINT! WARM CAMPFIRE — CLIMB THE LADDER TO THE FINAL SUMMIT', 4); haptic([25,45,25]);
   // Keep the cave as the retry checkpoint; finish only after the ladder exit.
   return;
  }
  if(plat.spire > atStage){
   atStage = plat.spire;
-  if(plat.kind === 'summit'){
+  if(typeof trialSplit==='function')trialSplit(plat.spire);
+  if(plat.kind === 'summit'){ 
    lastSafeStage = plat.spire; landingHistory[plat.spire - 1] = 'Direct summit';
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
   } else {
@@ -47,7 +52,8 @@ function getLanding(plat){
 
 function win(){
  completed = true; p.vx = 0; p.vy = 0; p.state = 'GROUNDED'; haptic([35,60,35]);
- document.getElementById('victoryText').textContent = `Four canyon leaps and final summit climb completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ') || 'direct ascent'}. The cave is your checkpoint; the fastest path avoids long climbs.`;
+ const trialResult=typeof finishTimeTrial==='function'?finishTimeTrial():'';
+ document.getElementById('victoryText').textContent = `Four canyon leaps and final summit climb completed in ${formatTime(elapsed)}. ${trialResult?trialResult+' · ':''}Your routes: ${landingHistory.join(' → ') || 'direct ascent'}.`;
  document.getElementById('victory').classList.add('open');
  hint('CAVE OF EMBERS — ASCENT COMPLETE!', 5);
 }
@@ -111,6 +117,7 @@ function climbStartDown(){
 function tick(dt){
  if(completed) return;
  elapsed += dt;
+ if(typeof trialTick==='function')trialTick();
  const k = input(), ground = isGround(), prevFeet = p.y + 22;
  
  if(p.state === 'CLIMBING'){
@@ -297,6 +304,7 @@ function loop(now){
 }
 
 function retry(){
+ if(mode === 'trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
  if(mode !== 'hardcore' && caveActivated) caveRespawn();
  else spawn(Math.min(lastSafeStage, 3), true);
 }
