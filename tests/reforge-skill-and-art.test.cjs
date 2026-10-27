@@ -148,3 +148,44 @@ test('Dark art and renderer are one pipeline, not unrelated bright decoration',(
  assert.match(render,/fillStyle='#091523c4'/);
  assert.match(art,/drawFeaturedCampsite=function bleakCamp/);
 });
+
+test('Actual fixed-step physics can clear both distinct uphill ridge challenges',()=>{
+ const {run}=fixture();
+ const trajectories=[[1,120,450,90],[3,120,375,114]];
+ for(const [peak,offset,speed,frames] of trajectories){
+  const outcome=run(`(()=>{
+   mode='practice';completed=false;elapsed=0;keys.clear();
+   const a=platforms.find(pl=>pl.id==='a${peak}');
+   p={x:a.right-${offset},y:a.top-22,vx:${speed},vy:0,
+    state:'GROUNDED',standingOn:a.id,surface:'snow',
+    groundedFor:.5,climb:null,runDistance:0,facingDir:1};
+   plant();
+   const planted=p.state==='RIDING_VAULT';
+   for(let i=0;i<${frames}&&p.state==='RIDING_VAULT';i++)tick(1/120);
+   if(p.state==='RIDING_VAULT')release();
+   for(let j=0;j<450;j++){
+    if(p.state==='GROUNDED'||p.state==='CLIMBING')break;
+    tick(1/120);
+   }
+   return {planted,state:p.state,standing:p.standingOn,x:p.x};
+  })()`);
+  assert.equal(outcome.planted,true);
+  assert.equal(outcome.standing,'s'+peak);
+  assert.equal(outcome.state,'GROUNDED');
+ }
+});
+test('Under-shooting the upper granite ridge collides with the actual painted rock wall',()=>{
+ const {run}=fixture();
+ const outcome=run(`(()=>{
+  mode='practice';completed=false;
+  const top=spires[1].summit[2],y=top+105,x=ridgeUpperWallX(1,y)-30;
+  p={x,y,vx:450,vy:80,state:'AIRBORNE',facingDir:1,
+    standingOn:null,climb:null};
+  keys.clear();tick(.1);
+  return {vx:p.vx,x:p.x,wall:ridgeUpperWallX(1,p.y),
+   state:p.state};
+ })()`);
+ assert.ok(outcome.vx<0,'wall collision did not repel an undershot vault');
+ assert.ok(outcome.x<outcome.wall,'climber passed through solid granite');
+ assert.ok(['AIRBORNE','FALLING'].includes(outcome.state));
+});
