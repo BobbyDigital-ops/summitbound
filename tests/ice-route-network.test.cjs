@@ -28,8 +28,11 @@ test('all 997 mountain seeds preserve each ice route with conditional real joins
     const base=vm.runInContext('independentIcePoints('+stage+','+route.tier+')',ctx);
     const at=vm.runInContext('iceXOnPath('+JSON.stringify(base)+','+
       (mountains[stage].ledges[route.sharedWith][2]-22)+')',ctx);
-    assert.ok(Math.abs(at-(mountains[stage].ledges[route.sharedWith][1]-30))<=35,
-     'share was forced across a gap in solid cliff');
+    const higherLedge=mountains[stage].ledges[route.sharedWith];
+    assert.ok(at>=higherLedge[0]+10&&at<=higherLedge[1]-12,
+     'a shared branch must actually pass through its receiving shelf');
+    assert.ok(Math.abs(at-(higherLedge[1]-30))<=80,
+     'a branch cannot connect across disconnected cliff faces');
     assert.deepEqual(Array.from(points.slice(-parent.points.length)).map(p=>[p.x,p.y]),
      Array.from(parent.points).map(p=>[p.x,p.y]),'shared upper climb differs');
    }
