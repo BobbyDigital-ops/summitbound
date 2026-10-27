@@ -5,7 +5,7 @@
 const ICE_AXE_STEP=24;
 const ICE_AXE_MAX_QUEUE=96;
 const ICE_AXE_MAX_SPEED=245;
-const ICE_AXE_STEADY_SPEED=36;
+const ICE_AXE_STEADY_SPEED=78;
 const ICE_AXE_DESCENT_SPEED=116;
 function iceAxeStrike(side){
  if(p.state!=='CLIMBING'||!p.climb?.isIce||![-1,1].includes(side))
