@@ -148,7 +148,7 @@ function selectTerraces(spire,seed){
  const variants=MOUNTAIN_ARCHETYPES[count];
  const first=(seed*7+spire*5)%variants.length;
  const labels=MOUNTAIN_TIER_NAMES[count];
- let fallbackLayout=null;
+ let fallbackLayout=null,preferredLayout=null,preferredScore=Infinity,checkedCandidates=0;
  // Hand-shaped route families, followed by only small seeded variations.
  // Do not optimize toward the same three short uphill shelves every time.
  for(let family=0;family<variants.length;family++){
@@ -201,8 +201,17 @@ function selectTerraces(spire,seed){
    // A playable level is preferable to no level if all families fail to
    // produce a meaningfully tighter high-landing window.
    if(!fallbackLayout)fallbackLayout=layout;
+   // Bound expensive first-contact simulations. Four playable candidates
+   // are enough to prefer harder upper routes without making mobile route
+   // generation stall while cycling hundreds of rejected alternatives.
+   if(routeHasMeaningfulRiskReward(timingProfiles)){
+    const score=high.safe+high.releaseWindows*3-low.safe*.05;
+    if(score<preferredScore){preferredScore=score;preferredLayout=layout;}
+   }
+   if(++checkedCandidates>=4)return preferredLayout||fallbackLayout;
   }
  }
+ if(preferredLayout)return preferredLayout;
  if(fallbackLayout)return fallbackLayout;
  throw Error('No playable mountain composition for route '+seed+', stage '+spire);
 }
