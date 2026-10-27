@@ -15,14 +15,16 @@ const page='<!doctype html><html><body>'
  +'const raw=await fetch("/game/summit-leap-v081.html").then(x=>x.text());'
  +'const frame=document.getElementById("gameframe");'
  +'frame.srcdoc=raw.replace("<head>","<head>"+'+JSON.stringify(probe).replace('</script>','<\\/script>')+');'
- +'setTimeout(()=>{const win=frame.contentWindow;'
+ +'const start=Date.now();const check=()=>{const win=frame.contentWindow;'
  +'const stage=win.document.getElementById("stage")?.textContent||"";'
  +'const canvas=win.document.getElementById("game");'
+ +'const ready=stage.startsWith("LEAP")&&canvas?.width>0&&canvas?.height>0;'
  +'document.body.dataset.stage=stage;'
  +'document.body.dataset.error=win.__smokeError||"none";'
  +'document.body.dataset.canvas=canvas?.width+"x"+canvas?.height;'
- +'document.body.dataset.result=stage.startsWith("LEAP")?"pass":"fail";'
- +'},850);'
+ +'document.body.dataset.readiness=win.document.readyState;'
+ +'if(ready||Date.now()-start>3000){document.body.dataset.result=ready?"pass":"fail";clearInterval(poll);}};'
+ +'const poll=setInterval(check,80);check();'
  +'})();'+'<'+'/script></body></html>';
 const chromeNames=['/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium','/usr/bin/chromium-browser'];
 const chrome=process.env.CHROME_BIN||chromeNames.find(name=>fs.existsSync(name));
@@ -42,7 +44,7 @@ const deadline=Date.now()+14000;
   if(!live)throw Error('Vite did not start: '+serverErrors);
   const output=await run(chrome,['--headless','--no-sandbox','--disable-gpu',
    '--disable-dev-shm-usage','--hide-scrollbars','--window-size=1280,800',
-   '--virtual-time-budget=1600','--dump-dom',url+'/game/__browser_smoke.html'],{maxBuffer:3e6,timeout:35000});
+   '--virtual-time-budget=3800','--dump-dom',url+'/game/__browser_smoke.html'],{maxBuffer:3e6,timeout:35000});
   const dom=output.stdout;
   const found=(key)=>dom.match(new RegExp('data-'+key+'="([^"]*)"'))?.[1];
   console.log('Browser stage:',found('stage'),'Result:',found('result'),'Canvas:',found('canvas'));
