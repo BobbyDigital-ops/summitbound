@@ -94,6 +94,13 @@ function prepareFeaturedRidgeCruxes(mountains){
   }
  }
 }
+// Draw AND collision use this exact fractured upper-ridge cliff wall.
+// Under-shooting an uphill vault strikes real rock, not an invisible surface.
+function ridgeUpperWallX(i,y){
+ const m=spires[i],top=m.summit[2];
+ return m.summit[0]-Math.min(260,Math.max(0,y-top)*.37)+
+  Math.sin(y*.027+i*2)*6;
+}
 function featuredCampPosition(peak=2){
  const s=spires[peak],landing=s?.ledges?.[0];
  if(!landing||![2,4].includes(peak))return null;
