@@ -1,29 +1,25 @@
 // Summitbound Phase 4C: seeded time trials, medal gates and replayable local ghosts.
 // Records are course-specific, validated against versioned terrain + stock physics.
-const TRIAL_RECORD_VERSION=3;
+const TRIAL_RECORD_VERSION=4;
 const TRIAL_SAMPLE_SECONDS=.12;
 const TRIAL_MAX_SAMPLES=3500;
 let trialRun={samples:[],splits:[],nextSample:0,invalid:false};
 let trialGhost=null,trialGhostCursor=0,trialGhostVisible=true,trialLastSplit='';
 function medalTargets(seed=routeSeed){
- // Quantify the best accessible high-route climb, then allow finite vault,
- // traverse, cave and setup time. Aspirational rather than fixed magic seconds;
- // thresholds require real playtest calibration before final release.
- const ascent=spires.slice(1,4).reduce((sum,m)=>{
-  const high=m.ledges.at(-1);
-  return sum+(high?Math.max(0,high[2]-m.summit[2])/62:0);
+ // Route-local time estimates; all four receiving mountains have genuine
+ // ice climbs, and there is no hidden cave ladder anymore.
+ const ascent=spires.slice(1).reduce((sum,m)=>{
+  const landing=m.ledges.at(-1);
+  return sum+(landing?Math.max(0,landing[2]-m.summit[2])/110:0);
  },0);
- const ladder=Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125;
- const gold=Math.ceil((48+ascent+ladder)*1.04/5)*5;
- return {gold,silver:Math.ceil(gold*1.32/5)*5,bronze:Math.ceil(gold*1.76/5)*5};
+ const gold=Math.ceil((42+ascent)*1.03/5)*5;
+ return {gold,silver:Math.ceil(gold*1.25/5)*5,
+  bronze:Math.ceil(gold*1.60/5)*5};
 }
-// Cumulative stage gates spread the course target across the actual
-// climbing distance of each receiving mountain plus a leap/run budget.
 function stageMedalTargets(stage,seed=routeSeed){
- const parts=spires.slice(1,4).map(m=>12+
-  (m.ledges.length?Math.max(0,m.ledges.at(-1)[2]-m.summit[2])/62:0));
- parts.push(12+Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125);
- const slice=parts.slice(0,Math.max(1,Math.min(4,stage)))
+ const parts=spires.slice(1).map(m=>10+
+  (m.ledges.length?Math.max(0,m.ledges.at(-1)[2]-m.summit[2])/110:0));
+ const slice=parts.slice(0,Math.max(1,Math.min(parts.length,stage)))
   .reduce((sum,v)=>sum+v,0);
  const ratio=slice/parts.reduce((sum,v)=>sum+v,0);
  const medal=medalTargets(seed);
