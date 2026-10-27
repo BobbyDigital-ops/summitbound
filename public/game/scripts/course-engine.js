@@ -62,7 +62,9 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
     if(path)for(let n=0;n<=12;n++){
      const y=path.at(-1).y+(path[0].y-path.at(-1).y)*n/12;
      const x=iceXOnPath(path,y),rock=mountainContourX(i,y);
-     if(x-rock<26)failures.push('unsupported ice '+i+'/'+tier+'/'+n);
+     const flank=mountainFlankX(i,y);
+     if(x-rock<26||flank-x<25)
+      failures.push('unsupported ice '+i+'/'+tier+'/'+n);
     }
    });
    summary.push({peak:i,landings:profiles.map(x=>x.safe),
@@ -84,8 +86,10 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
 // climbing edges are traversable only along physical climb routes.
 // This does not magically establish fun or visual quality: those require
 // human signoff before any level is admitted into the 100-level campaign.
-function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE){
+function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeResolver=null){
  const nodes=[],edges=[],issues=[];
+ if(peakSet!==spires&&!routeResolver)
+  issues.push('custom mountain geometry requires a physically authored climb route resolver');
  const addNode=(id,type,peak,surface)=>nodes.push({id,type,peak,
   left:surface[0],right:surface[1],top:surface[2]});
  const addEdge=(from,to,kind,safe)=>edges.push({from,to,kind,safe});
@@ -96,7 +100,8 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE){
    [peak.cave.left,peak.cave.right,peak.cave.floor]);
   if(peak.cave)addEdge('cave'+i,'s'+i,'tunnel-ladder',1);
   peak.ledges.forEach((ledge,t)=>{
-   const points=i>=1&&i<=3?iceRouteNetwork(i)[t]?.points:null;
+   const points=routeResolver?routeResolver(peakSet,i,t):
+    peakSet===spires&&i>=1&&i<=3?iceRouteNetwork(i)[t]?.points:null;
    if(!points||points.at(-1).x<peak.summit[0]+3||
     points.at(-1).x>peak.summit[1]-3)
     issues.push('climb route missing real summit exit: '+i+'/'+t);
