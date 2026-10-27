@@ -289,6 +289,9 @@ function resize(){
 let perfStart=0,perfFrames=0,perfRendered=0,lastRenderedAt=0;
 let perfDrawSamples=[];
 function loop(now){
+ // Background tabs/Android app suspension must not accumulate physics or
+ // time-trial ticks or waste GPU paint while the game is not visible.
+ if(document.hidden){prev=now;acc=0;requestAnimationFrame(loop);return;}
  let delta = Math.min(.05, (now - prev) / 1000); prev = now;
  acc += delta;
  for(let n = 0; acc >= DT && n < 7; n++, acc -= DT) tick(DT);
