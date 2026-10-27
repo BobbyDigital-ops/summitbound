@@ -288,7 +288,7 @@ function iceRouteNetwork(spireIndex){
    if(crossing<ledges[other][0]+10||
       crossing>ledges[other][1]-12)continue;
    const offset=Math.abs(crossing-upper.x);
-   if(offset>35)continue;
+   if(offset>80)continue;
    const cost=offset+vertical*.065;
    if(cost<best){best=cost;parent=other;}
   }
@@ -297,11 +297,13 @@ function iceRouteNetwork(spireIndex){
    continue;
   }
   const higher=routes[parent],join=higher.points[0];
-  const transitionY=join.y+Math.min(105,(start.y-join.y)*.33);
+  const transitionY=join.y+Math.min(125,(start.y-join.y)*.37);
   const lead={
    x:iceXOnPath(initial,transitionY),y:transitionY,tierIndex:tier
   };
-  routes[tier]={tier,points:[start,lead,...higher.points],
+  const bridge={x:join.x+(lead.x-join.x)*.48,
+   y:join.y+(transitionY-join.y)*.50,tierIndex:tier};
+  routes[tier]={tier,points:[start,lead,bridge,...higher.points],
    sharedWith:parent,joinY:join.y};
  }
  iceRouteCache.set(spireIndex,routes);
