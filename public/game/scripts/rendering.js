@@ -1014,6 +1014,8 @@ function backdropViewport(iw,ih,w,h,cameraX,cameraY){
 }
 
 function draw(){
+ const catchBtn=document.getElementById('catch');
+ if(catchBtn)catchBtn.hidden=!(p.state==='AIRBORNE'||p.state==='FALLING')||catchUsed;
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
  camera.x += (targetX - camera.x) * .055; camera.y += (targetY - camera.y) * .045;
@@ -1130,7 +1132,7 @@ function draw(){
  const running=isGround() && Math.abs(p.vx)>30;
  const step=(p.runDistance||0)/55;
  const phase=Math.floor(step)%8;
- const pose=p.state==='CLIMBING' ? 11
+ const pose=p.state==='CLIMBING'||p.state==='HANGING' ? 11
   : p.vault?9:(p.state==='AIRBORNE'||p.state==='FALLING')?10
   :running?phase:8;
  if(climberSheet.complete && climberSheet.naturalWidth){
@@ -1152,6 +1154,15 @@ function draw(){
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);
  }
  if(p.state === 'CLIMBING' && p.climb?.isIce) drawIcePicks();
+ if(p.state==='HANGING'&&p.catchLedge){
+  // Axe visibly lodged into the same ledge lip as the collision contact.
+  const x=p.catchLedge.edge,y=p.y-20,side=p.catchLedge.side;
+  ctx.strokeStyle='#aab9ba';ctx.lineWidth=4;ctx.beginPath();
+  ctx.moveTo(p.x,p.y-16);ctx.lineTo(x,y);
+  ctx.lineTo(x+side*9,y-10);ctx.stroke();
+  ctx.strokeStyle='#d5d8d0';ctx.lineWidth=2.5;ctx.beginPath();
+  ctx.moveTo(x-8,y-10);ctx.lineTo(x+side*13,y-6);ctx.stroke();
+ }
  ctx.restore();
 
 
