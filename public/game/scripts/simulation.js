@@ -69,10 +69,10 @@ function climbStart(plat){
  const lipX=exit?.x ?? (goal.left+40);
  // Ice reaches the snow lip at lipX; a short controlled step places both
  // feet inside the walkable ridge. The cave ladder remains unchanged.
- const stepX=isIce?Math.min(goal.right-72,lipX+20):lipX;
+ const stepX=lipX; // A real exit must already lie inside its summit collider.
  p.climb={originX:rungX,originY:p.y,targetX:stepX,lipX,
   targetY:goal.top-22,spire:plat.spire,climbBeat:0,exitTime:0,
-  isIce,tierIndex};
+  isIce,tierIndex,pulse:0,lastAxe:0,lastAxeAt:-100,axeHits:0};
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 
@@ -149,13 +149,32 @@ function tick(dt){
  
  if(p.state === 'CLIMBING'){
   const c = p.climb;
-  if(k.up && !k.down){
-   const oldY=p.y;p.y=Math.max(c.targetY,p.y-62*dt);c.climbBeat+=(oldY-p.y)/24;
-  }else if(k.down && !k.up){
-   const oldY=p.y;p.y=Math.min(c.originY,p.y+62*dt);c.climbBeat-=(p.y-oldY)/24;
+  const oldY=p.y;
+  if(c.isIce){
+   p.y=clamp(p.y+iceClimbDisplacement(c,k,dt),c.targetY,c.originY);
+  }else if(k.up&&!k.down){
+   p.y=Math.max(c.targetY,p.y-116*dt);
+  }else if(k.down&&!k.up){
+   p.y=Math.min(c.originY,p.y+116*dt);
   }
-  p.x=c.isIce?icePositionAt(c.spire,p.y,c.tierIndex).x:c.originX;
-  if(p.y<=c.targetY+.25 && k.up){p.y=c.targetY;p.state='STEP_OFF';c.exitTime=0;}
+  c.climbBeat+=(oldY-p.y)/24;
+  const point=c.isIce?icePositionAt(c.spire,p.y,c.tierIndex):null;
+  if(c.isIce&&!point){fail();return;}
+  p.x=c.isIce?point.x:c.originX;
+  // An ice path terminates ON the summit; never slide the climber through
+  // empty space after reaching its endpoint.
+  if(p.y<=c.targetY+.25 && (oldY>p.y||k.up)){
+   p.y=c.targetY;
+   if(c.isIce){
+    const summit=platforms.find(pl=>pl.id==='s'+c.spire);
+    if(!summit||p.x<summit.left+3||p.x>summit.right-3){fail();return;}
+    p.state='GROUNDED';p.standingOn=summit.id;
+    p.surface=summit.surfaceType;p.vx=0;p.vy=0;
+    p.groundedFor=.4;lastSafeStage=c.spire;p.climb=null;
+    hint('ICE EXIT — SUMMIT REACHED',1.8);
+    if(c.spire===4)win();
+   }else{p.state='STEP_OFF';c.exitTime=0;}
+  }
   else if(p.y>=c.originY-.25 && k.down){
    const ledge=platforms.find(pl=>pl.spire===c.spire&&pl.kind===(c.isIce?'ledge':'cave')&&
     (!c.isIce||Number(pl.id.split('-')[1])===c.tierIndex));
@@ -247,10 +266,20 @@ function tick(dt){
    }
   }
   if(!standing && p.vy >= 0){
-   const possibles = platforms.filter(pl => p.x >= pl.left + 3 && p.x <= pl.right - 3 && prevFeet <= pl.top + 3 && feet >= pl.top - 4).sort((a,b) => a.top - b.top);
-   if(possibles.length){
-    standing = possibles.find(q => q.kind !== 'cave' || p.y - 23 >= spires[4].cave.ceiling + 2) || null;
-    if(standing){ p.y = standing.top - 22; p.vy = 0; if(!wasGround) getLanding(standing); }
+   // Swept first-contact collisions. A fall may catch ANY actual shelf it
+   // crosses; no magnetic snap to a predetermined platform.
+   const crossed=platforms.map(pl=>{
+    if(prevFeet>pl.top+3||feet<pl.top-4)return null;
+    const t=clamp((pl.top-prevFeet)/Math.max(.00001,feet-prevFeet),0,1);
+    const contactX=prevX+(p.x-prevX)*t;
+    if(contactX<pl.left+3||contactX>pl.right-3)return null;
+    if(pl.kind==='cave'&&p.y-23<spires[4].cave.ceiling+2)return null;
+    return {pl,t,contactX};
+   }).filter(Boolean).sort((a,b)=>a.t-b.t);
+   if(crossed.length){
+    const hit=crossed[0];standing=hit.pl;
+    p.x=hit.contactX;p.y=standing.top-22;p.vy=0;
+    if(!wasGround)getLanding(standing);
    }
   }
   if(standing){
