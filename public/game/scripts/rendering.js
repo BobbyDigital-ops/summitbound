@@ -723,7 +723,10 @@ function draw(){
  for(let i=0;i<spires.length;i++){
   const s=spires[i].summit;
   const nearLeft=i===4?Math.min(s[0],spires[4].cave.left-230):Math.min(s[0],...spires[i].ledges.map(t=>t[0]));
-  if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w+220)continue;
+  // Avoid spending the first interactive frame rasterising an entire
+  // off-screen mountain because a few pixels of its approach shelf touch
+  // the extreme right border. Lazy cache it once substantially visible.
+  if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w-50)continue;
   const chunk=mountainCache(i);
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
   else {drawSpire(i);if(i>0&&i<4)drawIceClimb(i);decorate(i);}
