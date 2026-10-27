@@ -1,3 +1,21 @@
+# Summitbound — Five Peaks v0.11.0 (one curated vertical slice)
+
+**Active playable content: ONE five-peak continuous run** (four major crossings ending at the cave-tunnel summit). The intended commercial campaign remains **exactly 100 levels**, but the other legacy routes have been removed from the playable interface. Their generator, regressions and backup `backup/pre-five-peak-slice-v0100` remain available for future work.
+
+**Five-peak architecture:** `public/game/scripts/course-engine.js` declares one authored layout with three real multi-height intermediate spires and the fifth cave summit. Relative peak and individual ledge placements create variable chasm distances while preserving actual player-physics reachability. It defines a campsite checkpoint on peak three, cave checkpoint on peak five, and a graph compiler measuring authentic reachability, ice climbs, planned ledge shortcuts and checkpoint connections.
+
+**Graphics and physical integrity:** the mountain silhouette derives its left bedrock face from the actual ice graph in the featured course, keeping the ice attached to rock rather than floating in empty space. The final cave ladder runs visibly up a recessed tunnel from the cave floor to the fifth summit. Ice and cave climbing terminate at the exact same physical summit X with **no scripted sideways slide**.
+
+**Gameplay and checkpoint flow:** the camp tent and fire on peak three auto-activate a true checkpoint; the cave is another checkpoint and continues vertically through a tunnel to the fifth peak. Other summits do not silently grant checkpoints. Real accidental lower-ledge catches and possible launch points remain available. Practice, Hardcore, Time Trial and route-specific ghosts remain for this one course.
+
+**UI/content isolation:** New Route and stage-skip controls are absent. The world selector forces the single curated manifest when loaded through the game, while tests can still inspect the historical 997-seed prototype generator without the featured-course module. Prior ghost records are invalidated by time-trial data version 3, as terrain changed.
+
+**Quality gates:** `npm run test:five-peaks` (wired into CI) covers all five peaks, four route transitions, physical first-contact landing options, rock support under every ice route, exact-X summit/tunnel exits, and meaningful checkpoints. The graph currently finds no verified direct ledge-to-next-spire shortcut: that feature remains an authored layout objective, not an invented automatic transfer.
+
+**Important limits:** this is the first tested five-peak vertical-slice engine, **not yet a generator of unlimited commercial-quality levels**. The reusable route graph and validators form its initial foundation, but generalised geometry generation, route-family diversity, visual screenshots, 100-level production and Android device validation are outstanding. Full GitHub CI and actual visual playtesting have not been independently confirmed. Vercel may still be build-rate-limited.
+
+---
+
 # Summitbound v0.10.0 — Phase 8 Skill Foundation (gameplay rebuild)
 
 **Implementation checkpoint, awaiting real playtest and complete CI.** Active work stays on `main` for Google AI Studio; backup `backup/pre-phase8-v0924` retains the old implementation. Final design calls for **exactly 100 individually validated levels**, not 110 or 100+; content production is future work, not delivered by the prototype's 997 deterministic seeds.
