@@ -34,3 +34,35 @@ test('checkpoint cave and initial peak have continuous rock profiles',()=>{
   assert.ok(Number.isFinite(vm.runInContext('mountainContourX('+i+',1200)',ctx)));
  }
 });
+
+test('procedural ledge rock anchors remain inside the cliff without changing surfaces',()=>{
+ const fakeGradient={addColorStop(){}};
+ const fakeCtx=new Proxy({},{
+  get(obj,key){if(key in obj)return obj[key];
+   if(key==='createLinearGradient'||key==='createRadialGradient')return ()=>fakeGradient;
+   if(key==='createPattern')return ()=>({});return ()=>{};},
+  set(obj,key,value){obj[key]=value;return true;}
+ });
+ const art=vm.createContext({Image:class Image{},document:{getElementById:()=>null},
+  platforms:[],ctx:fakeCtx,performance:{now:()=>1000},innerWidth:390,innerHeight:820,
+  graphicsQuality:'auto'});
+ for(const path of ['physics.js','world-data.js','rendering.js'])
+  vm.runInContext(fs.readFileSync('public/game/scripts/'+path,'utf8'),art);
+ for(const seed of [0,1,2,3,4,5,6,7,8,42,250,996]){
+  vm.runInContext('applyRoute('+seed+')',art);
+  const mountains=vm.runInContext('spires',art);
+  for(let i=1;i<=3;i++)for(const ledge of mountains[i].ledges){
+   const p=vm.runInContext('terraceButtressProfile('+i+','+
+    ledge[0]+','+ledge[1]+','+ledge[2]+')',art);
+   assert.ok(p.length>=10,'buttress lacks rounded/jagged supporting profile');
+   assert.ok(p.every(v=>v.every(Number.isFinite)),'non-finite rock anchor');
+   const contour=vm.runInContext('mountainContourX('+i+','+p[8][1]+')',art);
+   assert.ok(p[8][0]>=contour+10,
+    'outcrop root is not embedded in continuous mountain rock');
+   assert.ok(p[0][0]<ledge[0]&&p[3][0]>ledge[1],
+    'outcrop does not support the full real landing span');
+   assert.ok(p[8][1]>ledge[2]+80&&p[8][1]<ledge[2]+155,
+    'detached deep rock fin rather than a local joined buttress');
+  }
+ }
+});

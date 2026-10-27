@@ -28,6 +28,7 @@
     "test:template": "node --test tests/approved-level-template.test.cjs",
     "test:ice-network": "node --test tests/ice-route-network.test.cjs",
     "test:ice-snow": "node --test tests/ice-snow-crest.test.cjs",
+    "test:terrain-art": "node --test tests/terrain-art-integration.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

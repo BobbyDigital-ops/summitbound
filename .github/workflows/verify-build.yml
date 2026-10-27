@@ -36,4 +36,5 @@ jobs:
       - run: npm run test:template
       - run: npm run test:ice-network
       - run: npm run test:ice-snow
+      - run: npm run test:terrain-art
       - run: npm run build

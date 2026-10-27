@@ -21,7 +21,11 @@ for(let seed=0;seed<9;seed++){
   vm.runInContext('applyRoute('+seed+')',env);
   assert.doesNotThrow(()=>{
    for(let i=0;i<5;i++)vm.runInContext('drawSpire('+i+',ctx)',env);
-   for(let i=1;i<4;i++)vm.runInContext('drawIceClimb('+i+',ctx)',env);
+   for(let i=1;i<4;i++){
+    vm.runInContext('drawIceClimb('+i+',ctx)',env);
+    vm.runInContext('drawIceShelfJoins('+i+',ctx)',env);
+    vm.runInContext('drawIceCrestSnow('+i+',ctx)',env);
+   }
    vm.runInContext('drawCave()',env);
    for(let i=0;i<5;i++)vm.runInContext('mountainCache('+i+')',env);
   });
