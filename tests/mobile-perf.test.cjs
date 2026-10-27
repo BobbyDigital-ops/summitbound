@@ -8,6 +8,7 @@ test('static mountain scenery cached per route and invalidated after seed change
  assert.match(render,/function mountainCache\(i\)/);
  assert.match(render,/drawSpire\(i,off\)/);
  assert.match(render,/terrainCache\.set\(i,data\)/);
+ assert.match(render,/drawIceClimb\(i,off\)/);
 });
 test('mobile quality profiles cap internal drawing resolution and snow',()=>{
  assert.match(sim,/graphicsQuality==='low'\?1/);

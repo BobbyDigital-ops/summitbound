@@ -396,7 +396,7 @@ function drawCave(){
 }
 
 // 4. One frozen ice ascent per outdoor mountain; a single steel ladder in the cave.
-function drawIceClimb(i) {
+function drawIceClimb(i,paintCtx=ctx) {
  const routes=independentIceRoutes(i);
  for(const route of routes){
  const points=route.points;
@@ -414,45 +414,45 @@ function drawIceClimb(i) {
   left.push({x:pos.x-23 + drift,y:pos.y});
   right.push({x:pos.x+21 + drift*.5,y:pos.y});
  }
- ctx.save();
- ctx.lineJoin='round'; ctx.lineCap='round';
+ paintCtx.save();
+ paintCtx.lineJoin='round'; paintCtx.lineCap='round';
  // Rock-to-ice seam: a continuous band fused into the mountain face.
- ctx.beginPath(); left.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
- right.slice().reverse().forEach(p=>ctx.lineTo(p.x,p.y));
- ctx.closePath(); ctx.fillStyle='#092d429c';ctx.fill();
- ctx.strokeStyle='#21455899';ctx.lineWidth=5;ctx.stroke();
- const ice=ctx.createLinearGradient(lower.x-25,0,lower.x+35,0);
+ paintCtx.beginPath(); left.forEach((p,j)=>j?paintCtx.lineTo(p.x,p.y):paintCtx.moveTo(p.x,p.y));
+ right.slice().reverse().forEach(p=>paintCtx.lineTo(p.x,p.y));
+ paintCtx.closePath(); paintCtx.fillStyle='#092d429c';paintCtx.fill();
+ paintCtx.strokeStyle='#21455899';paintCtx.lineWidth=5;paintCtx.stroke();
+ const ice=paintCtx.createLinearGradient(lower.x-25,0,lower.x+35,0);
  ice.addColorStop(0,'#527d92d8');ice.addColorStop(.3,'#b8f0f4db');
  ice.addColorStop(.58,'#73cbd9cc');ice.addColorStop(1,'#2a6e8ab8');
- ctx.beginPath();
- mid.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
- ctx.strokeStyle=ice;ctx.lineWidth=34;ctx.stroke();
- ctx.beginPath();
- mid.forEach((p,j)=>j?ctx.lineTo(p.x-9,p.y):ctx.moveTo(p.x-9,p.y));
- ctx.strokeStyle='#e6fbff91';ctx.lineWidth=4;ctx.stroke();
+ paintCtx.beginPath();
+ mid.forEach((p,j)=>j?paintCtx.lineTo(p.x,p.y):paintCtx.moveTo(p.x,p.y));
+ paintCtx.strokeStyle=ice;paintCtx.lineWidth=34;paintCtx.stroke();
+ paintCtx.beginPath();
+ mid.forEach((p,j)=>j?paintCtx.lineTo(p.x-9,p.y):paintCtx.moveTo(p.x-9,p.y));
+ paintCtx.strokeStyle='#e6fbff91';paintCtx.lineWidth=4;paintCtx.stroke();
  // Embedded angular ice crystal veins, not ladder rungs.
  for(let y=lower.y-17, n=0; y>upper.y+12; y-=24,n++){
   const here=icePositionAt(i,y,route.tier);
   const sign=n%2===0 ? -1 : 1;
-  ctx.strokeStyle=n%3===0?'#e7fbffc9':'#123c57a8';
-  ctx.lineWidth=n%3===0?2.5:1.9;
-  ctx.beginPath();ctx.moveTo(here.x+sign*4,y-11);
-  ctx.lineTo(here.x+sign*(12+n%3*3),y+2);
-  ctx.lineTo(here.x+sign*7,y+12);ctx.stroke();
+  paintCtx.strokeStyle=n%3===0?'#e7fbffc9':'#123c57a8';
+  paintCtx.lineWidth=n%3===0?2.5:1.9;
+  paintCtx.beginPath();paintCtx.moveTo(here.x+sign*4,y-11);
+  paintCtx.lineTo(here.x+sign*(12+n%3*3),y+2);
+  paintCtx.lineTo(here.x+sign*7,y+12);paintCtx.stroke();
   if(n%3===1){
-   ctx.fillStyle='#e9ffffd5';ctx.beginPath();
-   ctx.moveTo(here.x-1,y-4);ctx.lineTo(here.x+5,y+2);
-   ctx.lineTo(here.x,y+8);ctx.lineTo(here.x-4,y+2);ctx.fill();
+   paintCtx.fillStyle='#e9ffffd5';paintCtx.beginPath();
+   paintCtx.moveTo(here.x-1,y-4);paintCtx.lineTo(here.x+5,y+2);
+   paintCtx.lineTo(here.x,y+8);paintCtx.lineTo(here.x-4,y+2);paintCtx.fill();
   }
  }
  // Mark the places where the frozen route meets each landing terrace.
  for(const point of points.slice(0,-1)){
-  ctx.strokeStyle='#d7f8f9cf';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(point.x-17,point.y-2);
-  ctx.lineTo(point.x-9,point.y-12);
-  ctx.moveTo(point.x+13,point.y-1);ctx.lineTo(point.x+5,point.y-10);ctx.stroke();
+  paintCtx.strokeStyle='#d7f8f9cf';paintCtx.lineWidth=3;
+  paintCtx.beginPath();paintCtx.moveTo(point.x-17,point.y-2);
+  paintCtx.lineTo(point.x-9,point.y-12);
+  paintCtx.moveTo(point.x+13,point.y-1);paintCtx.lineTo(point.x+5,point.y-10);paintCtx.stroke();
  }
- ctx.restore();
+ paintCtx.restore();
  }
 }
 
@@ -619,7 +619,7 @@ function mountainCache(i){
  const off=image.getContext('2d',{alpha:true});
  if(!off)return null;
  off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
- drawSpire(i,off);decorate(i,off);
+ drawSpire(i,off);if(i>0&&i<4)drawIceClimb(i,off);decorate(i,off);
  const data={image,left,top,width,height};
  terrainCache.set(i,data);
  const max=innerWidth<950?2:3;
@@ -681,16 +681,12 @@ function draw(){
   if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w+220)continue;
   const chunk=mountainCache(i);
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
-  else {drawSpire(i);decorate(i);}
+  else {drawSpire(i);if(i>0&&i<4)drawIceClimb(i);decorate(i);}
  }
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
- for(let i=1;i<spires.length;i++){
-  const s=spires[i].summit;
-  if((s[1]-camera.x)*zoom<-180||(s[0]-camera.x)*zoom>w+180)continue;
-  drawClimbingRoutes(i);
- }
-
-  if(trail.length > 2){
+ if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCaveLadder();
+ 
+   if(trail.length > 2){
   ctx.strokeStyle = '#ffd69b78'; ctx.lineWidth = 2; ctx.setLineDash([5, 6]);
   ctx.beginPath(); trail.forEach((v, i) => i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y)); ctx.stroke(); ctx.setLineDash([]);
  }
