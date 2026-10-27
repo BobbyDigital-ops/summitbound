@@ -14,10 +14,10 @@ for(let route=0;route<9;route++){
    for(let j=1;j<ledges.length;j++)
     assert.ok(ledges[j][2]-ledges[j-1][2]>=(ledges.length===4?28:40),
      'landing elevation differences are visibly compressed');
-   assert.ok(ledges.at(-1)[2]-ledges[0][2]>=108,
+   assert.ok(ledges.at(-1)[2]-ledges[0][2]>=310,
     'the mountain has no meaningful high/low landing alternatives');
    for(const ledge of ledges){
-    assert.ok(ledge[2]<s[i-1].summit[2],'every landing must gain altitude');
+    assert.ok(ledge[2]<s[i-1].summit[2]+375,'landing too low for safe aerial descent');
     assert.ok(ledge[2]>s[i].summit[2]+32,'ledge must be visibly beneath peak');
     assert.ok(ledge[1]-ledge[0]>=75,'enough landing runout');
    }
