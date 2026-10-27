@@ -29,7 +29,9 @@ test('all 997 deterministic routes: every shelf distinct, reachable, and climber
     assert.ok(t[2]<prior[2]+375&&t[2]>peak[2]+68,
      'invalid mountain landing or summit climb height');
     const ice=vm.runInContext('iceClimbPoints('+i+','+ledges.indexOf(t)+')',ctx);
-    assert.ok(ice.length===3,'missing climb for shelf');
+    assert.ok(ice.length>=3,'missing climb for shelf');
+    for(let k=1;k<ice.length;k++)assert.ok(ice[k-1].y>ice[k].y,
+     'shared ice section is not continuously ascending');
     assert.ok(ice.at(-1).x>=peak[0]+40&&ice.at(-1).x<=peak[1]-85,
      'ice route does not exit onto summit');
    }

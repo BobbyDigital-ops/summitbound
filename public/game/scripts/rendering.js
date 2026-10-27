@@ -423,15 +423,23 @@ function drawIceClimb(i,paintCtx=ctx) {
   const points=route.points;
   if(points.length<2)continue;
   const lower=points[0],upper=points.at(-1);
-  const height=Math.max(1,lower.y-upper.y);
+  // Never paint a bright ice cap 22 units ABOVE the snow-covered summit.
+  // The gameplay centre reaches that height, but the ice artwork is buried
+  // below the crest. A child branch stops where it meets its shared trunk.
+  const surfaceTop=spires[i].summit[2]+16;
+  const renderTop=Math.min(lower.y-12,
+   route.sharedWith===null?surfaceTop:route.joinY+5);
+  const visualUpper=icePositionAt(i,renderTop,route.tier);
+  const height=Math.max(1,lower.y-renderTop);
   const sections=[];
-  for(let y=lower.y;y>upper.y;y-=9){
+  for(let y=lower.y;y>renderTop;y-=9){
    const t=(lower.y-y)/height;
    const at=icePositionAt(i,y,route.tier);
    const drift=2.7*Math.sin(y*.057+i*2.1+route.tier*1.9);
    sections.push({x:at.x+drift,y,t,...iceFaceWidths(t,i,route.tier)});
   }
-  sections.push({x:upper.x,y:upper.y,t:1,...iceFaceWidths(1,i,route.tier)});
+  sections.push({x:visualUpper.x,y:renderTop,t:1,
+   ...iceFaceWidths(1,i,route.tier)});
   // Uneven left and right margins; the outline is never a uniform-radius
   // tube and the frosted surface changes width independently on both sides.
   const outline=(leftRatio=1,rightRatio=1)=>{
@@ -452,7 +460,8 @@ function drawIceClimb(i,paintCtx=ctx) {
   outline(1.10,1.10);
   paintCtx.fillStyle='#203d5070';paintCtx.fill();
   outline();
-  const glacier=paintCtx.createLinearGradient(lower.x-65,lower.y,upper.x+75,upper.y);
+  const glacier=paintCtx.createLinearGradient(
+   lower.x-65,lower.y,visualUpper.x+75,renderTop);
   glacier.addColorStop(0,'#477b8fad');
   glacier.addColorStop(.28,'#a9d8dfcc');
   glacier.addColorStop(.57,'#8bc4d1db');
@@ -486,14 +495,70 @@ function drawIceClimb(i,paintCtx=ctx) {
    paintCtx.lineTo(p.x+side*(11+k%4*4),y+1);
    paintCtx.lineTo(p.x+side*3,y+18);paintCtx.stroke();
   }
-  // Small frost deposits at the shelf entry and summit exit.
-  for(const edge of [lower,upper]){
+  // Individual frost deposits at the shelf entrance. Summit snowfall is
+  // composited separately above the ice and over the cliff rim.
+  for(const edge of [lower]){
    paintCtx.fillStyle='#e4f7f2b8';paintCtx.beginPath();
    paintCtx.moveTo(edge.x-21,edge.y+1);
    paintCtx.lineTo(edge.x-8,edge.y-8);
    paintCtx.lineTo(edge.x+6,edge.y-6);
    paintCtx.lineTo(edge.x+23,edge.y+2);
    paintCtx.lineTo(edge.x+9,edge.y-1);
+   paintCtx.closePath();paintCtx.fill();
+  }
+  paintCtx.restore();
+ }
+}
+
+/**
+ * Snow is the FRONTMOST layer where frozen climbing faces reach the crest.
+ * The shape is a scalloped wind-drift embedded into the existing summit snow
+ * rather than a separate square ice topping. Drawn once into terrain cache.
+ */
+function drawIceCrestSnow(i,paintCtx=ctx){
+ const summitY=spires[i].summit[2];
+ const routes=iceRouteNetwork(i).filter(route=>route.sharedWith===null);
+ for(const route of routes){
+  const tip=icePositionAt(i,summitY+16,route.tier);
+  if(!tip)continue;
+  const x=tip.x,span=iceFaceWidths(1,i,route.tier);
+  const radius=Math.max(52,span.left+span.right+26);
+  const crest=paintCtx.createLinearGradient(x,summitY-16,x,summitY+60);
+  crest.addColorStop(0,'#f6ffffed');
+  crest.addColorStop(.31,'#e9f7fae0');
+  crest.addColorStop(.64,'#badde5aa');
+  crest.addColorStop(1,'#9dc5d000');
+  paintCtx.save();
+  paintCtx.beginPath();
+  // Irregular upper snowcap follows the already-walkable level summit.
+  paintCtx.moveTo(x-radius*.78,summitY-7);
+  for(let n=0;n<=12;n++){
+   const t=n/12,xx=x-radius*.78+t*radius*1.56;
+   paintCtx.lineTo(xx,summitY-7-3*Math.sin(t*Math.PI)-
+    2*Math.sin(t*19+i+route.tier));
+  }
+  // Snow feathers extend into the ice in uneven overlapping tongues.
+  for(let n=12;n>=0;n--){
+   const t=n/12,xx=x-radius*.78+t*radius*1.56;
+   const feathers=(1-Math.abs(2*t-1));
+   const lower=summitY+7+feathers*(27+7*Math.sin(t*17+i*2.1));
+   paintCtx.lineTo(xx,lower);
+  }
+  paintCtx.closePath();paintCtx.fillStyle=crest;paintCtx.fill();
+  paintCtx.strokeStyle='#f9ffffcb';paintCtx.lineWidth=2;
+  paintCtx.beginPath();
+  paintCtx.moveTo(x-radius*.7,summitY-8);
+  paintCtx.quadraticCurveTo(x,summitY-17,x+radius*.72,summitY-8);
+  paintCtx.stroke();
+  // A few embedded snow/ice pockets break the artificial hard edge.
+  for(let k=0;k<3;k++){
+   const offset=(k-1)*radius*.35;
+   paintCtx.fillStyle=k===1?'#edf8f1bf':'#e2f3f4aa';
+   paintCtx.beginPath();
+   paintCtx.moveTo(x+offset-9,summitY+10);
+   paintCtx.lineTo(x+offset+4,summitY+14);
+   paintCtx.lineTo(x+offset+11,summitY+26+(k%2)*8);
+   paintCtx.lineTo(x+offset-3,summitY+20);
    paintCtx.closePath();paintCtx.fill();
   }
   paintCtx.restore();
@@ -683,7 +748,9 @@ function mountainCache(i){
  const off=image.getContext('2d',{alpha:true});
  if(!off)return null;
  off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
- drawSpire(i,off);if(i>0&&i<4)drawIceClimb(i,off);decorate(i,off);
+ drawSpire(i,off);
+ if(i>0&&i<4){drawIceClimb(i,off);drawIceCrestSnow(i,off);}
+ decorate(i,off);
  const data={image,left,top,width,height,bytes:image.width*image.height*4};
  terrainCache.set(i,data);renderStats.terrainBuilds++;
  renderStats.terrainBytes+=data.bytes;
@@ -783,7 +850,11 @@ function draw(){
   if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w-50)continue;
   const chunk=mountainCache(i);
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
-  else {drawSpire(i);if(i>0&&i<4)drawIceClimb(i);decorate(i);}
+  else {
+   drawSpire(i);
+   if(i>0&&i<4){drawIceClimb(i);drawIceCrestSnow(i);}
+   decorate(i);
+  }
  }
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCaveLadder();
