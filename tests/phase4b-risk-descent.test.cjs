@@ -69,7 +69,7 @@ function game(){
  };
  const ctx=vm.createContext({Image:class Image{},document,
   performance:{now:()=>1},innerWidth:1024,innerHeight:768,navigator:{vibrate(){}}});
- for(const file of ['physics.js','world-data.js','game-state.js','simulation.js'])
+ for(const file of ['physics.js','world-data.js','game-state.js','climb-mechanics.js','simulation.js'])
   vm.runInContext(code(file),ctx,{filename:file});
  return ctx;
 }
