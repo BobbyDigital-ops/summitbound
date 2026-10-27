@@ -785,8 +785,9 @@ function restingStaffEnds(gripX, gripY, direction, materialLength) {
 function vaultStaffArc(ax,ay,handX,handY,materialLength){
  const dx=handX-ax,dy=handY-ay,chord=Math.hypot(dx,dy);
  const scale=chord>materialLength?materialLength/chord:1;
- const px=ax+dx*scale,py=ay+dy*scale,ux=-(py-ay)/Math.max(1,chord*scale),
-  uy=(px-ax)/Math.max(1,chord*scale);
+ const px=ax+dx*scale,py=ay+dy*scale,
+  ux=chord<1e-5?0:-(py-ay)/Math.max(1,chord*scale),
+  uy=chord<1e-5?-1:(px-ax)/Math.max(1,chord*scale);
  const sample=(curvature,t)=>{
   const cx1=ax+(px-ax)*.28+ux*curvature,cy1=ay+(py-ay)*.28+uy*curvature;
   const cx2=ax+(px-ax)*.72+ux*curvature,cy2=ay+(py-ay)*.72+uy*curvature;
@@ -802,14 +803,15 @@ function vaultStaffArc(ax,ay,handX,handY,materialLength){
   }
   return length;
  };
- let lo=0,hi=Math.max(400,materialLength*3);
- if(lengthOf(0)<materialLength){
+ let lo=0,hi=Math.max(400,materialLength*3),bend=0;
+ if(lengthOf(0)<materialLength-1e-5){
   for(let i=0;i<18;i++){
    const mid=(lo+hi)*.5;
    if(lengthOf(mid)>materialLength)hi=mid;else lo=mid;
   }
+  bend=(lo+hi)*.5;
  }
- const bend=(lo+hi)*.5,points=[];
+ const points=[];
  for(let i=0;i<=40;i++)points.push(sample(bend,i/40));
  return points;
 }
