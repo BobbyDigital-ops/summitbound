@@ -34,12 +34,22 @@ const caveLayouts = [
 const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','CAVERN APPROACH'];
 let routeSeed=0;
 
-// Multi-choice ascents are the norm. An occasional rare, single-ledge
-// challenge remains available, but never dominates the starting nine routes.
-const terraceCounts=[2,3,4,3,2,4,3,2,4];
+// Phase 2 authored composition rules. These describe three different leap
+// identities, not a permanent low-left / high-right staircase. Each mountain
+// normally has 3 choices; a few have 2 or 4. Takeoff Y is the reference.
+const MOUNTAIN_DESIGNS={
+ 1:{name:'Broken Tooth',difficulty:'precision / ledge width',
+    near:393,mid:496,far:602,baseAltitude:800},
+ 2:{name:'Windward Spire',difficulty:'range / high-near inversions',
+    near:399,mid:510,far:619,baseAltitude:555},
+ 3:{name:'Lantern Crag',difficulty:'verticality / narrow high shelves',
+    near:397,mid:493,far:605,baseAltitude:305}
+};
+// Most layouts must SHOW three distinct options in the same camera view.
+// No one-shelf route is allowed; the rare alternatives contain 2 or 4.
 function terraceCount(spire,seed){
- if(seed>0&&seed%41===40&&spire===3)return 1;
- return terraceCounts[((seed%9)+(spire-1)*4)%9];
+ const n=((seed+spire*11)%17);
+ return n===2||n===11?2:n===8||n===15?4:3;
 }
 function seededRandom(seed,spire){
  let state=(Math.imul(seed+1,2654435761)^Math.imul(spire+11,1597334677))>>>0;
@@ -75,64 +85,89 @@ function candidateFlights(){
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
 }
-// Validate the *first* physics landing, not a hypothetical collision against
-// each isolated shelf. Test the same body-feet crossing window as tick().
 function viableShelves(ledges,previous){
  const stats=ledges.map(()=>({hits:0,safe:0}));
  for(const path of candidateFlights()){
-  let hitIndex=-1,atX=0;
+  let first=-1,contact=0;
   for(const step of path.descending){
    for(let i=0;i<ledges.length;i++){
     const t=ledges[i],left=t[0]-previous[1],right=t[1]-previous[1];
     const top=t[2]-previous[2];
     if(step.x<left+3||step.x>right-3||
       step.prev>top+3||step.feet<top-4)continue;
-    if(hitIndex<0||t[2]<ledges[hitIndex][2]){
-     hitIndex=i;atX=step.x+previous[1];
-    }
+    if(first<0||t[2]<ledges[first][2]){first=i;contact=step.x+previous[1];}
    }
-   if(hitIndex>=0)break;
+   if(first>=0)break;
   }
-  if(hitIndex<0)continue;
-  const t=ledges[hitIndex];
-  // Releases already below the receiving surface are not legal upward paths.
+  if(first<0)continue;
+  const t=ledges[first];
   if(path.releaseFeet>t[2]-previous[2])continue;
-  stats[hitIndex].hits++;
-  if(t[1]-atX>=path.braking+12)stats[hitIndex].safe++;
+  stats[first].hits++;
+  if(t[1]-contact>=path.braking+12)stats[first].safe++;
  }
- return stats.every(q=>q.hits>=3&&q.safe>=2);
+ return stats.every(s=>s.hits>=3&&s.safe>=2);
 }
 function selectTerraces(spire,seed){
  const rand=seededRandom(seed,spire),previous=spires[spire-1].summit;
- const count=terraceCount(spire,seed);
- const labels=count===1?['Low']:count===2?['Low','High']:
-  count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
- const zones={1:[485],2:[398,575],3:[399,483,575],
-  4:[397,453,514,581]};
- for(let attempt=0;attempt<220;attempt++){
-  const xs=[...zones[count]];
-  for(let i=xs.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[xs[j],xs[i]]=[xs[i],xs[j]];}
-  let rise=24+Math.floor(rand()*17);
-  const ledges=[];
-  for(let i=0;i<count;i++){
-   if(i)rise+=31+Math.floor(rand()*13);
-   const left=previous[1]+xs[i]+Math.floor(rand()*19)-9;
-   const width=95+Math.floor(rand()*120);
-   ledges.push([left,left+width,previous[2]-rise,
-    ['rock','snow','ice'][Math.floor(rand()*3)],labels[i]]);
+ const design=MOUNTAIN_DESIGNS[spire],count=terraceCount(spire,seed);
+ const labels=count===2?['Low','High']:count===3?
+  ['Low','Middle','High']:['Low','Middle','High','Ridge'];
+ const near=design.near,far=design.far;
+ // Separate altitude bands so a mountain can't render as 2 similarly
+ // elevated shelves. Horizontal order is independently shuffled.
+ const altitudeBands=count===2?[[35,61],[165,199]]:
+  count===3?[[30,56],[99,130],[171,205]]:
+  [[28,47],[79,104],[137,165],[197,224]];
+ const widthBands=count===2?[[108,153],[167,230]]:
+  count===3?[[100,135],[141,190],[196,244]]:
+  [[94,120],[130,158],[166,199],[208,252]];
+ const horizontal=count===2?[near,far]:
+  count===3?[near,design.mid,far]:
+  [near,near+60,design.mid+22,far];
+ let best=null,bestScore=-Infinity;
+ for(let attempt=0;attempt<620;attempt++){
+  const zones=[...horizontal],widthSlots=[...widthBands];
+  for(let i=zones.length-1;i>0;i--){
+   const j=Math.floor(rand()*(i+1));
+   [zones[i],zones[j]]=[zones[j],zones[i]];
+   const k=Math.floor(rand()*(i+1));
+   [widthSlots[i],widthSlots[k]]=[widthSlots[k],widthSlots[i]];
   }
-  const starts=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
-  if(count>1&&Math.max(...starts)-Math.min(...starts)<160)continue;
-  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<43)))continue;
+  const ledges=labels.map((label,i)=>{
+   const [low,high]=altitudeBands[i];
+   const rise=low+Math.floor(rand()*(high-low+1));
+   const left=previous[1]+zones[i]+Math.floor(rand()*37)-18;
+   const [wmin,wmax]=widthSlots[i];
+   const width=wmin+Math.floor(rand()*(wmax-wmin+1));
+   return [left,left+width,previous[2]-rise,
+    ['rock','snow','ice'][Math.floor(rand()*3)],label];
+  });
+  const sorted=[...ledges].sort((a,b)=>a[2]-b[2]);
+  const xs=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
+  if(Math.max(...xs)-Math.min(...xs)<175)continue;
+  if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<55))continue;
+  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<38)))continue;
   if(!viableShelves(ledges,previous))continue;
-  const left=previous[1]+343+Math.floor(rand()*17);
-  const right=Math.max(...ends)+245+Math.floor(rand()*50);
-  const top=summitAltitudes[spire]+Math.floor(rand()*29)-14;
-  if(ledges.some(t=>t[2]<top+36||t[0]<left+25))continue;
-  return {ledges,summit:[left,right,top,'snow'],
-   ridge:{character:rand(),roughness:.75+rand()*.6}};
+  const left=previous[1]+346+Math.floor(rand()*14);
+  const right=Math.max(...ends)+230+Math.floor(rand()*65);
+  const top=design.baseAltitude+Math.floor(rand()*25)-12;
+  if(ledges.some(t=>t[2]<top+43||t[0]<left+24))continue;
+  // Prefer compositions whose shelves do not read as a staircase.
+  const rangeY=sorted.at(-1)[2]-sorted[0][2];
+  const sizes=ledges.map(t=>t[1]-t[0]);
+  const score=rangeY*.9+(Math.max(...xs)-Math.min(...xs))*.35+
+   (Math.max(...sizes)-Math.min(...sizes))*.4+
+   (ledges[0][0]>ledges.at(-1)[0]?16:0);
+  if(score>bestScore){
+   bestScore=score;best={ledges,summit:[left,right,top,'snow'],
+    ridge:{character:rand(),roughness:.75+rand()*.6}};
+  }
+  // Don't spend the entire candidate budget after a strong, playable map.
+  if(bestScore>310&&attempt>55)break;
  }
- throw Error('No valid landing arrangement for route '+seed+' mountain '+spire);
+ if(best)return best;
+ throw Error('Cannot map playable, distinct shelves for '+design.name+
+  ', route '+seed+' without changing pole physics');
 }
 
 function applyRoute(seed){

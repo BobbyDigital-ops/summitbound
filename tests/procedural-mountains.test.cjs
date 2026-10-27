@@ -29,8 +29,8 @@ test('procedural routes are deterministic, varied, and maintain live collision g
    assert.deepEqual([safe.left,safe.right,safe.top],
     Array.from(m.summit.slice(0,3)),'summit collider not regenerated');
    topHeights.add(m.summit[2]);widths.add(Math.round(m.summit[1]-m.summit[0]));
-   assert.ok(ledges.length>=1&&ledges.length<=4);
-   if(seed<9)assert.ok(ledges.length>=2,'ordinary route has only one choice');
+   assert.ok(ledges.length>=2&&ledges.length<=4);
+   if(seed<9)assert.ok(ledges.length>=2,'ordinary route must offer alternatives');
    assert.equal(ctx.platforms.filter(p=>p.kind==='ledge'&&p.spire===i).length,
     ledges.length,'stale or missing ledge collision');
    for(const t of ledges){

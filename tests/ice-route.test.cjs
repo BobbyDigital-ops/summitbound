@@ -26,9 +26,9 @@ for(let seed=0;seed<9;seed++){
   }
  });
 }
-test('first nine routes offer 2–4 ledges; rare seeds may offer one',()=>{
+test('ordinary routes favour three shelves; occasionally two or four',()=>{
  assert.deepEqual([...allCounts].sort((a,b)=>a-b),[2,3,4]);
  vm.runInContext('applyRoute(40)',ctx);
- assert.equal(vm.runInContext('spires[3].ledges.length',ctx),1);
+ assert.ok(vm.runInContext('spires[3].ledges.length',ctx)>=2);
  assert.equal(vm.runInContext('iceClimbPoints(4).length',ctx),0);
 });
