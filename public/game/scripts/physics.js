@@ -119,6 +119,22 @@ class PolePhysicsEngine {
         };
     }
     static calculateReleaseVelocity(vx, vy, state, config) {
+        // Frozen pre-Phase-8 landing sampler. Used ONLY to preserve archived
+        // v0.9.16 procedural geometry, never for a player's actual vault.
+        if(config.archivedArcadePhysics===true){
+            const approach=Math.max(0,state.facingDir*state.initialVx);
+            const ratio=clamp(approach/Math.max(1,config.maxRunSpeed),0,1);
+            const assist=approach<20?.08:.62+.38*Math.sqrt(ratio);
+            const u=clamp(state.elapsed/state.rideDuration,0,1);
+            const late=Math.max(0,state.elapsed-state.rideDuration);
+            const latePenalty=Math.exp(-1.6*late);
+            return {
+                vx:state.facingDir*(610-200*u)*assist*latePenalty*
+                   (config.arcadeRange??1),
+                vy:-(185+330*u)*assist*latePenalty*
+                   (config.arcadeLift??1)+config.gravity*.5*late
+            };
+        }
         // Phase 8: deterministic player-controlled release. Speed, loading
         // position and launch timing all affect trajectory. No secret rescue.
         const ratio=clamp(Math.max(0,state.facingDir*state.initialVx)/
