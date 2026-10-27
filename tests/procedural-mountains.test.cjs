@@ -32,7 +32,7 @@ test('procedural routes are deterministic, varied, and maintain live collision g
    assert.ok(ledges.length>=2&&ledges.length<=4);
    if(seed===0)assert.equal(ledges.length,3,'default route must show three choices');
    const elevations=[...ledges].map(t=>t[2]).sort((a,b)=>a-b);
-   assert.ok(elevations.at(-1)-elevations[0]>=108,
+   assert.ok(elevations.at(-1)-elevations[0]>=310,
     'shelves are too level to read as separate landing routes');
    for(let j=1;j<elevations.length;j++)assert.ok(
     elevations[j]-elevations[j-1]>=(ledges.length===4?28:40),
@@ -45,7 +45,7 @@ test('procedural routes are deterministic, varied, and maintain live collision g
     ledges.length,'stale or missing ledge collision');
    for(const t of ledges){
     assert.ok(t[0]-prior.summit[1]>=385,'short unchallenging chasm');
-    assert.ok(t[2]<prior.summit[2]&&t[2]>m.summit[2]+35,'invalid uphill shelf');
+    assert.ok(t[2]<prior.summit[2]+375&&t[2]>m.summit[2]+68,'invalid safe descent or summit climb');
     assert.ok(t[1]-t[0]>=95,'shelf too narrow to be a landing');
     assert.ok(m.summit[1]>t[1]+210,'no summit runup after the climb');
    }
