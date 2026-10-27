@@ -20,6 +20,35 @@ function featuredCheckpointRespawn(){
  atStage=checkpoint.peak;lastSafeStage=checkpoint.peak;
  hint('RETURNED TO CAMPSITE CHECKPOINT',2.5);
 }
+// Practice only: repeat the difficult jump from the mountain/shelf that
+// actually launched it, without falsely promoting that peak to a checkpoint.
+// After securing a later campsite, the campsite takes precedence.
+function practiceRespawnFromTakeoff(){
+ const launch=practiceTakeoff;
+ if(!launch||!Number.isInteger(launch.spire)||
+    lastSafeStage>launch.spire){
+  featuredCheckpointRespawn();return;
+ }
+ const surface=platforms.find(pl=>pl.id===launch.platformId);
+ if(!surface){featuredCheckpointRespawn();return;}
+ const savedCheckpoint=lastSafeStage;
+ spawn(launch.spire,true);
+ lastSafeStage=savedCheckpoint;
+ const pl=platforms.find(q=>q.id===launch.platformId);
+ if(!pl){featuredCheckpointRespawn();return;}
+ // Restart with an honest run-up. Do not grant velocity or carry the
+ // failed jump's momentum over. Narrow launch shelves stay narrow.
+ const room=pl.right-pl.left;
+ const offset=pl.kind==='summit'?Math.min(150,room*.22):
+  Math.max(14,Math.min(30,room-127));
+ p.x=pl.left+offset;p.y=pl.top-22;p.vx=0;p.vy=0;
+ p.facingDir=launch.facingDir;p.standingOn=pl.id;
+ p.surface=pl.surfaceType;p.state='GROUNDED';p.groundedFor=.6;
+ atStage=pl.spire;
+ camera.x=p.x-.26*innerWidth/getZoom();
+ camera.y=p.y-.60*innerHeight/getZoom();
+ hint('PRACTICE — RETRY FROM SAME PEAK',2.5);
+}
 function fail(){
  if(mode === 'trial'){
   gameReset();hint('TIME TRIAL FAILED — RACE RESTARTED',2);return;
@@ -28,7 +57,9 @@ function fail(){
   hint('Hardcore: back to the beginning!', 3); gameReset();
  } else {
   if(typeof FEATURED_COURSE!=='undefined'){
-   featuredCheckpointRespawn();return;
+   if(mode==='practice')practiceRespawnFromTakeoff();
+   else featuredCheckpointRespawn();
+   return;
   }
   if(caveActivated){ caveRespawn(); return; }
   const stage = Math.min(lastSafeStage, 3);
@@ -399,14 +430,17 @@ function loop(now){
 }
 
 function retry(){
- if(mode === 'trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
- if(typeof FEATURED_COURSE!=='undefined')featuredCheckpointRespawn();
- else if(mode !== 'hardcore' && caveActivated) caveRespawn();
- else spawn(Math.min(lastSafeStage, 3), true);
+ if(mode==='trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
+ if(mode==='hardcore'){gameReset();hint('HARDCORE RUN RESTARTED',2);return;}
+ if(typeof FEATURED_COURSE!=='undefined')practiceRespawnFromTakeoff();
+ else if(caveActivated)caveRespawn();
+ else spawn(Math.min(lastSafeStage,3),true);
 }
 
 for(const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => {
  mode = b.dataset.mode;
+ const retryButton=document.getElementById('retry');
+ if(retryButton)retryButton.textContent=mode==='practice'?'Retry peak':'Retry run';
  document.querySelectorAll('[data-mode]').forEach(el => el.classList.toggle('sel', el === b));
  gameReset();
 });
