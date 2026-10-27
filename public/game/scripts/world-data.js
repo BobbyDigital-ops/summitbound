@@ -70,32 +70,32 @@ function candidateFlights(){
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
 }
-function crossingAt(path,height){
- // A release below the intended shelf is not a reachable uphill landing.
- if(path.releaseFeet>height)return null;
- const p=path.descending;let lo=0,hi=p.length;
- while(lo<hi){const m=(lo+hi)>>1;if(p[m].feet<height-4)lo=m+1;else hi=m;}
- if(lo===p.length||p[lo].prev>height+3)return null;
- return {frame:lo,x:p[lo].x};
-}
+// Validate the *first* physics landing, not a hypothetical collision against
+// each isolated shelf. Test the same body-feet crossing window as tick().
 function viableShelves(ledges,previous){
  const stats=ledges.map(()=>({hits:0,safe:0}));
  for(const path of candidateFlights()){
-  let index=-1,frame=Infinity,height=Infinity,contactX=0;
-  for(let i=0;i<ledges.length;i++){
-   const t=ledges[i],hit=crossingAt(path,t[2]-previous[2]);
-   if(!hit)continue;
-   const x=hit.x+previous[1];
-   if(x<t[0]+3||x>t[1]-3)continue;
-   if(hit.frame<frame||(hit.frame===frame&&t[2]<height)){
-    index=i;frame=hit.frame;height=t[2];contactX=x;
+  let hitIndex=-1,atX=0;
+  for(const step of path.descending){
+   for(let i=0;i<ledges.length;i++){
+    const t=ledges[i],left=t[0]-previous[1],right=t[1]-previous[1];
+    const top=t[2]-previous[2];
+    if(step.x<left+3||step.x>right-3||
+      step.prev>top+3||step.feet<top-4)continue;
+    if(hitIndex<0||t[2]<ledges[hitIndex][2]){
+     hitIndex=i;atX=step.x+previous[1];
+    }
    }
+   if(hitIndex>=0)break;
   }
-  if(index<0)continue;
-  stats[index].hits++;
-  if(ledges[index][1]-contactX>=path.braking+12)stats[index].safe++;
+  if(hitIndex<0)continue;
+  const t=ledges[hitIndex];
+  // Releases already below the receiving surface are not legal upward paths.
+  if(path.releaseFeet>t[2]-previous[2])continue;
+  stats[hitIndex].hits++;
+  if(t[1]-atX>=path.braking+12)stats[hitIndex].safe++;
  }
- return stats.every(s=>s.hits>=3&&s.safe>=2);
+ return stats.every(q=>q.hits>=3&&q.safe>=2);
 }
 function selectTerraces(spire,seed){
  const rand=seededRandom(seed,spire),previous=spires[spire-1].summit;
