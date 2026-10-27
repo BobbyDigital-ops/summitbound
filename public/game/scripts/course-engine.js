@@ -1,3 +1,6 @@
+// Authored Five Peaks source terrain: frozen approved seed-zero baseline.
+// Physics can be redesigned without silently regenerating a different world.
+const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,1830,1425,"rock","Low"],[1372,1537,1145,"rock","Middle"],[1505,1630,988,"ice","High"]],"ridge":{"character":0.6693350591231138,"roughness":0.8227484116330742}},{"summit":[2763,3153,569,"snow"],"ledges":[[2635,2866,1063,"ice","Low"],[2507,2645,803,"snow","Middle"],[2676,2844,718,"snow","High"]],"ridge":{"character":0.013322737067937851,"roughness":0.8854901874670759}},{"summit":[3865,4330,330,"snow"],"ledges":[[3702,3940,786,"rock","Low"],[3832,4027,632,"snow","Middle"],[3580,3712,424,"rock","High"]],"ridge":{"character":0.48886773898266256,"roughness":1.2665086624678223}}];
 // Summitbound: authored, validated five-peak vertical slice.
 // This is ONE playable course, not five separate levels. The full campaign
 // target is 100 levels; older 997 route seeds are retained only as archived
