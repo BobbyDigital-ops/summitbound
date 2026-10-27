@@ -245,11 +245,16 @@ function applyRoute(seed){
  if(typeof installFeaturedCourseGeometry==='function')
   installFeaturedCourseGeometry(spires);
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
-  for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge')platforms.splice(k,1);
+  for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge'||platforms[k].kind==='arrival')platforms.splice(k,1);
   for(let i=1;i<=4;i++){
    const t=spires[i].summit,pl=platforms.find(p=>p.id==='s'+i);
    if(pl)Object.assign(pl,{x:(t[0]+t[1])/2,y:t[2]+60,
     width:t[1]-t[0],height:120,left:t[0],right:t[1],top:t[2]});
+  }
+  for(let i=1;i<=4;i++)if(spires[i].ridgeArrival){
+   const a=spires[i].ridgeArrival;
+   platforms.push(platform('a'+i,a[0],a[1],a[2],a[3],
+    {kind:'arrival',spire:i,tier:'Ridge'}));
   }
   for(let i=1;i<=4;i++)for(let j=0;j<spires[i].ledges.length;j++){
    const t=spires[i].ledges[j];
@@ -283,7 +288,8 @@ function applyRoute(seed){
  */
 const iceRouteCache=new Map();
 function iceExitX(spireIndex,fromTier){
- const s=spires[spireIndex],min=s.summit[0]+52,max=s.summit[1]-90;
+ const s=spires[spireIndex],crest=s.ridgeArrival||s.summit;
+ const min=crest[0]+52,max=crest[1]-36;
  const ordered=s.ledges.map((ledge,i)=>({
   i,wanted:Math.min(max,Math.max(min,ledge[1]-4))
  })).sort((a,b)=>a.wanted-b.wanted);
@@ -300,7 +306,7 @@ function independentIcePoints(spireIndex,tierIndex){
  const s=spires[spireIndex],ledge=s?.ledges?.[tierIndex];
  if(!ledge)return [];
  const startX=ledge[1]-30,startY=ledge[2]-22;
- const endX=iceExitX(spireIndex,tierIndex),endY=s.summit[2]-22;
+ const endX=iceExitX(spireIndex,tierIndex),endY=(s.ridgeArrival||s.summit)[2]-22;
  const rise=startY-endY,spread=endX-startX;
  if(typeof FEATURED_COURSE!=='undefined'){
   // Establish a vertical, visibly anchored upper ice segment. Traversal
@@ -413,7 +419,7 @@ function climbEntryX(platform) {
  * follows interpolated cliff face. No separate platforms or collision edits.
  */
 function mountainContourNodes(index) {
- const mountain=spires[index], top=mountain.summit;
+ const mountain=spires[index], top=mountain.ridgeArrival||mountain.summit;
  const nodes=[{x:top[0]-12,y:top[2]+2}];
  if(mountain.ledges.length) {
   for(const tier of [...mountain.ledges].sort((a,b)=>a[2]-b[2])) {
