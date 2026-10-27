@@ -1,7 +1,7 @@
 name: Verify Summitbound build
 on:
   push:
-    branches: [main, 'dev/mega-v092-v097']
+    branches: [main, 'dev/mega-v092-v097', 'dev/visual-recovery-v099-v0912']
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,4 +24,17 @@ jobs:
       - run: npm run test:mobile
       - run: npm run test:renderer
       - run: npm run test:browser
+      - run: npm run test:visual
+      - run: npm run test:terrain
+      - run: npm run test:climb
+      - run: npm run test:chasm
+      - run: npm run test:procedural
+      - run: npm run test:allroutes
+      - run: npm run test:ice-art
+      - run: npm run test:cache
+      - run: npm run test:resolution
+      - run: npm run test:template
+      - run: npm run test:ice-network
+      - run: npm run test:ice-snow
+      - run: npm run test:terrain-art
       - run: npm run build

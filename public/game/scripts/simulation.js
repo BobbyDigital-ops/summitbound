@@ -24,8 +24,9 @@ function getLanding(plat){
  p.standingOn = plat.id; p.surface = plat.surfaceType; p.groundedFor = 0;
  if(plat.kind === 'cave'){
   atStage = 4; lastSafeStage = 4; caveActivated = true; landingHistory[3] = 'Cave checkpoint';
-  hint('CHECKPOINT! WARM CAMPFIRE — CLIMB INSIDE THE CAVE', 4); haptic([25,45,25]);
-  win(); return;
+  hint('CHECKPOINT! WARM CAMPFIRE — CLIMB THE LADDER TO THE FINAL SUMMIT', 4); haptic([25,45,25]);
+  // Keep the cave as the retry checkpoint; finish only after the ladder exit.
+  return;
  }
  if(plat.spire > atStage){
   atStage = plat.spire;
@@ -44,7 +45,7 @@ function getLanding(plat){
 
 function win(){
  completed = true; p.vx = 0; p.vy = 0; p.state = 'GROUNDED'; haptic([35,60,35]);
- document.getElementById('victoryText').textContent = `Four canyon leaps completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ') || 'direct ascent'}. The cave is your checkpoint; the fastest path avoids long climbs.`;
+ document.getElementById('victoryText').textContent = `Four canyon leaps and final summit climb completed in ${formatTime(elapsed)}. Your routes: ${landingHistory.join(' → ') || 'direct ascent'}. The cave is your checkpoint; the fastest path avoids long climbs.`;
  document.getElementById('victory').classList.add('open');
  hint('CAVE OF EMBERS — ASCENT COMPLETE!', 5);
 }
@@ -55,7 +56,15 @@ function climbStart(plat){
  const rungX = climbEntryX(plat);
  if(Math.abs(p.x - rungX) > 28) return;
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
- p.climb = {originX:rungX, originY:p.y, targetX:goal.left + 40, targetY:goal.top - 22, spire:plat.spire, climbBeat:0, exitTime:0, isIce:plat.kind !== 'cave',tierIndex:plat.kind==='ledge'?Number(plat.id.split('-')[1]):null};
+ const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
+ const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
+ const lipX=exit?.x ?? (goal.left+40);
+ // Ice reaches the snow lip at lipX; a short controlled step places both
+ // feet inside the walkable ridge. The cave ladder remains unchanged.
+ const stepX=isIce?Math.min(goal.right-72,lipX+20):lipX;
+ p.climb={originX:rungX,originY:p.y,targetX:stepX,lipX,
+  targetY:goal.top-22,spire:plat.spire,climbBeat:0,exitTime:0,
+  isIce,tierIndex};
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 
@@ -76,7 +85,9 @@ function tick(dt){
  
  if(p.state === 'STEP_OFF'){
   const c = p.climb; c.exitTime += dt;
-  const delta = c.targetX - p.x, advance = Math.sign(delta) * Math.min(Math.abs(delta), 175 * dt);
+  const delta = c.targetX - p.x;
+  const advance = Math.sign(delta)*Math.min(Math.abs(delta),
+   (c.isIce?115:175)*dt);
   p.x += advance;
   if(Math.abs(c.targetX - p.x) < .5){
    const stage = c.spire; p.x = c.targetX; p.state = 'GROUNDED'; p.vx = 0; p.vy = 0; p.surface = 'snow'; p.standingOn = 's' + stage; p.groundedFor = .4; lastSafeStage = stage;
@@ -165,28 +176,72 @@ function tick(dt){
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
 
+// Modest mobile supersampling restores crisp player and ice edges while
+ // avoiding the 3x device DPR (9x pixel count) of modern Android phones.
+ // Auto falls back to 1x after sustained heavy paint times; Low stays 1x.
+let autoPortraitCap=1.2,slowAutoWindows=0,lastTerrainBuilds=-1;
+function canvasRatioFor(quality,width,dpr,autoCap=1.2){
+ const maxRatio=quality==='low'?1:quality==='high'?2:
+  (width<950?autoCap:1.6);
+ return Math.min(Math.max(1,dpr||1),maxRatio);
+}
 function resize(){
- const maxRatio=graphicsQuality==='low'?1:graphicsQuality==='high'?2:(innerWidth<950?1.15:1.6);
- const ratio=Math.min(devicePixelRatio||1,maxRatio);
+ const ratio=canvasRatioFor(graphicsQuality,innerWidth,devicePixelRatio,autoPortraitCap);
  canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
 }
 
-let perfStart=0,perfFrames=0,lastRenderedAt=0;
+let perfStart=0,perfFrames=0,perfRendered=0,lastRenderedAt=0;
+let perfDrawSamples=[];
 function loop(now){
  let delta = Math.min(.05, (now - prev) / 1000); prev = now;
  acc += delta;
  for(let n = 0; acc >= DT && n < 7; n++, acc -= DT) tick(DT);
- if(graphicsQuality!=='low'||now-lastRenderedAt>=31){
-  draw();lastRenderedAt=now;
+ // Physics still ticks at 120 Hz. When the player is stationary on a
+ // mobile device, a 30 Hz snowy idle render saves battery and GPU fill
+ // without affecting the first frame of an input/movement/vault.
+ const stationary=innerWidth<950&&graphicsQuality!=='high'&&isGround()&&
+  Math.abs(p.vx)<2&&!p.vault&&!fingers.left.size&&!fingers.right.size&&
+  !keys.has('arrowleft')&&!keys.has('arrowright')&&!keys.has('a')&&!keys.has('d');
+ const renderGap=graphicsQuality==='low'||stationary?31:0;
+ if(!lastRenderedAt||now-lastRenderedAt>=renderGap){
+  const before=performance.now();
+  draw();lastRenderedAt=now;perfRendered++;
+  // Samples are captured at presentation time; inexpensive stats are
+  // only sorted and displayed once a second in the optional Tune panel.
+  const cost=performance.now()-before;
+  perfDrawSamples.push(cost);
+  if(perfDrawSamples.length>120)perfDrawSamples.shift();
  }
  perfFrames++;
  if(now-perfStart>1200){
-  const fps=perfFrames*1000/Math.max(1,now-perfStart);
+  const elapsedMs=Math.max(1,now-perfStart);
+  const fps=Math.round(perfRendered*1000/elapsedMs);
+  const samples=[...perfDrawSamples].sort((a,b)=>a-b);
+  const avg=samples.reduce((sum,v)=>sum+v,0)/Math.max(1,samples.length);
+  const p95=samples[Math.min(samples.length-1,Math.floor(samples.length*.95))]||0;
+  const mem=((renderStats.terrainBytes+renderStats.backdropBytes)/1048576).toFixed(0);
   const indicator=document.getElementById('performanceLabel');
-  if(indicator)indicator.textContent='Loop '+Math.round(fps)+' fps';
-  perfStart=now;perfFrames=0;
+  if(indicator)indicator.textContent=
+   'Render '+fps+' fps · draw '+avg.toFixed(1)+' / p95 '+p95.toFixed(1)+
+   ' ms · scene '+mem+' MB · builds '+renderStats.terrainBuilds+
+   ' (evict '+renderStats.terrainEvictions+') · DPR '+
+   canvasRatioFor(graphicsQuality,innerWidth,devicePixelRatio,autoPortraitCap).toFixed(2);
+  // Three consecutive slow, stable (no terrain rebuild) sample windows are
+  // needed before lowering DPR. We never auto-promote repeatedly or oscillate.
+  if(graphicsQuality==='auto'&&innerWidth<950&&autoPortraitCap>1){
+   const stable=renderStats.terrainBuilds===lastTerrainBuilds;
+   slowAutoWindows=stable&&p95>24?slowAutoWindows+1:0;
+   if(slowAutoWindows>=3){
+    autoPortraitCap=1;slowAutoWindows=0;perfDrawSamples.length=0;
+    resize();
+    const mode=document.getElementById('graphicsMode');
+    if(mode)mode.textContent='Graphics: auto (smooth)';
+   }
+  }else slowAutoWindows=0;
+  lastTerrainBuilds=renderStats.terrainBuilds;
+  perfStart=now;perfFrames=0;perfRendered=0;
  }
  requestAnimationFrame(loop);
 }

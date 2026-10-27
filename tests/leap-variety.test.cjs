@@ -1,9 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const vm=require('node:vm'),fs=require('node:fs');
 const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),ctx);
 for(let seed=0;seed<9;seed++){
- test('seed '+seed+' has distinct viable uphill ledge options',()=>{
+ test('seed '+seed+' has distinct high/low landing options onto an uphill summit',()=>{
   vm.runInContext('applyRoute('+seed+')',ctx);
   const s=vm.runInContext('spires',ctx);
   for(let i=1;i<=3;i++){
@@ -11,9 +12,12 @@ for(let seed=0;seed<9;seed++){
    assert.ok(ledges.length>=1&&ledges.length<=4);
    for(const t of ledges){
     assert.ok(t[2]>s[i].summit[2]+35,'ledge below own summit');
-    assert.ok(t[2]<s[i-1].summit[2],'ledge ABOVE previous summit');
+    assert.ok(t[2]<s[i-1].summit[2]+375,'alternative is within safe aerial descent');
     assert.ok(t[1]-t[0]>=70,'usable runout');
    }
+   assert.ok(ledges[0][2]<s[i-1].summit[2]-75,'high landing must save climbing');
+   assert.ok(ledges.at(-1)[2]>s[i-1].summit[2]+145,
+    'low landing must require a genuinely longer climb');
    for(let j=1;j<ledges.length;j++)assert.ok(ledges[j-1][2]<ledges[j][2]);
   }
   assert.ok(s[4].cave.floor<s[3].summit[2]);

@@ -9,6 +9,7 @@ document.getElementById('tuneClose').addEventListener('click', () => document.ge
 document.getElementById('graphicsMode')?.addEventListener('click',()=>{
  const levels=['auto','low','high'];
  graphicsQuality=levels[(levels.indexOf(graphicsQuality)+1)%levels.length];
+ if(graphicsQuality==='auto'){autoPortraitCap=1.2;slowAutoWindows=0;}
  document.getElementById('graphicsMode').textContent='Graphics: '+graphicsQuality;
  resize();
  invalidateTerrainCache();

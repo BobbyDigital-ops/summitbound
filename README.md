@@ -1,3 +1,59 @@
+# Summitbound — v0.9.20 Mountain Integration (Phase 4A)
+
+**Completed visual pass:** each landing ledge is drawn with a broken-stone buttress whose deep root is anchored into its actual mountain-contour boundary. The decorative ice entry now overlaps real landing snow and fractured rock, addressing the gap below/along the previously floating icy strips. The final cave mountain's long, decorative white icicles/vertical waterfall streaks are removed and replaced by subdued rock cracks.
+
+**Deliberately unchanged:** every summit, shelf, cave collider, seeded layout, climb route, vault trajectory and user control; Android rendering optimisations/cached terrain remain. No redesign of the cave landing or the climber animation is included.
+
+**Validation:** geometry-root tests across representative seeds, cached and uncached draw-order smoke tests, extra terrain-art tests, all 997 reachability routes, seven v0.9.16 golden level fingerprints, mobile cache tests and Vite build. Visual appearance still requires actual Android/desktop review.
+
+**Next:** Phase 4B — measure how hard high/middle/low landings actually are using successful timing windows, tune LEVEL DESIGN for the desired high-risk/high-reward feeling, and add restrained successful-high-landing feedback. Phase 5 — cave approach/collision, carved entrance, ladder position and campfire selection. Later: animation, pole shape, Android publication checks.
+
+---
+
+# Summitbound — v0.9.19 Natural Ice Routes (Phase 3)
+
+**Done:** natural ice-route network that conditionally shares the upper climb only where a lower ice path actually passes through a higher shelf's ice entrance. Other shelves retain independent climbs. Snow-covered summit caps now overlap and bury the formerly blunt cyan tops, with irregular frost tongues and a brief on-ridge step-off.
+
+**Unchanged:** approved v0.9.16 mountain geometry (protected by level-template snapshot and golden-seed tests), pole physics, controls, manual 62-unit/s climbing speed and v0.9.18 mobile sharpness/cache improvements. Branch `main` remains untouched.
+
+**Validation:** existing climbs and all 997 seeded layouts, conditional ice-route-network coverage, cached renderer, snow-crest artwork, browser startup and production build. Automated checks cannot establish visual fidelity on a physical phone: preview review is still necessary.
+
+**Next:** Phase 4 (mountain snow, rock, trees and ridge polish), Phase 5 (cave and campfire), Phase 6 (wall-facing climber/axe animation and pole rendering), Phase 7 (Android validation). See `docs/post-phase1-roadmap.md`.
+
+---
+
+# Summitbound — active development v0.9.18 (Sharper Mobile)
+
+**Phase 1 optimisation delivered:** mobile mountain textures have selectively improved clarity; portrait Auto canvas rendering is capped at 1.20 DPR and safely downgrades to 1x only after repeated expensive draw samples. Terrain/background caching, idle pacing and the original vault physics remain intact.
+
+**Approved level template:** `level-template-v0.9.16` preserves the visually approved mountain layouts. `tests/approved-level-template.test.cjs` protects seven representative seeds in CI, alongside reachability, braking, cliff, ice ascent and the full 997-seed route sweep. New level families require additional manual screenshot/playability review, not merely passing geometry tests.
+
+**Next work:** `docs/post-phase1-roadmap.md` records shared ice routes and blended summit exits (Phase 3); mountain silhouettes, trees and snow (Phase 4); natural cave and interactive campfire (Phase 5); realistic wall-facing climbing animation (Phase 6); device checks and Android preparation (Phase 7). Read `docs/level-design-template-v0916.md` before expanding the procedural level catalogue.
+
+---
+
+# Summitbound — active development v0.9.14 Mapped Mountain Routes
+
+This checkpoint replaces near-horizontal platform stacks with height/distance/width-independent shelves. Each receiving peak usually offers three physically reachable shelf choices; a minority offer two or four. Summit height and crest width also vary. The 997-seed regression sweep passed without fallbacks. See [the mountain layout map](docs/mountain-layouts.md).
+
+**Not yet completed:** natural shared ice branches, truly walkable summit slopes, final cave visual overhaul, or the stationary/mobile stutter investigation.
+
+---
+
+# Summitbound — active development: v0.9.13 Procedural Peaks
+
+Active game: `public/game/summit-leap-v081.html` with modular Canvas scripts under `public/game/scripts/`. Development branch: `dev/visual-recovery-v099-v0912`. Main is not automatically updated by this branch.
+
+## v0.9.13 (procedural mountain Phase 2)
+- 997 deterministic route seeds; mountains now vary in summit height, crest width, exposed cliff taper and shelf arrangement.
+- Usually 2–4 shelves per mountain; a rare special layout has one. Each shelf independently varies horizontal distance, length, elevation and surface. High shelf does **not** have to be farther away than low shelf.
+- Potential shelves are accepted only if flight sampling using the **existing** `PolePhysicsEngine` finds real first-contact landings and adequate braking windows. Summit collision run-up is rebuilt with each route. Existing vault physics and control handling are unchanged.
+- All prior regressions remain; `npm run test:procedural` additionally checks 51 routes and `test:chasm` checks extra difficult seeds.
+- Phase 3 shared/branched ice walls, fully walkable sloped summits, visual cave work and performance diagnosis remain *future* tasks; do not assume these are implemented.
+- A green CI result confirms automated tests, **not** a complete manual gameplay review.
+
+---
+
 # Summit Leap — v0.8.3 Clean Foundation
 
 Read [CLEAN_FOUNDATION.md](CLEAN_FOUNDATION.md) for the active architecture and migration notes.

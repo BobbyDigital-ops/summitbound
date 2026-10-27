@@ -55,7 +55,7 @@ for(let seed=0;seed<9;seed++){
    const possible=landings.map(t=>possibleLanding(prev,t));
    const count=possible.filter(Boolean).length;
    assert.ok(count>=1,'no viable airborne ascent at stage '+stage+' seed '+seed);
-   if(stage<4 && landings.length>1) assert.ok(count>=1,
+   if(stage<4 && landings.length>1) assert.ok(count===landings.length,
      'at least two real risk/reward landing choices should remain at stage '+stage+' seed '+seed);
   }
  });

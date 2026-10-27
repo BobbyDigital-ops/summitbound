@@ -11,7 +11,7 @@ test('static mountain scenery cached per route and invalidated after seed change
  assert.match(render,/drawIceClimb\(i,off\)/);
 });
 test('mobile quality profiles cap internal drawing resolution and snow',()=>{
- assert.match(sim,/graphicsQuality==='low'\?1/);
+ assert.match(sim,/quality==='low'\?1:quality==='high'\?2/);
  assert.match(render,/graphicsQuality==='low'\?3/);
  assert.match(render,/graphicsQuality==='low'\?14/);
  assert.match(input,/graphicsQuality=levels/);
@@ -23,6 +23,24 @@ test('keyboard, pointer and vault controls still attached',()=>{
  assert.match(input,/canvas\.addEventListener\('pointerdown'/);
  assert.match(input,/control\(document\.getElementById\('up'\), 'up'\)/);
  assert.match(input,/release\(\)/);
+});
+test('frame pacing retains 120Hz physics but slows stationary mobile painting',()=>{
+ assert.match(sim,/for\(let n = 0; acc >= DT/);
+ assert.match(sim,/const stationary=innerWidth<950/);
+ assert.match(sim,/renderGap=graphicsQuality==='low'\|\|stationary\?31:0/);
+ assert.match(sim,/function canvasRatioFor\(/);
+ assert.match(sim,/quality==='low'\?1:quality==='high'\?2/);
+ assert.match(sim,/autoPortraitCap=1\.2/);
+ assert.match(sim,/slowAutoWindows>=3/);
+ assert.match(sim,/p95/);
+ assert.match(render,/if\(stageEl\.textContent!==stageText\)/);
+ assert.match(render,/if\(timerEl\.textContent!==timeLabel\)/);
+});
+test('portrait HUD scrolls rather than expanding into multiple toolbar rows',()=>{
+ const styles=fs.readFileSync('public/game/summit-style.css','utf8');
+ assert.match(styles,/#top \.group\{display:flex;flex-wrap:nowrap/);
+ assert.match(styles,/overflow-x:auto/);
+ assert.match(styles,/#hud\{top:80px\}/);
 });
 test('player HUD release version stays in sync with document title',()=>{
  const match=html.match(/<title>Summitbound — ([^<]*?) (v\d+\.\d+\.\d+)<\/title>/);
