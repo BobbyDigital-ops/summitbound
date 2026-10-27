@@ -26,6 +26,7 @@
     "test:cache": "node --test tests/cache-budget.test.cjs",
     "test:resolution": "node --test tests/render-resolution.test.cjs",
     "test:template": "node --test tests/approved-level-template.test.cjs",
+    "test:ice-network": "node --test tests/ice-route-network.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

@@ -177,6 +177,7 @@ function selectTerraces(spire,seed){
 function applyRoute(seed){
  routeSeed=((Math.trunc(seed)%997)+997)%997;
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
+ if(typeof iceRouteCache!=='undefined')iceRouteCache.clear();
  for(let i=1;i<=3;i++){
   const generated=selectTerraces(i,routeSeed);
   spires[i].summit=generated.summit;
@@ -214,12 +215,16 @@ function applyRoute(seed){
 
 
 /**
- * Independent ice ascent from EACH actual landing. Never merge all branches
- * at one trunk. Different shelves get different entrance AND summit-exit X.
- * Most of the initial climb is near-vertical, with a short rock-following
- * traverse as the route approaches its own section of the upper crest.
+ * Phase 3: a small directed ice-route graph, keyed to the actual accepted
+ * landing shelves. Only merge a lower ascent if its ORIGINAL, independent
+ * route already passes within a physical ice-face width of a higher shelf's
+ * climb entrance. Otherwise that shelf retains its own independent exit.
+ *
+ * A shared route has the EXACT same vertices above the join, avoiding
+ * teleporting between graphical routes. This never modifies mountain
+ * colliders, movement speed, or pole physics.
  */
-// Spread actual ascent exits across the summit without changing manual climb.
+const iceRouteCache=new Map();
 function iceExitX(spireIndex,fromTier){
  const s=spires[spireIndex],min=s.summit[0]+52,max=s.summit[1]-90;
  const ordered=s.ledges.map((ledge,i)=>({
@@ -234,44 +239,85 @@ function iceExitX(spireIndex,fromTier){
  }
  return exits[fromTier];
 }
-function iceClimbPoints(spireIndex,fromTier=null){
- const s=spires[spireIndex];
- if(!s||spireIndex<1||spireIndex>3||s.cave)return [];
- if(fromTier===null) return s.ledges.length ? iceClimbPoints(spireIndex,0) : [];
- const ledge=s.ledges[fromTier];
+function independentIcePoints(spireIndex,tierIndex){
+ const s=spires[spireIndex],ledge=s?.ledges?.[tierIndex];
  if(!ledge)return [];
  const startX=ledge[1]-30,startY=ledge[2]-22;
- // Exit near the chosen route's own upper face. Never funnel every ledge
- // backwards to the left corner of the summit.
- const endX=iceExitX(spireIndex,fromTier);
- const endY=s.summit[2]-22;
- const spread=endX-startX,climbHeight=startY-endY;
- const bend={x:startX+spread*.28,y:startY-climbHeight*.64};
+ const endX=iceExitX(spireIndex,tierIndex),endY=s.summit[2]-22;
+ const rise=startY-endY,spread=endX-startX;
  return [
-  {x:startX,y:startY,tierIndex:fromTier},
-  {...bend,tierIndex:fromTier},
-  {x:endX,y:endY,tierIndex:fromTier}
+  {x:startX,y:startY,tierIndex},
+  {x:startX+spread*.28,y:startY-rise*.64,tierIndex},
+  {x:endX,y:endY,tierIndex}
  ];
 }
-function icePositionAt(spireIndex,y,fromTier=0){
- const points=iceClimbPoints(spireIndex,fromTier);
- if(!points.length)return null;
- if(y>=points[0].y)return {x:points[0].x,y};
+function iceXOnPath(points,y){
+ if(!points?.length)return null;
+ if(y>=points[0].y)return points[0].x;
  for(let k=0;k<points.length-1;k++){
   const a=points[k],b=points[k+1];
   if(y>=b.y){
    const t=Math.max(0,Math.min(1,(a.y-y)/(a.y-b.y)));
-   // Smooth tool placement at a change of slope, no abrupt sideways snap.
    const eased=t*t*(3-2*t);
-   return {x:a.x+(b.x-a.x)*eased,y};
+   return a.x+(b.x-a.x)*eased;
   }
  }
- return {x:points.at(-1).x,y};
+ return points.at(-1).x;
+}
+function iceRouteNetwork(spireIndex){
+ if(spireIndex<1||spireIndex>3||!spires[spireIndex])return [];
+ if(iceRouteCache.has(spireIndex))return iceRouteCache.get(spireIndex);
+ const ledges=spires[spireIndex].ledges;
+ const base=ledges.map((_,tier)=>independentIcePoints(spireIndex,tier));
+ const routes=Array(ledges.length);
+ const order=ledges.map((_,tier)=>tier)
+  .sort((a,b)=>ledges[a][2]-ledges[b][2]);
+ // Build from highest to lowest: a lower route may reuse a fully-built
+ // higher path, but never the other way around (no loops).
+ for(const tier of order){
+  const initial=base[tier],start=initial[0];
+  let parent=-1,best=Infinity;
+  for(const other of order){
+   if(other===tier||!routes[other])continue;
+   const upper=base[other][0];
+   const vertical=start.y-upper.y;
+   if(vertical<115)continue;
+   // Require actual proximity at the higher shelf, not simply aligned
+   // far-off summit exits. 35 world units is roughly half an ice face.
+   const crossing=iceXOnPath(initial,upper.y);
+   if(crossing<ledges[other][0]+10||
+      crossing>ledges[other][1]-12)continue;
+   const offset=Math.abs(crossing-upper.x);
+   if(offset>35)continue;
+   const cost=offset+vertical*.065;
+   if(cost<best){best=cost;parent=other;}
+  }
+  if(parent<0){
+   routes[tier]={tier,points:initial,sharedWith:null,joinY:null};
+   continue;
+  }
+  const higher=routes[parent],join=higher.points[0];
+  const transitionY=join.y+Math.min(105,(start.y-join.y)*.33);
+  const lead={
+   x:iceXOnPath(initial,transitionY),y:transitionY,tierIndex:tier
+  };
+  routes[tier]={tier,points:[start,lead,...higher.points],
+   sharedWith:parent,joinY:join.y};
+ }
+ iceRouteCache.set(spireIndex,routes);
+ return routes;
+}
+function iceClimbPoints(spireIndex,fromTier=null){
+ const routes=iceRouteNetwork(spireIndex);
+ return routes[fromTier===null?0:fromTier]?.points||[];
+}
+function icePositionAt(spireIndex,y,fromTier=0){
+ const path=iceClimbPoints(spireIndex,fromTier);
+ const x=iceXOnPath(path,y);
+ return x===null?null:{x,y};
 }
 function independentIceRoutes(i){
- const s=spires[i];
- if(!s||i<1||i>3)return [];
- return s.ledges.map((_,tier)=>({tier,points:iceClimbPoints(i,tier)}));
+ return iceRouteNetwork(i);
 }
 
 function climbEntryX(platform) {

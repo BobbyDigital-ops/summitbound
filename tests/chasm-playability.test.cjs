@@ -66,9 +66,14 @@ for(const seed of [...Array.from({length:60},(_,i)=>i),97,99,250,512,996]){
      'shelf cannot project into open air while joined to mountain face');
    }
    const ice=vm.runInContext('independentIceRoutes('+i+')',ctx);
-   for(let j=1;j<ice.length;j++)
-    assert.ok(Math.abs(ice[j].points.at(-1).x-ice[j-1].points.at(-1).x)>=35,
-     'adjacent ice ascents visually merge at spire '+i);
+   for(const route of ice){
+    assert.ok(route.points.at(-1).x>=spires[i].summit[0]+40,
+     'ice ascent misses the summit at spire '+i);
+    if(route.sharedWith!==null){
+     assert.ok(spires[i].ledges[route.sharedWith][2]<spires[i].ledges[route.tier][2],
+      'merged onto a lower shelf');
+    }
+   }
   }
   const cave=spires[4].cave,previous=spires[3].summit;
   assert.ok(cave.left-previous[1]>=545,'final cave chasm not challenging');
