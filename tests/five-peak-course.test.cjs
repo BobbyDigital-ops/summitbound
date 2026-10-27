@@ -90,7 +90,7 @@ test('Campsite landings activate checkpoint immediately, other summits do not',(
  assert.equal(run('p.standingOn'),'l4-0');
  assert.equal(run('lastSafeStage'),4);
 });
-test('Ice exit stays vertically aligned on EVERY summit with no scripted sliding',()=>{
+test('Ice exits land on real upper or lower summit terrain without sideways sliding',()=>{
  const {run}=harness(true);
  for(let peak=1;peak<=4;peak++){
   const count=run('spires['+peak+'].ledges.length');
@@ -110,7 +110,7 @@ test('Ice exit stays vertically aligned on EVERY summit with no scripted sliding
     'remaining sideways motion in last 20 units of ascent '+peak+'/'+tier);
    run('tick(1/120)');
    assert.equal(run('p.state'),'GROUNDED');
-   assert.equal(run('p.standingOn'),'s'+peak);
+   assert.equal(run('p.standingOn'),run('spires['+peak+'].ridgeArrival')?'a'+peak:'s'+peak);
    assert.ok(Math.abs(run('p.x')-expected)<.01,'automatic sideways summit shift');
    assert.equal(run('p.climb'),null);
   }
@@ -145,5 +145,8 @@ test('All five peaks share the same rock material and both checkpoints display c
  assert.match(art,/drawIceClimb\(i,off\);drawIceShelfJoins\(i,off\);drawIceCrestSnow\(i,off\)/);
  const html=fs.readFileSync('public/game/summit-leap-v081.html','utf8');
  assert.doesNotMatch(html,/id="shuffle"|data-skip=|id="campfireActions"/);
- assert.match(html,/v0\.12\.0/);
+ assert.match(html,/v0\.20\.0/);
+ const bleak=script('bleak-art.js');
+ assert.match(bleak,/drawSpire=function bleakSpire/);
+ assert.match(bleak,/Black void between the broken crowns/);
 });
