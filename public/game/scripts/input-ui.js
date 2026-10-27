@@ -33,6 +33,12 @@ function processKeyDown(keyStr, codeStr) {
  const c = (codeStr || '').toLowerCase();
  if (!k && !c) return;
 
+ // Ice tools work on fresh key edges only, not keyboard auto-repeat.
+ // On solid ground these same A/D keys still steer the runner.
+ const axeSide=(k==='a'||k==='arrowleft'||c==='keya')?-1:
+  (k==='d'||k==='arrowright'||c==='keyd')?1:0;
+ if(axeSide&&!keys.has(k)&&!keys.has(c))iceAxeStrike(axeSide);
+
  const isSpace = k === ' ' || k === 'space' || c === 'space';
  if (isSpace) {
   if (!keys.has(' ') && !keys.has('space')) plant();
@@ -86,6 +92,7 @@ function clearGameInput(){
  keys.clear();
  fingers.left.clear();fingers.right.clear();
  fingers.up.clear();fingers.down.clear();fingers.vault=null;
+ if(p.state==='CLIMBING'&&p.climb)p.climb.pulse=0;
  for(const id of ['left','right','up','down']){
   document.getElementById(id)?.classList.remove('down');
  }
@@ -115,7 +122,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pointerdown', () => window.focus());
 
 function control(el, dir){
- el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); fingers[dir].add(e.pointerId); el.classList.add('down'); });
+ el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); if(dir==='left'||dir==='right')iceAxeStrike(dir==='left'?-1:1); fingers[dir].add(e.pointerId); el.classList.add('down'); });
  for(const evt of ['pointerup','pointercancel','lostpointercapture']) el.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); fingers[dir].delete(e.pointerId); el.classList.toggle('down', fingers[dir].size > 0); });
 }
 
