@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.13 - Procedural Peaks */
+/** Summitbound v0.9.14 - Mapped Mountain Routes */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.13: Procedural Peaks';
+    document.title = 'Summitbound — v0.9.14: Mapped Mountain Routes';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

@@ -1,3 +1,11 @@
+# Summitbound — active development v0.9.14 Mapped Mountain Routes
+
+This checkpoint replaces near-horizontal platform stacks with height/distance/width-independent shelves. Each receiving peak usually offers three physically reachable shelf choices; a minority offer two or four. Summit height and crest width also vary. The 997-seed regression sweep passed without fallbacks. See [the mountain layout map](docs/mountain-layouts.md).
+
+**Not yet completed:** natural shared ice branches, truly walkable summit slopes, final cave visual overhaul, or the stationary/mobile stutter investigation.
+
+---
+
 # Summitbound — active development: v0.9.13 Procedural Peaks
 
 Active game: `public/game/summit-leap-v081.html` with modular Canvas scripts under `public/game/scripts/`. Development branch: `dev/visual-recovery-v099-v0912`. Main is not automatically updated by this branch.

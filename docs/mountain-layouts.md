@@ -17,12 +17,26 @@ Each *jump* has one outgoing summit, a chasm, then **one incoming mountain with 
 
 **Separate follow-on work:** real walkable summit slopes, broader/shared/branching natural ice walls, more natural cave and mobile performance; none is disguised as part of the layout generator.
 
-## Route 1 worked map (relative to each preceding takeoff summit)
+## Route 1 — measured mountain map, taken from the generator
 
-| Destination | Low shelf (distance / rise / width) | Middle shelf | High shelf | Summit altitude |
-|---|---|---|---|---|
-| Broken Tooth | 559 / 33 / 155 | 384 / 81 / 230 | 457 / 141 / 110 | approx. 796 |
-| Windward Spire | 462 / 31 / 154 | 567 / 91 / 224 | 391 / 143 / 120 | varies by seed |
-| Lantern Crag | 562 / 45 / 170 | 377 / 85 / 233 | 468 / 142 / 100 | varies by seed |
+All values in game units relative to the preceding summit's takeoff edge. Each row is a landing option, NOT a series of stairs.
 
-Game units; X distance is measured from the takeoff summit's right edge. Notice that the highest shelf is closer than the low shelf on every example except where they happen to be otherwise ordered. These are examples from a validated route, not fixed coordinates for all routes.
+| Mountain | Choice | Gap to shelf | Rise over takeoff | Shelf width |
+|---|---|---:|---:|---:|
+| Broken Tooth | Low | 560 | 29 | 211 |
+| Broken Tooth | Middle | 388 | 78 | 121 |
+| Broken Tooth | High | 485 | 136 | 162 |
+| Windward Spire | Low | 563 | 32 | 207 |
+| Windward Spire | Middle | 398 | 76 | 103 |
+| Windward Spire | High | 472 | 140 | 145 |
+| Lantern Crag | Low | 486 | 40 | 229 |
+| Lantern Crag | Middle | 389 | 82 | 159 |
+| Lantern Crag | High | 556 | 138 | 106 |
+
+Summit heights and widths are also independently variable; see the generator for the actual seeded coordinates. Other routes rearrange shelf horizontal order and dimensions (e.g. Route 2 has a far high shelf on Broken Tooth, and a near high shelf on Windward Spire).
+
+## Exhaustive validation
+
+`npm run test:allroutes` checks all 997 route seeds, 2,991 mountains, actual physics-reachable first-contact ledges, visual separation, distinct widths, summit exits, and uphill cave placement. Last verified result: 313 two-ledge, 2,362 three-ledge, 316 four-ledge mountain arrangements, **zero fallbacks** and no route errors.
+
+The automated suite does not prove natural-looking silhouettes or subjective difficulty. Real-device and visual gameplay review are still required, and remain separate from the future mobile-performance phase.
