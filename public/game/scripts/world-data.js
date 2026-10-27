@@ -139,7 +139,7 @@ function selectTerraces(spire,seed){
   const ledges=labels.map((label,i)=>{
    const [low,high]=altitudeBands[i];
    const rise=low+Math.floor(rand()*(high-low+1));
-   const left=previous[1]+zones[i]+Math.floor(rand()*37)-18;
+   const left=previous[1]+Math.max(388,zones[i]+Math.floor(rand()*37)-18);
    const [wmin,wmax]=widthSlots[i];
    const width=wmin+Math.floor(rand()*(wmax-wmin+1));
    return [left,left+width,previous[2]-rise,
@@ -185,9 +185,9 @@ function selectTerraces(spire,seed){
  // with offsets relative to the ACTUAL preceding summit, not a stale map.
  // This is not permission to accept an unreachable layout.
  const templates={
-  1:[[559,155,33,'rock','Low'],[384,230,81,'snow','Middle'],[457,110,141,'ice','High']],
+  1:[[559,155,33,'rock','Low'],[388,230,81,'snow','Middle'],[457,110,141,'ice','High']],
   2:[[462,154,31,'snow','Low'],[567,224,91,'rock','Middle'],[391,120,143,'ice','High']],
-  3:[[562,170,45,'rock','Low'],[377,233,85,'snow','Middle'],[468,100,142,'ice','High']]
+  3:[[562,170,45,'rock','Low'],[388,233,85,'snow','Middle'],[468,100,142,'ice','High']]
  };
  const ledges=templates[spire].map(t=>[
   previous[1]+t[0],previous[1]+t[0]+t[1],previous[2]-t[2],t[3],t[4]]);
