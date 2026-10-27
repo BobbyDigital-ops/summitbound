@@ -60,6 +60,7 @@ function plant(){
 function release(){
  if(p.state!=='RIDING_VAULT')return;
  const kick = PolePhysicsEngine.calculateReleaseVelocity(p.vx, p.vy, p.vault, cfg);
+ if(typeof catchUsed!=='undefined')catchUsed=false;
  p.vx = kick.vx; p.vy = kick.vy; p.state = 'AIRBORNE'; p.vault = null; p.bend = 0; meter.style.display = 'none';
 }
 
