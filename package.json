@@ -38,6 +38,7 @@
     "test:five-peaks": "node --test tests/five-peak-course.test.cjs",
     "test:peak-retry": "node --test tests/peak-retry-momentum.test.cjs",
     "test:vault-dynamics": "node --test tests/vault-dynamics.test.cjs",
+    "test:precision-vault": "node --test tests/precision-vault-balance.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
