@@ -1,3 +1,17 @@
+# Summitbound — v0.9.22 Phase 4C: Terrain, Time Trials & PB Ghosts
+
+**Code complete, pending real-device/AI Studio visual and feel review.** Development remains on `main` for Google AI Studio; `backup/pre-phase4c-v0921` preserves the previous version. The frozen `level-template-v0.9.16` and all seven approved geometry fingerprints are unchanged.
+
+- **Terrain:** rock-rooted terrace undersides join actual mountain contours; tighter snow-on-rock ledge caps, smaller summit snow feathering and shorter ice footing eliminate unnatural stretched bridges. No collider or vault-physics changes.
+- **Difficulty:** generator preferentially selects progressively narrower *safe first-contact/release* windows for higher landings (stage caps 20 / 13 / 9) while lower routes remain safer. A hard four-viable-candidate selection budget protects mobile route changes. When the preferred upper route is unavailable, the first safe viable layout is retained. Seven protected reference seeds remain exactly as approved.
+- **Time Trial mode:** seeded bronze/silver/gold *course* targets, live countdown to next medal cutoff, cumulative per-stage time gates, checkpoint splits and final medal screen. Time targets use existing actual high-route ascent lengths plus vault/running budgets and must be refined after human playtests; they are not yet player-calibrated records.
+- **PB ghosts:** locally stored, versioned, route-specific best runs. Sampled at ~8 Hz, interpolated at render time, ghost toggled in the HUD; saved only after a valid four-gate Time Trial victory using stock physics. A fail/retry restarts the race, and skip/tuning invalidates ranking. Local storage failure is harmless. No multiplayer or network leaderboard.
+- **Validation:** all seven golden fingerprints matched. A final bounded-search sample of 80 routes passed, representative runtime playback, ghost persistence and HUD/draw checks were exercised. New `npm run test:phase4c` covers scoring, ghost correctness and anti-cheat; the standard GitHub workflow now runs it. A complete CI confirmation and physical Android/AI Studio playtest remain outstanding.
+
+**Next: Phase 5** — fix the cave right-side collision and visual entrance mismatch, integrate cave naturally in the mountain, move ladder right of fire and provide a campfire Continue/Retry choice without unwanted popups. Phases 6/7 remain animations and Android readiness.
+
+---
+
 # Summitbound — v0.9.21 Precision Routes (Phase 4B)
 
 **Phase 4B implementation complete, awaiting human AI Studio review.** Active GitHub branch is now `main`, which Google AI Studio syncs. Snapshot `backup/pre-phase4b-v0920` safeguards the previous playable version; `level-template-v0.9.16` retains the approved original geometry reference.
