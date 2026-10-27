@@ -678,7 +678,7 @@ function draw(){
  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-camera.x, -camera.y);
  for(let i=0;i<spires.length;i++){
   const s=spires[i].summit;
-  const nearLeft=i===4?Math.min(s[0],spires[4].cave.left-230):Math.min(s[0],...s.ledges.map(t=>t[0]));
+  const nearLeft=i===4?Math.min(s[0],spires[4].cave.left-230):Math.min(s[0],...spires[i].ledges.map(t=>t[0]));
   if((s[1]-camera.x)*zoom<-220||(nearLeft-camera.x)*zoom>w+220)continue;
   const chunk=mountainCache(i);
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
