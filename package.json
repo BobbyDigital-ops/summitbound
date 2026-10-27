@@ -35,6 +35,7 @@
     "test:phase6": "node --test tests/phase6-animation-staff.test.cjs",
     "test:phase7": "node --test tests/phase7-mobile-lifecycle.test.cjs",
     "test:phase8": "node --test tests/phase8-skill-foundation.test.cjs",
+    "test:five-peaks": "node --test tests/five-peak-course.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
