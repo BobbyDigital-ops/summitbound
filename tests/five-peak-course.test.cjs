@@ -47,8 +47,8 @@ test('Mountain bedrock widens around EVERY actual ledge while playable chasms re
  assert.ok(Math.max(...gaps)-Math.min(...gaps)>=150);
  for(let peak=1;peak<=4;peak++){
   const s=run('spires['+peak+']');
-  assert.ok(s.summit[0]<=Math.min(...s.ledges.map(l=>l[0]))-65,
-   'summit cannot encompass exposed ledges '+peak);
+  assert.ok(s.rockShoulderLeft<=Math.min(...s.ledges.map(l=>l[0]))-65,
+   'bedrock shoulder does not support exposed ledges '+peak);
   for(const ledge of s.ledges){
    const rock=run('mountainContourX('+peak+','+(ledge[2]+3)+')');
    assert.ok(rock>=ledge[0]+12&&rock<=ledge[1]-12,
