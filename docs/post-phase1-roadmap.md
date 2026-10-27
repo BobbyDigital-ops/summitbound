@@ -46,9 +46,9 @@
 - After climbing, ice exits require a short 20-unit step onto a legally walkable snow plateau. Ladder exit unchanged.
 - New test suites `test:ice-network` and `test:ice-snow` cover all 997 route seeds and artwork invariants. **Visual approval and a real touch-device climb are still required.**
 
-## Next — Phase 4B: real high-platform risk/reward
+## Phase 4B — precision landing routes and reversible ice climbing (implemented v0.9.21; needs gameplay review)
 
-Do not mistake shelf height alone for a genuine challenge. Enumerate successful pole **release timing windows** (using the existing physics and first-contact collision checks) for high, middle and low choices on every accepted generated mountain. Deliberately craft narrow but fair high-route windows, broad lower-shelf survival windows and meaningful time/ice-ascent tradeoffs. Adjust authored level arrangements, NOT the vault spring constants, to achieve the reward. Consider minimal, optional landing acknowledgement (short sound, haptic and "HIGH ROUTE" label); no interrupting popups. Distinct timing/reward profiles must be part of scaling the template to many future levels.
+**Implemented:** sample all 180 pole-release setups using the existing first-contact and braking model. Prefer accepted authored ledge layouts with narrower safe highest-ledge release windows than the lowest ledge; keep the seven v0.9.16 golden routes untouched. Across 997 route seeds, 2,987 of 2,991 stage layouts meet the precision criterion while four remain safely playable; future human difficulty review is still required. Preserve manual climbing with Down/S and mobile down control for descent/reversal, including shared-ice junctions. Remove fake decorative ice falls. Keep contextual HIGH ROUTE feedback subtle. All 997 routes, physical cliff backing and summit exits must remain valid, with an Android playtest before signoff.
 
 ## Phase 5 cave landing and presentation notes
 
