@@ -80,6 +80,20 @@ function handleNativeKeyUp(e) {
 window.addEventListener('keydown', handleNativeKeyDown);
 window.addEventListener('keyup', handleNativeKeyUp);
 
+// One release path for browser focus loss, tab backgrounding and Android
+// app lifecycle. No stuck touch-held direction/axe after returning.
+function clearGameInput(){
+ keys.clear();
+ fingers.left.clear();fingers.right.clear();
+ fingers.up.clear();fingers.down.clear();fingers.vault=null;
+ for(const id of ['left','right','up','down']){
+  document.getElementById(id)?.classList.remove('down');
+ }
+ release();
+}
+function resetResumeClock(){
+ prev=performance.now();acc=0;lastRenderedAt=0;
+}
 window.addEventListener('message', e => {
  if (!e.data || typeof e.data !== 'object') return;
  if (e.data.type === 'SUMMIT_KEY_DOWN') {
@@ -87,16 +101,15 @@ window.addEventListener('message', e => {
  } else if (e.data.type === 'SUMMIT_KEY_UP') {
   processKeyUp(e.data.key, e.data.code);
  } else if (e.data.type === 'SUMMIT_BLUR') {
-  keys.clear();
-  fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.down.clear(); fingers.vault = null;
-  release();
+  clearGameInput();resetResumeClock();
  }
 });
-
-window.addEventListener('blur', () => {
- keys.clear();
- fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.down.clear(); fingers.vault = null;
- release();
+window.addEventListener('blur',()=>{clearGameInput();resetResumeClock();});
+window.addEventListener('pagehide',()=>{clearGameInput();resetResumeClock();});
+window.addEventListener('pageshow',resetResumeClock);
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)clearGameInput();
+ resetResumeClock();
 });
 
 window.addEventListener('pointerdown', () => window.focus());
