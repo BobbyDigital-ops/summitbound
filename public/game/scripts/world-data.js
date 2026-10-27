@@ -364,9 +364,20 @@ function independentIceRoutes(i){
  return iceRouteNetwork(i);
 }
 
+// Shared cave geometry for real collision, entrance, art and interaction.
+// The left side is an open approach; the far-right wall is solid.
+function caveGeometry(){
+ const c=spires[4].cave,w=c.right-c.left;
+ return {
+  left:c.left,right:c.right,ceiling:c.ceiling,floor:c.floor,
+  wallX:c.right-18,ladderX:c.right-32,
+  fireX:c.left+Math.round(w*.44),
+  openingLeft:c.left-5,headroomY:c.ceiling+26
+ };
+}
 function climbEntryX(platform) {
  if (!platform) return -999;
- return platform.kind === 'cave' ? spires[4].cave.right - 25 : platform.right - 30;
+ return platform.kind === 'cave' ? caveGeometry().ladderX : platform.right - 30;
 }
 
 /**
