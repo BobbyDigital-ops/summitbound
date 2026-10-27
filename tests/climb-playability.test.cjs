@@ -63,7 +63,9 @@ for(let seed=0;seed<9;seed++){
     const frames=vm.runInContext('(()=>{let n=0;while(p.state!=="GROUNDED" && n<1800){tick(1/120);n++;}return n;})()',ctx);
     assert.ok(frames<1800,id+' never finishes ascent');
     assert.equal(ctx.p.standingOn,'s'+spire,id+' dismount misses summit');
-    assert.equal(ctx.lastSafeStage,spire,id+' failed to activate safe summit');
+    const expectedCheckpoint=spire===2?2:spire-1;
+    assert.equal(ctx.lastSafeStage,expectedCheckpoint,
+     id+' created an unintended intermediate checkpoint');
     assert.ok(Math.abs(ctx.p.x-exit.x)<.5,
      id+' teleported horizontally after exiting the ice');
     assert.equal(ctx.p.climb,null,'ice climb incorrectly entered automatic slide');
