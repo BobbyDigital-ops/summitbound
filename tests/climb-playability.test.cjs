@@ -35,6 +35,7 @@ function gameContext() {
   "s.cave.floor,'rock',{kind:'cave',spire:i,tier:'Checkpoint'}));",
   "} applyRoute(0);"
  ].join('\n'),context);
+ vm.runInContext(fs.readFileSync('public/game/scripts/climb-mechanics.js','utf8'),context);
  vm.runInContext(fs.readFileSync('public/game/scripts/simulation.js','utf8'),context);
  return context;
 }
@@ -57,14 +58,15 @@ for(let seed=0;seed<9;seed++){
     assert.equal(ctx.p.state,'CLIMBING',id+' cannot start by holding Up');
     assert.equal(ctx.p.climb.tierIndex,tier,id+' started another route');
     assert.equal(ctx.p.climb.lipX,exit.x,id+' ice lip changed');
-    assert.ok(ctx.p.climb.targetX>=exit.x+17&&ctx.p.climb.targetX<=exit.x+21,
-     id+' does not step onto the snow beyond the ice lip');
+    assert.equal(ctx.p.climb.targetX,exit.x,
+     id+' must end at the real physical summit, not a sideways step-off');
     const frames=vm.runInContext('(()=>{let n=0;while(p.state!=="GROUNDED" && n<1800){tick(1/120);n++;}return n;})()',ctx);
     assert.ok(frames<1800,id+' never finishes ascent');
     assert.equal(ctx.p.standingOn,'s'+spire,id+' dismount misses summit');
     assert.equal(ctx.lastSafeStage,spire,id+' failed to activate safe summit');
-    assert.ok(Math.abs(ctx.p.x-ctx.p.climb.targetX)<.5,
-     id+' did not complete the step onto the snowy ridge');
+    assert.ok(Math.abs(ctx.p.x-exit.x)<.5,
+     id+' teleported horizontally after exiting the ice');
+    assert.equal(ctx.p.climb,null,'ice climb incorrectly entered automatic slide');
     const summit=vm.runInContext('spires['+spire+'].summit',ctx);
     assert.ok(ctx.p.x>=summit[0]+3&&ctx.p.x<=summit[1]-3,
      id+' exit not on physical summit');
