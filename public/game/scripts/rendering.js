@@ -1107,7 +1107,7 @@ function draw(){
   `LEAP ${Math.min(atStage+1,4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
  const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
-  (p.climb?.isIce?'↑ climb · ↓ descend · Release to rest':
+  (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
    'Hold ↑ on cave ladder · Release to rest'):p.state==='STEP_OFF'?
   'Stepping onto the summit':
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
