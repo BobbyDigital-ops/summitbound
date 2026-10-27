@@ -61,9 +61,9 @@ function getLanding(plat){
 function win(){
  completed = true; p.vx = 0; p.vy = 0; p.state = 'GROUNDED'; haptic([35,60,35]);
  const trialResult=typeof finishTimeTrial==='function'?finishTimeTrial():'';
- document.getElementById('victoryText').textContent = `Four canyon leaps and final summit climb completed in ${formatTime(elapsed)}. ${trialResult?trialResult+' · ':''}Your routes: ${landingHistory.join(' → ') || 'direct ascent'}.`;
+ document.getElementById('victoryText').textContent = `The Five Peaks — one continuous four-crossing ascent completed in ${formatTime(elapsed)}. ${trialResult?trialResult+' · ':''}Your routes: ${landingHistory.join(' → ') || 'direct ascent'}.`;
  document.getElementById('victory').classList.add('open');
- hint('CAVE OF EMBERS — ASCENT COMPLETE!', 5);
+ hint('FIVE PEAKS — ASCENT COMPLETE!', 5);
 }
 
 function climbStart(plat){
