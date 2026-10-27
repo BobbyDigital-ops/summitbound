@@ -643,15 +643,30 @@ function paintWoodenStaff(points, gripFraction) {
  ctx.restore();
 }
 
-// Static mountain artwork is rasterised once per route at a bounded internal
-// resolution. Redraw only moving snow, character, fire and input feedback.
-// Retain at most two high-cost canvases on mobile to limit memory pressure.
+// Static terrain, held in a small, true LRU cache. The old two-canvas
+// mobile cache could evict a mountain that was STILL visible, causing an
+// expensive full re-raster on each subsequent frame while standing still.
 const terrainCache=new Map();
+const renderStats={
+ terrainBuilds:0,terrainHits:0,terrainEvictions:0,terrainBytes:0,
+ backdropBuilds:0,backdropBytes:0
+};
+const backdropCache={image:null,key:''};
 let cachedRouteSeed=-1;
-function invalidateTerrainCache(){terrainCache.clear();cachedRouteSeed=-1;}
+function invalidateTerrainCache(){
+ terrainCache.clear();cachedRouteSeed=-1;renderStats.terrainBytes=0;
+ backdropCache.image=null;backdropCache.key='';renderStats.backdropBytes=0;
+}
 function mountainCache(i){
- if(cachedRouteSeed!==routeSeed){terrainCache.clear();cachedRouteSeed=routeSeed;}
- if(terrainCache.has(i))return terrainCache.get(i);
+ if(cachedRouteSeed!==routeSeed){terrainCache.clear();
+  cachedRouteSeed=routeSeed;renderStats.terrainBytes=0;}
+ if(terrainCache.has(i)){
+  const cached=terrainCache.get(i);
+  // Mark as recently used; never evict a mountain repeatedly at rest.
+  terrainCache.delete(i);terrainCache.set(i,cached);
+  renderStats.terrainHits++;
+  return cached;
+ }
  const s=spires[i], xs=[s.summit[0]-260,...s.ledges.map(t=>t[0]-150)];
  if(s.cave)xs.push(s.cave.left-230);
  const left=Math.min(...xs),right=s.summit[1]+210;
@@ -665,11 +680,43 @@ function mountainCache(i){
  if(!off)return null;
  off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
  drawSpire(i,off);if(i>0&&i<4)drawIceClimb(i,off);decorate(i,off);
- const data={image,left,top,width,height};
- terrainCache.set(i,data);
- const max=innerWidth<950?2:3;
- while(terrainCache.size>max)terrainCache.delete(terrainCache.keys().next().value);
+ const data={image,left,top,width,height,bytes:image.width*image.height*4};
+ terrainCache.set(i,data);renderStats.terrainBuilds++;
+ renderStats.terrainBytes+=data.bytes;
+ // Three nearby mountains may be on screen at once in portrait mode.
+ // Keep them resident, with a hard memory budget for low-memory phones.
+ const max=innerWidth<950?3:4;
+ const maxBytes=(innerWidth<950?40:88)*1024*1024;
+ while(terrainCache.size>max||
+   (terrainCache.size>1&&renderStats.terrainBytes>maxBytes)){
+  const key=terrainCache.keys().next().value;
+  const removed=terrainCache.get(key);
+  terrainCache.delete(key);
+  renderStats.terrainBytes-=removed.bytes;
+  renderStats.terrainEvictions++;
+ }
  return data;
+}
+function backdropTexture(w,h){
+ if(!mountainBackdrop.complete||!mountainBackdrop.naturalWidth)return null;
+ const iw=mountainBackdrop.naturalWidth,ih=mountainBackdrop.naturalHeight;
+ const rect=backdropViewport(iw,ih,w,h,0,0);
+ const scale=graphicsQuality==='low'?.7:
+  graphicsQuality==='high'?1:(innerWidth<950?.88:1);
+ const width=Math.max(1,Math.ceil(rect.width*scale));
+ const height=Math.max(1,Math.ceil(rect.height*scale));
+ const key=[iw,ih,w,h,width,height,graphicsQuality].join(':');
+ if(backdropCache.key!==key||!backdropCache.image){
+  const image=document.createElement('canvas');
+  image.width=width;image.height=height;
+  const off=image.getContext('2d',{alpha:false});
+  if(!off)return null;
+  off.drawImage(mountainBackdrop,0,0,width,height);
+  backdropCache.image=image;backdropCache.key=key;
+  renderStats.backdropBytes=width*height*4;
+  renderStats.backdropBuilds++;
+ }
+ return backdropCache.image;
 }
 
 // Aspect-preserving cover with *bounded continuous* parallax. No modulo,
@@ -691,7 +738,10 @@ function draw(){
  if(mountainBackdrop.complete && mountainBackdrop.naturalWidth){
   const rect=backdropViewport(mountainBackdrop.naturalWidth,
     mountainBackdrop.naturalHeight,w,h,camera.x,camera.y);
-  ctx.drawImage(mountainBackdrop,rect.x,rect.y,rect.width,rect.height);
+  const reduced=backdropTexture(w,h);
+  // Reuse a bounded raster at display resolution rather than resampling
+  // the multi-megapixel source JPG on every animation frame.
+  ctx.drawImage(reduced||mountainBackdrop,rect.x,rect.y,rect.width,rect.height);
  }
  let fg = ctx.createLinearGradient(0, h * .40, 0, h);
  fg.addColorStop(0, '#d6e4f000'); fg.addColorStop(.76, '#bfd5e344'); fg.addColorStop(1, '#b3c7d488');
