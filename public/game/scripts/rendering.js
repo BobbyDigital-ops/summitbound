@@ -151,7 +151,7 @@ function drawSpire(i,paintCtx=ctx){
   const flank=mountainFlankX(i,y);
   paintCtx.lineTo(flank,y);
  }
- paintCtx.lineTo(R-(i===4?80:188),bottom);
+ paintCtx.lineTo(R-(i===4&&typeof FEATURED_COURSE==='undefined'?80:188),bottom);
  paintCtx.lineTo(mountainContourX(i,bottom),bottom);
  for(let y=bottom-16;y>T+2;y-=14)paintCtx.lineTo(mountainContourX(i,y),y);
  paintCtx.closePath();
@@ -946,7 +946,7 @@ function mountainCache(i){
  const s=spires[i], xs=[s.summit[0]-260,...s.ledges.map(t=>t[0]-150)];
  if(s.cave)xs.push(s.cave.left-230);
  const left=Math.min(...xs),right=s.summit[1]+210;
- const top=s.summit[2]-(i===4?760:420),bottom=2125;
+ const top=s.summit[2]-(i===4&&s.cave?760:420),bottom=2125;
  const width=right-left,height=bottom-top;
  // Mobile auto gets a sharper foreground raster, not a sharper/upscaled
  // distant background. Larger mountain sheets remain capped per dimension.
