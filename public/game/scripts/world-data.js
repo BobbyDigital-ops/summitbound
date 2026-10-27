@@ -81,14 +81,14 @@ function candidateFlights(){
    // cut-off artificially compressed the entire mountain layout.
    if(vy>=0&&y+22>580)break;
   }
-  paths.push({descending,releaseFeet:r.nextPy+22,
+  paths.push({descending,releaseFeet:r.nextPy+22,releaseTick:tick,
    braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
  }
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
 }
-function viableShelves(ledges,previous){
- const stats=ledges.map(()=>({hits:0,safe:0}));
+function shelfTimingProfiles(ledges,previous){
+ const stats=ledges.map(()=>({hits:0,safe:0,ticks:new Set()}));
  for(const path of candidateFlights()){
   let first=-1,contact=0;
   for(const step of path.descending){
@@ -105,10 +105,24 @@ function viableShelves(ledges,previous){
   const t=ledges[first];
   if(path.releaseFeet>t[2]-previous[2])continue;
   stats[first].hits++;
-  if(t[1]-contact>=path.braking+12)stats[first].safe++;
+  if(t[1]-contact>=path.braking+12){
+   stats[first].safe++;stats[first].ticks.add(path.releaseTick);
+  }
  }
- return stats.every(s=>s.hits>=3&&s.safe>=2);
+ return stats.map(s=>({hits:s.hits,safe:s.safe,releaseWindows:s.ticks.size}));
 }
+function viableShelves(ledges,previous){
+ return shelfTimingProfiles(ledges,previous).every(s=>s.hits>=3&&s.safe>=2);
+}
+function routeHasMeaningfulRiskReward(profiles){
+ if(profiles.length<2)return false;
+ const low=profiles[0],high=profiles.at(-1);
+ // High is the physically highest authored shelf (Ridge for four-way layouts).
+ // A narrower landing means fewer safe first-contact, brakeable releases.
+ return high.safe<=low.safe*.85 && high.releaseWindows<=low.releaseWindows;
+}
+const PRESERVED_LEVEL_SEEDS=new Set([0,1,2,7,42,250,996]);
+
 // Physically validated alternatives for ONE receiving mountain.
 // Each tuple: distance from takeoff, rise (negative=below takeoff), width.
 // The choices are not stairs: one landing leads via ice to the NEXT summit.
@@ -134,6 +148,7 @@ function selectTerraces(spire,seed){
  const variants=MOUNTAIN_ARCHETYPES[count];
  const first=(seed*7+spire*5)%variants.length;
  const labels=MOUNTAIN_TIER_NAMES[count];
+ let fallbackLayout=null;
  // Hand-shaped route families, followed by only small seeded variations.
  // Do not optimize toward the same three short uphill shelves every time.
  for(let family=0;family<variants.length;family++){
@@ -156,7 +171,8 @@ function selectTerraces(spire,seed){
    if(Math.min(...xs)-previous[1]<385)continue; // no trivial takeoff hop
    if(byHeight.some((t,i)=>i>0&&t[2]-byHeight[i-1][2]<65))continue;
    if(Math.max(...widths)-Math.min(...widths)<42)continue;
-   if(!viableShelves(ledges,previous))continue;
+   const timingProfiles=shelfTimingProfiles(ledges,previous);
+   if(!timingProfiles.every(s=>s.hits>=3&&s.safe>=2))continue;
    // Rising left face with a crest farther right; retain a real horizontal
    // pole-planting runup on top without changing the physics or controls.
    const left=previous[1]+690+Math.floor(rand()*65);
@@ -166,11 +182,19 @@ function selectTerraces(spire,seed){
    const top=Math.min(design.baseAltitude+60,highest-90)
     -Math.floor(rand()*70);
    if(ledges.some(t=>t[2]<=top+68))continue;
-   if(authored)generatorFallbacks++;
-   return {ledges,summit:[left,right,top,'snow'],
+   const layout={ledges,summit:[left,right,top,'snow'],
     ridge:{character:rand(),roughness:.70+rand()*.7}};
+   if(PRESERVED_LEVEL_SEEDS.has(seed)||
+      routeHasMeaningfulRiskReward(timingProfiles)){
+    if(authored)generatorFallbacks++;
+    return layout;
+   }
+   // A playable level is preferable to no level if all families fail to
+   // produce a meaningfully tighter high-landing window.
+   if(!fallbackLayout)fallbackLayout=layout;
   }
  }
+ if(fallbackLayout)return fallbackLayout;
  throw Error('No playable mountain composition for route '+seed+', stage '+spire);
 }
 
