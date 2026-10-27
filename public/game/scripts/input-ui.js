@@ -19,11 +19,12 @@ for(const [id, key, output, divisor] of [['liftTune','arcadeLift','liftVal',100]
  document.getElementById(id).addEventListener('input', e => {
   let num = Number(e.target.value);
   cfg[key] = num / divisor;
+  if(typeof invalidateTimeTrial==='function')invalidateTimeTrial();
   document.getElementById(output).textContent = divisor === 100 ? num + '%' : String(num);
  });
 }
 
-for(const el of document.querySelectorAll('[data-skip]')) el.addEventListener('click', () => { spawn(Number(el.dataset.skip), true); document.getElementById('tuning').hidden = true; });
+for(const el of document.querySelectorAll('[data-skip]')) el.addEventListener('click', () => { if(typeof invalidateTimeTrial==='function')invalidateTimeTrial(); spawn(Number(el.dataset.skip), true); document.getElementById('tuning').hidden = true; });
 
 function processKeyDown(keyStr, codeStr) {
  const k = (keyStr || '').toLowerCase();
@@ -107,6 +108,10 @@ control(document.getElementById('left'), 'left');
 control(document.getElementById('right'), 'right');
 control(document.getElementById('up'), 'up');
 control(document.getElementById('down'), 'down');
+document.getElementById('ghostToggle')?.addEventListener('click',()=>{
+ trialGhostVisible=!trialGhostVisible;
+ document.getElementById('ghostToggle').textContent=trialGhostVisible?'Ghost: on':'Ghost: off';
+});
 
 canvas.addEventListener('pointerdown', e => {
  e.preventDefault();
