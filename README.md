@@ -1,3 +1,19 @@
+# Summitbound v0.10.0 — Phase 8 Skill Foundation (gameplay rebuild)
+
+**Implementation checkpoint, awaiting real playtest and complete CI.** Active work stays on `main` for Google AI Studio; backup `backup/pre-phase8-v0924` retains the old implementation. Final design calls for **exactly 100 individually validated levels**, not 110 or 100+; content production is future work, not delivered by the prototype's 997 deterministic seeds.
+
+- **Skill-based pole vault:** release speed now depends strongly on actual approach momentum and a precise release timing window around 68% of the pole ride; premature, weak and over-held launches receive predictable penalties. No random corrections to flight. Air steering is reduced so commitment matters.
+- **Alternating ice axes:** A/D or left/right mobile buttons while attached to ice deliver edge-triggered alternating axe strikes. A correct rhythm creates climb impulses and substantial speed advantage, repeated same hand does not; W/Up remains a faster-than-before accessible steady climb, S/Down a direct descent. Regular A/D movement is unchanged when not climbing.
+- **No artificial ice crest slide:** climb path ends on the REAL summit collider; on reaching the final climb point, the player dismounts at that exact X rather than automatically traversing to another snowy location. Cave shaft transition is still a separate feature for Phase 9.
+- **Real landing/recovery:** each airborne physics step tests first contact by sweeping between the actual previous/current positions across every available ledge (including unintended recovery shelves). Falling through open space still returns to the last valid checkpoint if no surface is caught.
+- **Intermediate launches:** a genuine large-enough landing shelf can now serve as a pole takeoff surface. Multi-peak shortcut geometry remains Phase 9 work.
+- **Regression:** stock ghost replay records are versioned to v2 after the physics changes; scripted checks now cover vault consistency, axes, actual ice exits, rescue landings, and ledge launch, and are added to CI. Trial medals remain provisional until a reliable set of full real-person runs exists.
+- **NOT Phase 8:** the present four-crossing level and its dated mountain geometry remain temporarily in place. Phase 9 will create wider, VARIABLE gaps, branching physically continuous mountains, campsites, cave tunnels and longer continuous progression; Phase 10 will replace the persistent cartoonish asset and glued ledge system. Wind/weather belongs to a later deterministic, telegraphed environmental system.
+
+**Quality bar:** predictable failures, meaningful mastery, recoverable unintended landings and logically connected terrain — not artificially generous leaps or scripted summit slides. Shipping exactly 100 levels requires fully curated/bot-validated **and human playtested** level layouts across real Android devices.
+
+---
+
 # Summitbound — v0.9.24 Gameplay Systems (Phases 5–7 progress)
 
 **Development branch:** `main` (the branch synced by Google AI Studio). The v0.9.22 and v0.9.23 states are protected as `backup/pre-phase5-v0922` and `backup/pre-phase6-v0923`. The original `level-template-v0.9.16` golden route geometry is deliberately unchanged.
