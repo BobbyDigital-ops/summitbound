@@ -92,9 +92,10 @@ function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
 // All geometry here is visual only; no surface/landing/collision edits.
 function terraceButtressProfile(i,a,b,y){
  const width=b-a;
- const face=mountainContourX(i,y+68);
- const anchor=Math.max(face+30,a+width*.57);
  const tip=a-5,depth=86+Math.min(24,width*.1);
+ const face=mountainContourX(i,y+68);
+ const rootFace=mountainContourX(i,y+depth+19);
+ const anchor=Math.max(face+30,rootFace+28,a+width*.57);
  return [
   [tip,y+5],[a+width*.23,y+8],[a+width*.55,y+3],
   [b+4,y+6],[b+9,y+18],[b-width*.07,y+29],
