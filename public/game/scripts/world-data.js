@@ -259,7 +259,7 @@ function applyRoute(seed){
  const label=document.getElementById('routeLabel');
  if(label)label.textContent=
   typeof FEATURED_COURSE!=='undefined'?
-  'FIVE PEAKS · 1 / '+FEATURED_COURSE.campaignSize:
+  'FIVE PEAKS · VERTICAL SLICE':
   'Route '+(routeSeed+1);
 }
 
