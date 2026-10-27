@@ -1,6 +1,6 @@
 // Summitbound Phase 4C: seeded time trials, medal gates and replayable local ghosts.
 // Records are course-specific, validated against versioned terrain + stock physics.
-const TRIAL_RECORD_VERSION=6;
+const TRIAL_RECORD_VERSION=7;
 const TRIAL_SAMPLE_SECONDS=.12;
 const TRIAL_MAX_SAMPLES=3500;
 let trialRun={samples:[],splits:[],nextSample:0,invalid:false};
