@@ -2,6 +2,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm'),fs=require('node:fs');
 const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),ctx);
 for(let route=0;route<9;route++){
  test('continuous cliff safely backs landing surfaces on route '+(route+1),()=>{

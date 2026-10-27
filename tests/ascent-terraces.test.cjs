@@ -2,6 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 const src=fs.readFileSync('public/game/scripts/world-data.js','utf8');
 const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 vm.runInContext(src,ctx);
 for(let seed=0;seed<9;seed++){
  test('route '+seed+': ALL destinations above previous summit',()=>{

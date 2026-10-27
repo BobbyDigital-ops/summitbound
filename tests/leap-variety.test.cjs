@@ -1,6 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const vm=require('node:vm'),fs=require('node:fs');
 const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),ctx);
 for(let seed=0;seed<9;seed++){
  test('seed '+seed+' has distinct viable uphill ledge options',()=>{

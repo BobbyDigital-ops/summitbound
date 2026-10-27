@@ -13,7 +13,7 @@ const env=vm.createContext({
  innerWidth:844,innerHeight:480,PI:Math.PI,ctx:ctx2d,graphicsQuality:'auto',
  performance:{now:()=>1000},platforms:[],
 });
-for(const path of ['public/game/scripts/world-data.js','public/game/scripts/rendering.js']){
+for(const path of ['public/game/scripts/physics.js','public/game/scripts/world-data.js','public/game/scripts/rendering.js']){
  vm.runInContext(fs.readFileSync(path,'utf8'),env,{filename:path});
 }
 for(let seed=0;seed<9;seed++){

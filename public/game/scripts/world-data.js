@@ -18,64 +18,7 @@ const spires = [
  {name:'Firespine Cavern',summit:[4960,5810,-55,'snow'],ledges:[],cave:{left:4810,right:5035,floor:235,ceiling:85}}
 ];
 
-// 9 Deterministic Seeded Routes with varied shelf width, height, offset and depth
-const ledgeLayouts = [
- // Seed 0 (Route 1)
- [
-  [[1675,1760,1010,'rock','High'],[1553,1693,1130,'snow','Middle'],[1502,1705,1240,'rock','Low']],
-  [[3280,3436,895,'rock','High'],[3185,3285,1010,'ice','Middle'],[3135,3302,1125,'snow','Low']],
-  [[5050,5198,810,'snow','High'],[4968,5143,935,'rock','Middle'],[4940,5067,1050,'ice','Low']]
- ],
- // Seed 1 (Route 2)
- [
-  [[1650,1760,1010,'rock','High'],[1540,1670,1130,'snow','Middle'],[1470,1690,1240,'rock','Low']],
-  [[3350,3438,895,'rock','High'],[3200,3390,1010,'ice','Middle'],[3150,3280,1125,'snow','Low']],
-  [[5110,5197,810,'snow','High'],[5020,5180,935,'rock','Middle'],[4940,5140,1050,'ice','Low']]
- ],
- // Seed 2 (Route 3)
- [
-  [[1690,1760,1010,'rock','High'],[1530,1720,1130,'snow','Middle'],[1490,1650,1240,'rock','Low']],
-  [[3270,3425,895,'rock','High'],[3220,3340,1010,'ice','Middle'],[3160,3370,1125,'snow','Low']],
-  [[5040,5196,810,'snow','High'],[4970,5080,935,'rock','Middle'],[4910,5150,1050,'ice','Low']]
- ],
- // Seed 3 (Route 4)
- [
-  [[1660,1755,1000,'rock','High'],[1560,1685,1120,'snow','Middle'],[1480,1660,1235,'rock','Low']],
-  [[3310,3440,890,'rock','High'],[3210,3330,1005,'ice','Middle'],[3140,3290,1120,'snow','Low']],
-  [[5070,5195,805,'snow','High'],[4990,5120,930,'rock','Middle'],[4925,5100,1045,'ice','Low']]
- ],
- // Seed 4 (Route 5)
- [
-  [[1640,1750,1015,'rock','High'],[1545,1700,1135,'snow','Middle'],[1510,1715,1245,'rock','Low']],
-  [[3290,3430,900,'rock','High'],[3190,3360,1015,'ice','Middle'],[3170,3320,1130,'snow','Low']],
-  [[5090,5190,815,'snow','High'],[4980,5150,940,'rock','Middle'],[4950,5120,1055,'ice','Low']]
- ],
- // Seed 5 (Route 6)
- [
-  [[1680,1760,1005,'rock','High'],[1535,1665,1125,'snow','Middle'],[1475,1675,1230,'rock','Low']],
-  [[3330,3435,890,'rock','High'],[3230,3380,1005,'ice','Middle'],[3130,3270,1120,'snow','Low']],
-  [[5060,5195,805,'snow','High'],[4960,5100,930,'rock','Middle'],[4905,5080,1040,'ice','Low']]
- ],
- // Seed 6 (Route 7)
- [
-  [[1655,1755,1010,'rock','High'],[1550,1710,1130,'snow','Middle'],[1495,1700,1240,'rock','Low']],
-  [[3300,3430,895,'rock','High'],[3205,3350,1010,'ice','Middle'],[3155,3310,1125,'snow','Low']],
-  [[5080,5192,810,'snow','High'],[5000,5135,935,'rock','Middle'],[4930,5110,1050,'ice','Low']]
- ],
- // Seed 7 (Route 8)
- [
-  [[1670,1760,1010,'rock','High'],[1525,1680,1125,'snow','Middle'],[1485,1680,1235,'rock','Low']],
-  [[3340,3438,895,'rock','High'],[3180,3310,1005,'ice','Middle'],[3145,3340,1120,'snow','Low']],
-  [[5100,5195,810,'snow','High'],[4970,5110,930,'rock','Middle'],[4915,5075,1045,'ice','Low']]
- ],
- // Seed 8 (Route 9)
- [
-  [[1645,1750,1005,'rock','High'],[1565,1720,1130,'snow','Middle'],[1505,1710,1245,'rock','Low']],
-  [[3275,3425,890,'rock','High'],[3215,3375,1010,'ice','Middle'],[3165,3355,1125,'snow','Low']],
-  [[5045,5190,805,'snow','High'],[4985,5160,935,'rock','Middle'],[4935,5130,1050,'ice','Low']]
- ]
-];
-
+// Procedural, independently varied shelves with physics-based reachability.
 const caveLayouts = [
  {left:6850,right:7075,floor:892,ceiling:756},
  {left:6895,right:7078,floor:882,ceiling:764},
@@ -88,87 +31,138 @@ const caveLayouts = [
  {left:6840,right:7080,floor:900,ceiling:760}
 ];
 
-// Each leap has its own traversal profile without changing the pole physics.
-// Every destination gains altitude; the second emphasises distance, the
-// third a short steep ascent, and the final targets a high side-cave mouth.
 const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','CAVERN APPROACH'];
-const stageOffsets=[{dx:0,dy:0},{dx:-190,dy:0},{dx:-425,dy:0},{dx:-485,dy:0},{dx:0,dy:0}];
-let routeSeed = 0;
+let routeSeed=0;
 
-// Stage-specific upward targets. Every playable landing is ABOVE the prior
-// spire's launch summit (lower world Y means higher altitude).
-// 1–4 terraces are distributed vertically across a genuine cliff face.
-// At every mountain: LOW gains a little altitude, HIGH saves real climbing,
-// RIDGE is the skill-based near-summit shortcut.
-const risingTerraces={
- 1:{High:905,Middle:970,Low:1045},
- 2:{High:667,Middle:719,Low:780},
- 3:{High:420,Middle:478,Low:540}
-};
-const originalTierY={1:{High:1010,Middle:1130,Low:1240},
- 2:{High:895,Middle:1010,Low:1125},
- 3:{High:810,Middle:935,Low:1050}};
-// Author all shelves against the takeoff summit's RIGHT edge, not against
-// the next mountain's LEFT edge. No low-tier landing begins before 390 units,
-// rather than the previous easy ~240–260-unit steps. High/Ridge save climbing
-// at the cost of sharply narrower, more distant and higher airborne targets.
-// Shelf lip widths and the modest seeded variation are calibrated with actual
-// PolePhysicsEngine ride/release/flight trajectories and braking room.
-const cliffProfiles={
- 1:{Low:[395,1086,160],Middle:[492,1047,125],High:[565,1009,102],Ridge:[604,975,130]},
- 2:{Low:[402,786,162],Middle:[495,747,130],High:[565,709,103],Ridge:[605,675,135]},
- 3:{Low:[395,541,162],Middle:[495,502,125],High:[566,464,104],Ridge:[605,430,135]}
-};
-const terraceCounts=[1,2,4,3,2,1,4,3,4];
-function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
-function selectTerraces(group,spire,seed){
- const lookup=Object.fromEntries(group.map(t=>[t[4],t]));
+const terraceCounts=[2,3,4,3,2,4,3,1,4];
+function terraceCount(spire,seed){return terraceCounts[((seed%9)+(spire-1)*4)%9];}
+function seededRandom(seed,spire){
+ let state=(Math.imul(seed+1,2654435761)^Math.imul(spire+11,1597334677))>>>0;
+ return ()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return state/4294967296;};
+}
+const summitAltitudes=[1100,800,555,305,-55];
+let cachedFlights=null,cachedFlightPhysics='';
+function candidateFlights(){
+ const signature=[cfg.gravity,cfg.arcadeLift,cfg.arcadeRange,
+  cfg.arcadeFlightTempo,cfg.maxRunSpeed,cfg.brakingDecel].join(':');
+ if(signature===cachedFlightPhysics&&cachedFlights)return cachedFlights;
+ if(typeof PolePhysicsEngine==='undefined')
+  throw Error('Actual pole physics must be loaded before generating terrain');
+ const paths=[],dt=1/120,flightStep=dt*cfg.arcadeFlightTempo;
+ for(const offset of [120,140,170,200])
+ for(const speed of [260,320,360])
+ for(let tick=42;tick<=210;tick+=12){
+  const start=-offset,py=-22;
+  const initial=PolePhysicsEngine.initVault(start,py,speed,0,start+120,0,cfg);
+  const r=PolePhysicsEngine.stepVault(initial,tick*dt,cfg);
+  const kick=PolePhysicsEngine.calculateReleaseVelocity(r.nextVx,r.nextVy,r.state,cfg);
+  let x=r.nextPx,y=r.nextPy,vy=kick.vy;
+  const descending=[];
+  for(let step=0;step<325;step++){
+   const prev=y+22;
+   vy+=cfg.gravity*flightStep;x+=kick.vx*flightStep;y+=vy*flightStep;
+   if(vy>=0)descending.push({x,feet:y+22,prev});
+   if(vy>=0&&y+22>40)break;
+  }
+  paths.push({descending,braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
+ }
+ cachedFlightPhysics=signature;cachedFlights=paths;
+ return paths;
+}
+function crossingAt(path,height){
+ const p=path.descending;let lo=0,hi=p.length;
+ while(lo<hi){const m=(lo+hi)>>1;if(p[m].feet<height-4)lo=m+1;else hi=m;}
+ if(lo===p.length||p[lo].prev>height+3)return null;
+ return {frame:lo,x:p[lo].x};
+}
+function viableShelves(ledges,previous){
+ const stats=ledges.map(()=>({hits:0,safe:0}));
+ for(const path of candidateFlights()){
+  let index=-1,frame=Infinity,height=Infinity,contactX=0;
+  for(let i=0;i<ledges.length;i++){
+   const t=ledges[i],hit=crossingAt(path,t[2]-previous[2]);
+   if(!hit)continue;
+   const x=hit.x+previous[1];
+   if(x<t[0]+3||x>t[1]-3)continue;
+   if(hit.frame<frame||(hit.frame===frame&&t[2]<height)){
+    index=i;frame=hit.frame;height=t[2];contactX=x;
+   }
+  }
+  if(index<0)continue;
+  stats[index].hits++;
+  if(ledges[index][1]-contactX>=path.braking+12)stats[index].safe++;
+ }
+ return stats.every(s=>s.hits>=3&&s.safe>=2);
+}
+function selectTerraces(spire,seed){
+ const rand=seededRandom(seed,spire),previous=spires[spire-1].summit;
  const count=terraceCount(spire,seed);
  const labels=count===1?['Low']:count===2?['Low','High']:
-   count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
- return labels.map(label=>{
-  const raw=lookup[label],p=cliffProfiles[spire][label];
-  const variation=((seed*13+spire*17+label.length*7)%7)-3;
-  const x=spires[spire-1].summit[1]+p[0]+variation*3;
-  const w=p[2]+(raw?(raw[1]-raw[0]-140)*.09:0);
-  const y=p[1]+variation*.55;
-  return [x,x+w,y,raw?.[3]||'snow',label];
- });
+  count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
+ const zones={1:[485],2:[398,575],3:[399,483,575],
+  4:[397,453,514,581]};
+ for(let attempt=0;attempt<220;attempt++){
+  const xs=[...zones[count]];
+  for(let i=xs.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[xs[j],xs[i]]=[xs[i],xs[j]];}
+  let rise=24+Math.floor(rand()*17);
+  const ledges=[];
+  for(let i=0;i<count;i++){
+   if(i)rise+=31+Math.floor(rand()*13);
+   const left=previous[1]+xs[i]+Math.floor(rand()*19)-9;
+   const width=95+Math.floor(rand()*120);
+   ledges.push([left,left+width,previous[2]-rise,
+    ['rock','snow','ice'][Math.floor(rand()*3)],labels[i]]);
+  }
+  const starts=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
+  if(count>1&&Math.max(...starts)-Math.min(...starts)<160)continue;
+  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<43)))continue;
+  if(!viableShelves(ledges,previous))continue;
+  const left=previous[1]+343+Math.floor(rand()*17);
+  const right=Math.max(...ends)+245+Math.floor(rand()*50);
+  const top=summitAltitudes[spire]+Math.floor(rand()*29)-14;
+  if(ledges.some(t=>t[2]<top+36||t[0]<left+25))continue;
+  return {ledges,summit:[left,right,top,'snow'],
+   ridge:{character:rand(),roughness:.75+rand()*.6}};
+ }
+ throw Error('No valid landing arrangement for route '+seed+' mountain '+spire);
 }
 
-function applyRoute(seed) {
- routeSeed=((seed%9)+9)%9;
+function applyRoute(seed){
+ routeSeed=((Math.trunc(seed)%997)+997)%997;
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
- const group=ledgeLayouts[routeSeed];
- for(let i=1;i<=3;i++) {
-  spires[i].ledges=selectTerraces(group[i-1],i,routeSeed);
+ for(let i=1;i<=3;i++){
+  const generated=selectTerraces(i,routeSeed);
+  spires[i].summit=generated.summit;
+  spires[i].ledges=generated.ledges;
+  spires[i].ridge=generated.ridge;
  }
- // The fire is a new, HIGHER destination, embedded in the side of the final
- // massif. Both cave ceiling and floor must remain real collision surfaces.
- const original=caveLayouts[routeSeed];
+ const original=caveLayouts[routeSeed%9];
  const floor=235+Math.round((original.floor-892)*.12);
- // The final chasm is deliberately longer than any easy lower-tier hop.
  const left=spires[3].summit[1]+560+Math.round((original.left-6850)*.15);
- spires[4].cave={left,right:left+(original.right-original.left),
+ spires[4].cave={left,right:left+original.right-original.left,
   floor,ceiling:floor-150};
-
- if(typeof platforms!=='undefined' && Array.isArray(platforms)) {
-  for(let k=platforms.length-1;k>=0;k--)
-   if(platforms[k].kind==='ledge')platforms.splice(k,1);
+ spires[4].summit=[left+150,left+1070,-55,'snow'];
+ if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
+  for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge')platforms.splice(k,1);
+  for(let i=1;i<=4;i++){
+   const t=spires[i].summit,pl=platforms.find(p=>p.id==='s'+i);
+   if(pl)Object.assign(pl,{x:(t[0]+t[1])/2,y:t[2]+60,
+    width:t[1]-t[0],height:120,left:t[0],right:t[1],top:t[2]});
+  }
   for(let i=1;i<=3;i++)for(let j=0;j<spires[i].ledges.length;j++){
    const t=spires[i].ledges[j];
    if(typeof platform==='function')
     platforms.push(platform('l'+i+'-'+j,t[0],t[1],t[2],
-      t[3],{kind:'ledge',spire:i,tier:t[4]}));
+     t[3],{kind:'ledge',spire:i,tier:t[4]}));
   }
-  const c=spires[4].cave,cp=platforms.find(p=>p.kind==='cave');
-  if(cp)Object.assign(cp,{x:(c.left+c.right)/2,y:c.floor+60,
-    width:c.right-c.left,height:120,left:c.left,right:c.right,top:c.floor});
+  const cave=spires[4].cave,pl=platforms.find(p=>p.kind==='cave');
+  if(pl)Object.assign(pl,{x:(cave.left+cave.right)/2,y:cave.floor+60,
+   width:cave.right-cave.left,height:120,
+   left:cave.left,right:cave.right,top:cave.floor});
  }
  const label=document.getElementById('routeLabel');
  if(label)label.textContent='Route '+(routeSeed+1);
 }
-
 
 
 /**

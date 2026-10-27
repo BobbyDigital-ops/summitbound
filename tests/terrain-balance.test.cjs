@@ -1,5 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const context=vm.createContext({Image:class Image{},document:{getElementById:()=>null},platforms:[]});
+vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),context);
 vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),context);
 for(let route=0;route<9;route++){
  test('route '+route+' provides spaced meaningful climb choices',()=>{
