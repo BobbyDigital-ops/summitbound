@@ -3,18 +3,18 @@
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
 const FEATURED_COURSE=Object.freeze({
- id:'five-peaks',version:1,levelNumber:1,campaignSize:100,peakCount:5,
+ id:'five-peaks',version:2,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
- checkpoints:Object.freeze([{peak:0,type:'start'},{peak:2,type:'campsite'},{peak:4,type:'cave'}]),
- // Deliberately different ledge gaps: safe recovery shelves can be
- // considerably farther out than the high, technical landing.
+ checkpoints:Object.freeze([{peak:0,type:'start'},
+   {peak:2,type:'campsite',ledge:0},{peak:4,type:'campsite',ledge:0}]),
  peakShifts:Object.freeze([0,55,120,145,240]),
  ledgeOffsets:Object.freeze([
   Object.freeze([90,80,55]),
   Object.freeze([150,105,65]),
   Object.freeze([105,55,25])
  ]),
- motifs:Object.freeze(['launch ridge','toothed wall','exposed camp','knife-edge crux','tunnel summit'])
+ motifs:Object.freeze(['launch ridge','toothed wall','exposed camp',
+  'knife-edge crux','final campsite'])
 });
 function isFeaturedCourse(){return true;}
 function featuredCheckpointAtPeak(peak){
@@ -22,26 +22,48 @@ function featuredCheckpointAtPeak(peak){
 }
 function installFeaturedCourseGeometry(spires){
  if(spires.length!==FEATURED_COURSE.peakCount)
-  throw Error('The five-peak prototype requires exactly five peak records');
+  throw Error('The vertical slice requires exactly five mountain records');
  for(let i=1;i<=3;i++){
   const shift=FEATURED_COURSE.peakShifts[i],
-    prevShift=FEATURED_COURSE.peakShifts[i-1],
-    offset=FEATURED_COURSE.ledgeOffsets[i-1];
+   prevShift=FEATURED_COURSE.peakShifts[i-1],
+   offset=FEATURED_COURSE.ledgeOffsets[i-1];
   spires[i].summit=[spires[i].summit[0]+shift,
    spires[i].summit[1]+shift,...spires[i].summit.slice(2)];
   spires[i].ledges=spires[i].ledges.map((ledge,tier)=>[
    ledge[0]+prevShift+offset[tier],ledge[1]+prevShift+offset[tier],
    ...ledge.slice(2)]);
  }
- const cave=spires[4].cave,caveShift=FEATURED_COURSE.peakShifts[4];
- cave.left+=caveShift;cave.right+=caveShift;
- spires[4].summit=[spires[4].summit[0]+caveShift,
-  spires[4].summit[1]+caveShift,...spires[4].summit.slice(2)];
+ // The intermediate camp is ONE narrow, high-precision landing. Players
+ // cannot bypass the checkpoint via a broad, easy lower platform.
+ spires[2].ledges=[spires[2].ledges.at(-1)];
+ spires[2].ledges[0][4]='Checkpoint';
+ const cave=spires[4].cave,shift=FEATURED_COURSE.peakShifts[4];
+ const campLeft=cave.left+shift,campWidth=177;
+ spires[4].ledges=[[campLeft,campLeft+campWidth,cave.floor,'snow','Checkpoint']];
+ spires[4].cave=null;
+ spires[4].summit=[campLeft-72,campLeft+550,
+   Math.min(-55,cave.floor-260),'snow'];
+ // Widen the entire physical bedrock shoulder around EVERY retained
+ // ledge and its ice path. The right-hand takeoff edge is preserved so
+ // tested chasm distances do not become accidentally shorter.
+ for(let i=1;i<spires.length;i++){
+  const peak=spires[i],leftmost=Math.min(...peak.ledges.map(l=>l[0]));
+  peak.summit=[Math.min(peak.summit[0],leftmost-70),
+   peak.summit[1],peak.summit[2],peak.summit[3]];
+ }
 }
-function featuredCampPosition(){
- const s=spires[2].summit;
- return {x:s[0]+Math.min(176,(s[1]-s[0])*.36),y:s[2],peak:2};
+function featuredCampPosition(peak=2){
+ const s=spires[peak],landing=s?.ledges?.[0];
+ if(!landing||![2,4].includes(peak))return null;
+ return {x:landing[0]+76,y:landing[2],peak};
 }
+function featuredCheckpointLanding(peak){
+ if(!featuredCheckpointAtPeak(peak)||peak===0)return null;
+ const l=spires[peak]?.ledges?.[0];
+ return l?{id:'l'+peak+'-0',x:l[0]+Math.min(45,(l[1]-l[0])*.28),
+  y:l[2]-22,peak}:null;
+}
+
 // The actual five-peak slice receives every useful physical generator check.
 // Other courses are authored manifests using the same validators, not a
 // promise that a random numeric seed creates a high-quality level.
