@@ -1017,7 +1017,7 @@ function draw(){
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
  camera.x += (targetX - camera.x) * .055; camera.y += (targetY - camera.y) * .045;
- ctx.fillStyle = '#6d91ab'; ctx.fillRect(0,0,w,h);
+ ctx.fillStyle = '#131c28'; ctx.fillRect(0,0,w,h);
  
  if(mountainBackdrop.complete && mountainBackdrop.naturalWidth){
   const rect=backdropViewport(mountainBackdrop.naturalWidth,
@@ -1026,19 +1026,21 @@ function draw(){
   // Reuse a bounded raster at display resolution rather than resampling
   // the multi-megapixel source JPG on every animation frame.
   ctx.drawImage(reduced||mountainBackdrop,rect.x,rect.y,rect.width,rect.height);
+  // Desaturated nightfall filter: don't inherit the bright cartoon backdrop.
+  ctx.fillStyle='#091523c4';ctx.fillRect(0,0,w,h);
  }
  let fg = ctx.createLinearGradient(0, h * .40, 0, h);
- fg.addColorStop(0, '#d6e4f000'); fg.addColorStop(.76, '#bfd5e344'); fg.addColorStop(1, '#b3c7d488');
+ fg.addColorStop(0,'#202c3100');fg.addColorStop(.76,'#26384331');fg.addColorStop(1,'#0c172563');
  ctx.fillStyle = fg; ctx.fillRect(0, h * .4, w, h * .6);
  
- ctx.fillStyle = '#344f6680';
+ ctx.fillStyle = '#1d2c395e';
  const rearScroll=camera.x*.07, firstRear=Math.floor(rearScroll/275)-2;
  for(let i = firstRear; i < firstRear+Math.ceil(w/275)+5; i++){
   const x = i * 275 - rearScroll, top = h * .62 + Math.sin(i * 2.4) * 44;
   ctx.beginPath(); ctx.moveTo(x - 36, h); ctx.lineTo(x - 20, top + 30); ctx.lineTo(x - 8, top + 8); ctx.lineTo(x, top); ctx.lineTo(x + 18, top + 16); ctx.lineTo(x + 36, h); ctx.closePath(); ctx.fill();
  }
  
- ctx.fillStyle = '#f6fbffe0'; const sec = performance.now() * .001;
+ ctx.fillStyle = '#acbec8b0'; const sec = performance.now() * .001;
  for(let n=0;n<snow.length;n+=(graphicsQuality==='low'?3:innerWidth<700?2:1)){
   const f=snow[n];
   let sx = ((f.x * w + sec * (8 + f.speed * 12) - camera.x * .02) % (w + 30) + w + 30) % (w + 30);
