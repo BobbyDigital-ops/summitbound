@@ -46,4 +46,5 @@ jobs:
       - run: npm run test:five-peaks
       - run: npm run test:peak-retry
       - run: npm run test:vault-dynamics
+      - run: npm run test:precision-vault
       - run: npm run build
