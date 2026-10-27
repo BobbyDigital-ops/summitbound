@@ -49,6 +49,11 @@ test('Mountain bedrock widens around EVERY actual ledge while playable chasms re
   const s=run('spires['+peak+']');
   assert.ok(s.summit[0]<=Math.min(...s.ledges.map(l=>l[0]))-65,
    'summit cannot encompass exposed ledges '+peak);
+  for(const ledge of s.ledges){
+   const rock=run('mountainContourX('+peak+','+(ledge[2]+3)+')');
+   assert.ok(rock>=ledge[0]+12&&rock<=ledge[1]-12,
+    'ledge has no real rock supporting its landing lip '+peak);
+  }
   const p=run('shelfTimingProfiles(spires['+peak+'].ledges,spires['+(peak-1)+'].summit)');
   assert.ok(p.every(q=>q.hits>=2&&q.safe>=2),'inaccessible landing '+peak);
  }
@@ -99,6 +104,10 @@ test('Ice exit stays vertically aligned on EVERY summit with no scripted sliding
     p.y=p.climb.targetY+.2;keys.add('w');
    }`);
    const expected=run('iceClimbPoints('+peak+','+tier+').at(-1).x');
+   const summitY=run('iceClimbPoints('+peak+','+tier+').at(-1).y');
+   const nearTop=run('icePositionAt('+peak+','+(summitY+20)+','+tier+').x');
+   assert.ok(Math.abs(expected-nearTop)<.01,
+    'remaining sideways motion in last 20 units of ascent '+peak+'/'+tier);
    run('tick(1/120)');
    assert.equal(run('p.state'),'GROUNDED');
    assert.equal(run('p.standingOn'),'s'+peak);
