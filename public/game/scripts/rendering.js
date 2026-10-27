@@ -135,7 +135,7 @@ function drawSpire(i,paintCtx=ctx){
  };
  for(let n=1;n<=crestSteps;n++){
   const f=n/crestSteps,x=L+(R-L)*f;
-  const crag=(i===4 ? ridgeAt(f) :
+  const crag=(i===4&&typeof FEATURED_COURSE==='undefined' ? ridgeAt(f) :
    -(4+17*ridgeRoughness*Math.pow(Math.max(0,
      Math.sin(f*(14+ridgeCharacter*15)+i*3.7)),4))
    *(f>.21&&f<.86?1:0));
@@ -181,6 +181,27 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.beginPath(); paintCtx.moveTo(x, y); paintCtx.lineTo(x - 7 + rnd() * 22, y + 18 + rnd() * 45); paintCtx.lineTo(x - 16 + rnd() * 24, y + 48 + rnd() * 40); paintCtx.stroke();
  }
 
+ // Every peak, including the starting Wolvesgate cliff, shares ONE
+ // rugged stone material and the same deterministic fracture vocabulary.
+ // All facets stay clipped to the actual mountain silhouette.
+ for(let band=0;band<29;band++){
+  const yy=T+36+(band*77+i*17)%1500;
+  const lx=mountainContourX(i,yy)+32;
+  const rx=mountainFlankX(i,yy)-32;
+  if(rx-lx<60)continue;
+  const xx=lx+((band*47+i*23)%83)/100*(rx-lx);
+  const scale=22+(band*19)%42;
+  paintCtx.fillStyle=band%3===0?'#a7bcc022':band%3===1?'#132d3b28':'#758d9427';
+  paintCtx.beginPath();paintCtx.moveTo(xx,yy-scale);
+  paintCtx.lineTo(xx+scale*.5,yy+scale*.4);
+  paintCtx.lineTo(xx-scale*.62,yy+scale*1.3);
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.strokeStyle=band%2===0?'#a4b7bd3d':'#101f304c';
+  paintCtx.lineWidth=1.8;
+  paintCtx.beginPath();paintCtx.moveTo(xx,yy-scale);
+  paintCtx.lineTo(xx+scale*.5,yy+scale*.4);
+  paintCtx.lineTo(xx-scale*.62,yy+scale*1.3);paintCtx.stroke();
+ }
  // Diagonal strata and exposed, snow-filled fissures connect ledges to the
  // single underlying rock face rather than making separate rectangular slabs.
  paintCtx.save();
@@ -198,7 +219,7 @@ function drawSpire(i,paintCtx=ctx){
  paintCtx.restore();
 
  // The final rock tower has angular facets and streaky snow on its long faces.
- if(i===4){
+ if(i===4&&typeof FEATURED_COURSE==='undefined'){
   paintCtx.fillStyle='#192f4485';paintCtx.beginPath();
   paintCtx.moveTo(L+308,T-575);paintCtx.lineTo(L+347,T-245);
   paintCtx.lineTo(L+580,T+410);paintCtx.lineTo(L+466,T+950);
@@ -644,9 +665,10 @@ function drawIceCrestSnow(i,paintCtx=ctx){
 
 // One real campsite on the third peak: checkpoint geography is part of
 // the same mountain summit collider, not a floating or separate level.
-function drawFeaturedCampsite(){
+function drawFeaturedCampsite(peak=2){
  if(typeof featuredCampPosition!=='function')return;
- const point=featuredCampPosition(),x=point.x,y=point.y;
+ const point=featuredCampPosition(peak);if(!point)return;
+ const x=point.x,y=point.y;
  ctx.save();
  ctx.fillStyle='#142b3b';ctx.beginPath();
  ctx.moveTo(x-67,y+1);ctx.lineTo(x-30,y-40);
@@ -725,8 +747,8 @@ function drawCaveLadder() {
 }
 
 function drawClimbingRoutes(i){
- if(i===4) drawCaveLadder();
- else if(i>0) drawIceClimb(i);
+ if(i===4&&typeof FEATURED_COURSE==='undefined')drawCaveLadder();
+ else if(i>0)drawIceClimb(i);
 }
 
 // Rear/three-quarter wall-facing silhouette on ice. This temporary painted
@@ -938,7 +960,9 @@ function mountainCache(i){
  if(!off)return null;
  off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
  drawSpire(i,off);
- if(i>0&&i<4){drawIceClimb(i,off);drawIceShelfJoins(i,off);drawIceCrestSnow(i,off);}
+ if(i>0&&(i<4||typeof FEATURED_COURSE!=='undefined')){
+  drawIceClimb(i,off);drawIceShelfJoins(i,off);drawIceCrestSnow(i,off);
+ }
  decorate(i,off);
  const data={image,left,top,width,height,bytes:image.width*image.height*4};
  terrainCache.set(i,data);renderStats.terrainBuilds++;
@@ -1032,7 +1056,9 @@ function draw(){
  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-camera.x, -camera.y);
  for(let i=0;i<spires.length;i++){
   const s=spires[i].summit;
-  const nearLeft=i===4?Math.min(s[0],spires[4].cave.left-230):Math.min(s[0],...spires[i].ledges.map(t=>t[0]));
+  const nearLeft=spires[i].cave?
+  Math.min(s[0],spires[i].cave.left-230):
+  Math.min(s[0],...spires[i].ledges.map(t=>t[0]));
   // Avoid spending the first interactive frame rasterising an entire
   // off-screen mountain because a few pixels of its approach shelf touch
   // the extreme right border. Lazy cache it once substantially visible.
@@ -1041,16 +1067,23 @@ function draw(){
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
   else {
    drawSpire(i);
-   if(i>0&&i<4){drawIceClimb(i);drawIceShelfJoins(i);drawIceCrestSnow(i);}
+   if(i>0&&(i<4||typeof FEATURED_COURSE!=='undefined')){
+    drawIceClimb(i);drawIceShelfJoins(i);drawIceCrestSnow(i);
+   }
    decorate(i);
   }
  }
- if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
- if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCaveLadder();
+ if(spires[4].cave&&
+   (spires[4].cave.right-camera.x)*zoom>-200&&
+   (spires[4].cave.left-camera.x)*zoom<w+200){
+  drawCave();drawCaveLadder();
+ }
  if(typeof featuredCampPosition==='function'){
-  const campsite=featuredCampPosition();
-  if((campsite.x-camera.x)*zoom>-120&&
-    (campsite.x-camera.x)*zoom<w+120)drawFeaturedCampsite();
+  for(const peak of [2,4]){
+   const campsite=featuredCampPosition(peak);
+   if(campsite&&(campsite.x-camera.x)*zoom>-140&&
+      (campsite.x-camera.x)*zoom<w+140)drawFeaturedCampsite(peak);
+  }
  }
  
  // PB ghost shares the existing world transform; no canvas or terrain reraster.
