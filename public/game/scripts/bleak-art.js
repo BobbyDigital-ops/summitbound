@@ -116,16 +116,18 @@ drawSpire=function bleakSpire(i,g=ctx){
 drawIceClimb=function bleakIceRoutes(i,g=ctx){
  const routes=iceRouteNetwork(i);
  for(const route of routes){
-  if(route.sharedWith!==null&&route.sharedWith!==undefined)continue;
-  // All paths are exactly the simulated traversable route graph. Samples
-  // prevent straight-line visual bridging between distant ice vertices.
+  // Shared climbs draw just the lower branching segment; the parent path
+  // is already visible above the junction. No missing ice for low ledges.
   const points=route.points;
   if(!points.length)continue;
+  const upperY=route.sharedWith===null||route.sharedWith===undefined?
+   points.at(-1).y:route.joinY;
+  const lowerY=points[0].y;
   g.save();g.lineCap='round';g.lineJoin='round';
   for(const [width,stroke] of [[69,'#0c1b2799'],[55,'#263f4c'],[43,'#48616a'],[25,'#70888d85']]){
    g.beginPath();
    for(let n=0;n<=45;n++){
-    const y=points.at(-1).y+(points[0].y-points.at(-1).y)*n/45,
+    const y=upperY+(lowerY-upperY)*n/45,
           x=iceXOnPath(points,y);
     if(n===0)g.moveTo(x,y);else g.lineTo(x,y);
    }
@@ -134,7 +136,7 @@ drawIceClimb=function bleakIceRoutes(i,g=ctx){
   for(const shift of [-16,7,19]){
    g.beginPath();
    for(let n=0;n<=31;n++){
-    const y=points.at(-1).y+(points[0].y-points.at(-1).y)*n/31,
+    const y=upperY+(lowerY-upperY)*n/31,
        x=iceXOnPath(points,y)+shift+Math.sin(y*.043+shift)*3;
     if(n===0)g.moveTo(x,y);else g.lineTo(x,y);
    }
