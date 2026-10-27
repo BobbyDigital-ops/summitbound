@@ -59,7 +59,7 @@ function processKeyUp(keyStr, codeStr) {
 function handleNativeKeyDown(e) {
  if (!e || typeof e.key !== 'string') return;
  const k = e.key.toLowerCase();
- if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'w', 'a', 'd'].includes(k)) {
+ if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 's', 'a', 'd'].includes(k)) {
   e.preventDefault();
  }
  processKeyDown(e.key, e.code);
@@ -68,7 +68,7 @@ function handleNativeKeyDown(e) {
 function handleNativeKeyUp(e) {
  if (!e || typeof e.key !== 'string') return;
  const k = e.key.toLowerCase();
- if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'w', 'a', 'd'].includes(k)) {
+ if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 's', 'a', 'd'].includes(k)) {
   e.preventDefault();
  }
  processKeyUp(e.key, e.code);
@@ -85,14 +85,14 @@ window.addEventListener('message', e => {
   processKeyUp(e.data.key, e.data.code);
  } else if (e.data.type === 'SUMMIT_BLUR') {
   keys.clear();
-  fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.vault = null;
+  fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.down.clear(); fingers.vault = null;
   release();
  }
 });
 
 window.addEventListener('blur', () => {
  keys.clear();
- fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.vault = null;
+ fingers.left.clear(); fingers.right.clear(); fingers.up.clear(); fingers.down.clear(); fingers.vault = null;
  release();
 });
 
@@ -106,6 +106,7 @@ function control(el, dir){
 control(document.getElementById('left'), 'left');
 control(document.getElementById('right'), 'right');
 control(document.getElementById('up'), 'up');
+control(document.getElementById('down'), 'down');
 
 canvas.addEventListener('pointerdown', e => {
  e.preventDefault();
