@@ -31,7 +31,7 @@ const caveLayouts = [
  {left:6840,right:7080,floor:900,ceiling:760}
 ];
 
-const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','CAVERN APPROACH'];
+const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','FINAL RIDGE'];
 let routeSeed=0;
 
 // Phase 2 authored composition rules. These describe three different leap
