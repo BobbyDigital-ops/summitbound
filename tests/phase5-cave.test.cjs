@@ -14,7 +14,7 @@ function setup(seed=0){
  const ctx=vm.createContext({document,Image:class Image{},
   performance:{now:()=>1},innerWidth:1280,innerHeight:720,
   navigator:{vibrate(){}},localStorage:{getItem(){return null},setItem(){}}});
- for(const file of ['physics.js','world-data.js','game-state.js','time-trial.js','simulation.js'])
+ for(const file of ['physics.js','world-data.js','game-state.js','time-trial.js','climb-mechanics.js','simulation.js'])
   vm.runInContext(read(file),ctx,{filename:file});
  vm.runInContext('applyRoute('+seed+');gameReset();mode="practice"',ctx);
  return {ctx,elements,run:expression=>vm.runInContext(expression,ctx)};
