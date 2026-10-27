@@ -9,6 +9,17 @@ function caveRespawn(){
  hint('CAMPFIRE CHECKPOINT — FOLLOW THE LADDER TO THE RIGHT', 3);
 }
 
+function featuredCheckpointRespawn(){
+ const checkpoint=featuredCheckpointLanding(lastSafeStage);
+ if(!checkpoint){spawn(0,true);return;}
+ spawn(checkpoint.peak,true);
+ const pl=platforms.find(q=>q.id===checkpoint.id);
+ p.x=checkpoint.x;p.y=checkpoint.y;p.vx=0;p.vy=0;
+ p.standingOn=checkpoint.id;p.surface=pl.surfaceType;
+ p.state='GROUNDED';p.groundedFor=.5;
+ atStage=checkpoint.peak;lastSafeStage=checkpoint.peak;
+ hint('RETURNED TO CAMPSITE CHECKPOINT',2.5);
+}
 function fail(){
  if(mode === 'trial'){
   gameReset();hint('TIME TRIAL FAILED — RACE RESTARTED',2);return;
@@ -16,6 +27,9 @@ function fail(){
  if(mode === 'hardcore'){ 
   hint('Hardcore: back to the beginning!', 3); gameReset();
  } else {
+  if(typeof FEATURED_COURSE!=='undefined'){
+   featuredCheckpointRespawn();return;
+  }
   if(caveActivated){ caveRespawn(); return; }
   const stage = Math.min(lastSafeStage, 3);
   landingHistory.length = stage;
@@ -24,13 +38,20 @@ function fail(){
 }
 
 function activateCampsiteCheckpoint(stage){
+ if(typeof FEATURED_COURSE!=='undefined'){
+  const cp=featuredCheckpointAtPeak(stage);
+  if(cp?.type!=='campsite'||p.standingOn!=='l'+stage+'-'+(cp.ledge??0)||
+    lastSafeStage>=stage)return;
+  lastSafeStage=stage;
+  hint('CAMPSITE SECURED — CHECKPOINT SAVED',3.2);
+  haptic([17,35,17]);return;
+ }
  if(stage!==2||lastSafeStage>=2)return;
- lastSafeStage=2;
- hint('FIVE PEAKS — CAMPFIRE CHECKPOINT REACHED',3.5);
- haptic([17,35,17]);
+ lastSafeStage=2;hint('CAMPFIRE CHECKPOINT REACHED',3);
 }
 function getLanding(plat){
  p.standingOn = plat.id; p.surface = plat.surfaceType; p.groundedFor = 0;
+ if(plat.kind==='ledge')activateCampsiteCheckpoint(plat.spire);
  if(plat.kind === 'cave'){
   atStage = 4; lastSafeStage = 4; caveActivated = true; landingHistory[3] = 'Cave checkpoint';
   if(typeof trialSplit==='function')trialSplit(4);
@@ -47,14 +68,14 @@ function getLanding(plat){
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
   } else {
    landingHistory[plat.spire - 1] = plat.tier;
-   if(plat.tier==='High'||plat.tier==='Ridge'){
+   if(plat.tier==='High'||plat.tier==='Ridge'||plat.tier==='Checkpoint'){
     hint('HIGH ROUTE — PRECISION LANDING!',2.2);haptic([18,30,12]);
    }else hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE ICE WALL`, 3);
   }
  } else if(plat.kind === 'ledge' && plat.spire === atStage){
   hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE ICE WALL`, 2);
  }
- if(plat.kind === 'summit' && plat.spire === 2)activateCampsiteCheckpoint(2);
+ if(typeof FEATURED_COURSE==='undefined'&&plat.kind === 'summit' && plat.spire === 2)activateCampsiteCheckpoint(2);
  if(plat.kind === 'summit' && plat.spire === 4) win();
 }
 
@@ -70,7 +91,7 @@ function climbStart(plat){
  const goal = platforms.find(v => v.id === 's' + plat.spire);
  if(!goal) return;
  const rungX = climbEntryX(plat);
- if(Math.abs(p.x - rungX) > 28) return;
+ if(Math.abs(p.x - rungX) > (plat.kind==='ledge'?39:28)) return;
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
  const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
  const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
@@ -91,7 +112,7 @@ function climbStart(plat){
 // real ice branches meet) shelf -> next lower shelf. No arbitrary teleport.
 function climbStartDown(){
  const standing=currentPlatform(),index=standing?.spire;
- if(index<1||index>3||!['summit','ledge'].includes(standing.kind))return false;
+ if(index<1||index>(typeof FEATURED_COURSE!=='undefined'?4:3)||!['summit','ledge'].includes(standing.kind))return false;
  const routes=iceRouteNetwork(index);
  let selected;
  if(standing.kind==='summit'){
@@ -126,6 +147,7 @@ function climbStartDown(){
 // Practice players can replay the final leap; in timed/hardcore modes the
 // checkpoint does not interrupt the run or bypass the mode's reset rules.
 function updateCaveCampfire(){
+ if(typeof FEATURED_COURSE!=='undefined')return;
  const actions=document.getElementById('campfireActions');
  if(!actions)return;
  const cg=caveGeometry(),atFire=caveActivated&&!completed&&
@@ -180,7 +202,7 @@ function tick(dt){
    p.state='GROUNDED';p.standingOn=summit.id;
    p.surface=summit.surfaceType;p.vx=0;p.vy=0;
    p.groundedFor=.4;p.climb=null;
-   activateCampsiteCheckpoint(c.spire);
+   if(typeof FEATURED_COURSE==='undefined')activateCampsiteCheckpoint(c.spire);
    hint(c.isIce?'ICE EXIT — SUMMIT REACHED':'TUNNEL EXIT — SUMMIT REACHED',1.8);
    if(c.spire===4)win();
   }
@@ -202,12 +224,14 @@ function tick(dt){
   if(direction){
    p.facingDir = direction;
    const opposed = Math.sign(p.vx) === -direction;
-   if(opposed) p.vx += direction * cfg.brakingDecel * dt;
-   else p.vx += direction * cfg.runAcceleration * dt;
+   const settled=p.groundedFor>.16&&currentPlatform()?.kind==='ledge';
+   if(opposed) p.vx += direction * (settled?3300:cfg.brakingDecel)*dt;
+   else p.vx += direction * (settled?1450:cfg.runAcceleration)*dt;
    p.vx = clamp(p.vx, -cfg.maxRunSpeed, cfg.maxRunSpeed);
    p.state = opposed ? 'BRAKING' : 'RUNNING';
   } else {
-   const f = p.surface === 'ice' ? cfg.iceFriction : p.surface === 'snow' ? cfg.snowFriction : cfg.rockFriction;
+   const onLedge=currentPlatform()?.kind==='ledge';
+   const f = onLedge ? 1.12 : p.surface === 'ice' ? cfg.iceFriction : p.surface === 'snow' ? cfg.snowFriction : cfg.rockFriction;
    const drop = 2400 * f * dt;
    p.vx = Math.abs(p.vx) <= drop ? 0 : p.vx - Math.sign(p.vx) * drop;
    p.state = Math.abs(p.vx) < 2 ? 'GROUNDED' : 'SLIDING';
@@ -240,13 +264,15 @@ function tick(dt){
  // arrivals before they escape through its right wall. Do not 'teleport'
  // someone who fell down outside the cave back into the chamber.
  const cg=caveGeometry();
+ if(cg){
  const insideCaveHeight=p.y+22>=cg.headroomY&&p.y-22<=cg.floor+8;
  if((p.standingOn==='cave4'||insideCaveHeight)&&
     prevX>=cg.openingLeft&&prevX<=cg.wallX+3&&p.x>cg.wallX){
   p.x=cg.wallX;p.vx=0;
  }
+ }
  // Cave roof ceiling check
- if((p.state === 'AIRBORNE' || p.state === 'FALLING') && p.vx > 0){
+ if(spires[4].cave&&(p.state === 'AIRBORNE' || p.state === 'FALLING') && p.vx > 0){
   const c = spires[4].cave, bodyTop = p.y - 23;
   if(p.x >= c.left - 8 && p.x <= c.right + 6 && p.y + 22 > c.ceiling - 6 && bodyTop < c.ceiling + 4){
    p.y = Math.max(p.y, c.ceiling + 27); p.vx = -Math.abs(p.vx) * .20; p.vy = Math.max(120, p.vy * .28);
@@ -270,7 +296,7 @@ function tick(dt){
     const t=clamp((pl.top-prevFeet)/Math.max(.00001,feet-prevFeet),0,1);
     const contactX=prevX+(p.x-prevX)*t;
     if(contactX<pl.left+3||contactX>pl.right-3)return null;
-    if(pl.kind==='cave'&&p.y-23<spires[4].cave.ceiling+2)return null;
+    if(pl.kind==='cave'&&spires[4].cave&&p.y-23<spires[4].cave.ceiling+2)return null;
     return {pl,t,contactX};
    }).filter(Boolean).sort((a,b)=>a.t-b.t);
    if(crossed.length){
@@ -283,7 +309,7 @@ function tick(dt){
    p.standingOn = standing.id; p.surface = standing.surfaceType;
    if(!isGround()) p.state = Math.abs(p.vx) > 20 ? 'RUNNING' : 'GROUNDED';
    const rungX = climbEntryX(standing);
-   if(['ledge','cave'].includes(standing.kind) && p.groundedFor > .10 && Math.abs(p.vx) < 120 && k.up && Math.abs(p.x - rungX) < 28){
+   if(['ledge','cave'].includes(standing.kind) && p.groundedFor > .065 && Math.abs(p.vx) < 195 && k.up && Math.abs(p.x - rungX) < 39){
     climbStart(standing);
    }
   } else {
@@ -291,7 +317,10 @@ function tick(dt){
   }
  }
  
- if(p.y > Math.max(1520, (spires[Math.min(atStage + 1, 4)].ledges[2]?.[2] ?? spires[4].cave.floor) + 490) || p.x > 8100 || p.x < -90) fail();
+ const next=spires[Math.min(atStage+1,spires.length-1)];
+ const fallbackFloor=next.ledges.length?
+  Math.max(...next.ledges.map(l=>l[2])):next.cave?.floor??1450;
+ if(p.y>Math.max(1650,fallbackFloor+500)||p.x>8100||p.x<-90)fail();
  updateCaveCampfire();
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
@@ -371,7 +400,8 @@ function loop(now){
 
 function retry(){
  if(mode === 'trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
- if(mode !== 'hardcore' && caveActivated) caveRespawn();
+ if(typeof FEATURED_COURSE!=='undefined')featuredCheckpointRespawn();
+ else if(mode !== 'hardcore' && caveActivated) caveRespawn();
  else spawn(Math.min(lastSafeStage, 3), true);
 }
 
