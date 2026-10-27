@@ -3,6 +3,8 @@ document.getElementById('retry').addEventListener('click', retry);
 document.getElementById('shuffle').addEventListener('click', () => { applyRoute(routeSeed + 1); gameReset(); hint('NEW LANDING SHELVES — SAME PHYSICS', 3); });
 document.getElementById('restart').addEventListener('click', gameReset);
 document.getElementById('again').addEventListener('click', gameReset);
+document.getElementById('campContinue')?.addEventListener('click',continueCaveAscent);
+document.getElementById('campRetry')?.addEventListener('click',retryFinalLeap);
 
 document.getElementById('tuneToggle').addEventListener('click', () => document.getElementById('tuning').hidden = !document.getElementById('tuning').hidden);
 document.getElementById('tuneClose').addEventListener('click', () => document.getElementById('tuning').hidden = true);
