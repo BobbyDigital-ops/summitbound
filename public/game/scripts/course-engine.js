@@ -79,6 +79,9 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
   peak.ledges.forEach((ledge,tier)=>{
    const p=profiles[tier],path=routes[tier]?.points;
    if(!p||p.safe<2||p.hits<2)failures.push('unreachable peak '+i+' ledge '+tier);
+   const cliff=mountainContourX(i,ledge[2]+3);
+   if(cliff<ledge[0]+12||cliff>ledge[1]-12)
+    failures.push('ledge detached from common bedrock '+i+'/'+tier);
    if(!path?.length||path.at(-1).x<peak.summit[0]+3||
       path.at(-1).x>peak.summit[1]-3)
     failures.push('disconnected ice summit '+i+'/'+tier);
