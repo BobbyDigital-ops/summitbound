@@ -77,3 +77,74 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
  }
  return {valid:failures.length===0,failures,summary};
 }
+
+// Generic route-graph compiler for future authored manifests. Peak count,
+// ledge count and optional shortcut edges are NOT hardcoded to five. Each
+// candidate vault edge must be supported by the actual pole-flight sampler;
+// climbing edges are traversable only along physical climb routes.
+// This does not magically establish fun or visual quality: those require
+// human signoff before any level is admitted into the 100-level campaign.
+function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE){
+ const nodes=[],edges=[],issues=[];
+ const addNode=(id,type,peak,surface)=>nodes.push({id,type,peak,
+  left:surface[0],right:surface[1],top:surface[2]});
+ const addEdge=(from,to,kind,safe)=>edges.push({from,to,kind,safe});
+ peakSet.forEach((peak,i)=>{
+  addNode('s'+i,'summit',i,peak.summit);
+  peak.ledges.forEach((ledge,t)=>addNode('l'+i+'-'+t,'ledge',i,ledge));
+  if(peak.cave)addNode('cave'+i,'cave',i,
+   [peak.cave.left,peak.cave.right,peak.cave.floor]);
+  if(peak.cave)addEdge('cave'+i,'s'+i,'tunnel-ladder',1);
+  peak.ledges.forEach((ledge,t)=>{
+   const points=i>=1&&i<=3?iceRouteNetwork(i)[t]?.points:null;
+   if(!points||points.at(-1).x<peak.summit[0]+3||
+    points.at(-1).x>peak.summit[1]-3)
+    issues.push('climb route missing real summit exit: '+i+'/'+t);
+   else addEdge('l'+i+'-'+t,'s'+i,'ice',1);
+  });
+ });
+ for(let i=1;i<peakSet.length;i++){
+  const target=peakSet[i],dest=target.cave?
+   [[target.cave.left,target.cave.right,target.cave.floor,'rock','Cave']]:
+   target.ledges;
+  const sources=[{id:'s'+(i-1),surface:peakSet[i-1].summit}];
+  // Launches from lower/middle/high real shelves become available only when
+  // there is enough surface for a full run-up and a physics-verified arrival.
+  if(i>=2){
+   peakSet[i-1].ledges.forEach((p,t)=>{
+    if(p[1]-p[0]>=165)sources.push({id:'l'+(i-1)+'-'+t,surface:p});
+   });
+  }
+  for(const source of sources){
+   const profiles=shelfTimingProfiles(dest,source.surface);
+   for(let t=0;t<dest.length;t++){
+    if(profiles[t].safe<2)continue;
+    addEdge(source.id,target.cave?'cave'+i:'l'+i+'-'+t,
+     source.id.startsWith('s')?'vault':'ledge-shortcut',profiles[t].safe);
+   }
+   if(source.id.startsWith('s')&&!profiles.some(p=>p.safe>=2))
+    issues.push('no reachable vault across chasm '+i);
+  }
+ }
+ const reachable=new Set(['s0']);
+ let changed=true;
+ while(changed){
+  changed=false;
+  for(const edge of edges){
+   if(reachable.has(edge.from)&&!reachable.has(edge.to)){
+    reachable.add(edge.to);changed=true;
+   }
+  }
+ }
+ if(!reachable.has('s'+(peakSet.length-1)))
+  issues.push('the final summit cannot be reached');
+ for(const cp of spec.checkpoints||[]){
+  const id=cp.type==='cave'?'cave'+cp.peak:'s'+cp.peak;
+  if(!reachable.has(id))issues.push('unreachable checkpoint '+id);
+ }
+ return {valid:issues.length===0,issues,
+  peakCount:peakSet.length,nodes,edges,
+  reachable:[...reachable],
+  shortcutCount:edges.filter(e=>e.kind==='ledge-shortcut').length,
+  checkpointCount:(spec.checkpoints||[]).length};
+}
