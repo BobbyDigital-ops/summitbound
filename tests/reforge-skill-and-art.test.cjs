@@ -110,13 +110,16 @@ test('Precisely timed axe bite demands four alternating strikes and saves a real
   const hit=attemptAxeCatch();
   const start={state:p.state,x:p.x,y:p.y};
   const strokes=[axeCatchStrike(-1),axeCatchStrike(-1),
-   axeCatchStrike(1),axeCatchStrike(-1),axeCatchStrike(1)];
+   axeCatchStrike(1)]; // instantaneous alternating spam should NOT work
+  elapsed+=.15;strokes.push(axeCatchStrike(1));
+  elapsed+=.15;strokes.push(axeCatchStrike(-1));
+  elapsed+=.15;strokes.push(axeCatchStrike(1));
   return {hit,start,strokes,state:p.state,standing:p.standingOn,
     checkpoint:lastSafeStage};
  })()`);
  assert.equal(out.hit,true);
  assert.equal(out.start.state,'HANGING');
- assert.deepEqual(Array.from(out.strokes),[true,false,true,true,true]);
+ assert.deepEqual(Array.from(out.strokes),[true,false,false,true,true,true]);
  assert.equal(out.state,'GROUNDED');
  assert.equal(out.standing,'l2-0');
  assert.equal(out.checkpoint,2);
