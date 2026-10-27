@@ -245,16 +245,17 @@ function applyRoute(seed){
    if(pl)Object.assign(pl,{x:(t[0]+t[1])/2,y:t[2]+60,
     width:t[1]-t[0],height:120,left:t[0],right:t[1],top:t[2]});
   }
-  for(let i=1;i<=3;i++)for(let j=0;j<spires[i].ledges.length;j++){
+  for(let i=1;i<=4;i++)for(let j=0;j<spires[i].ledges.length;j++){
    const t=spires[i].ledges[j];
    if(typeof platform==='function')
     platforms.push(platform('l'+i+'-'+j,t[0],t[1],t[2],
      t[3],{kind:'ledge',spire:i,tier:t[4]}));
   }
   const cave=spires[4].cave,pl=platforms.find(p=>p.kind==='cave');
-  if(pl)Object.assign(pl,{x:(cave.left+cave.right)/2,y:cave.floor+60,
+  if(pl&&cave)Object.assign(pl,{x:(cave.left+cave.right)/2,y:cave.floor+60,
    width:cave.right-cave.left,height:120,
    left:cave.left,right:cave.right,top:cave.floor});
+  if(pl&&!cave)platforms.splice(platforms.indexOf(pl),1);
  }
  const label=document.getElementById('routeLabel');
  if(label)label.textContent=
@@ -295,6 +296,17 @@ function independentIcePoints(spireIndex,tierIndex){
  const startX=ledge[1]-30,startY=ledge[2]-22;
  const endX=iceExitX(spireIndex,tierIndex),endY=s.summit[2]-22;
  const rise=startY-endY,spread=endX-startX;
+ if(typeof FEATURED_COURSE!=='undefined'){
+  // Establish a vertical, visibly anchored upper ice segment. Traversal
+  // on the cliff face is a real path, never a horizontal crest-slide.
+  const settle=Math.min(96,Math.max(38,rise*.36));
+  return [
+   {x:startX,y:startY,tierIndex},
+   {x:startX+spread*.36,y:startY-rise*.48,tierIndex},
+   {x:endX,y:endY+settle,tierIndex},
+   {x:endX,y:endY,tierIndex}
+  ];
+ }
  return [
   {x:startX,y:startY,tierIndex},
   {x:startX+spread*.28,y:startY-rise*.64,tierIndex},
@@ -315,7 +327,7 @@ function iceXOnPath(points,y){
  return points.at(-1).x;
 }
 function iceRouteNetwork(spireIndex){
- if(spireIndex<1||spireIndex>3||!spires[spireIndex])return [];
+ if(spireIndex<1||spireIndex>(typeof FEATURED_COURSE!=='undefined'?4:3)||!spires[spireIndex])return [];
  if(iceRouteCache.has(spireIndex))return iceRouteCache.get(spireIndex);
  const ledges=spires[spireIndex].ledges;
  const base=ledges.map((_,tier)=>independentIcePoints(spireIndex,tier));
@@ -375,7 +387,8 @@ function independentIceRoutes(i){
 // Shared cave geometry for real collision, entrance, art and interaction.
 // The left side is an open approach; the far-right wall is solid.
 function caveGeometry(){
- const c=spires[4].cave,w=c.right-c.left;
+ const c=spires[4].cave;if(!c)return null;
+ const w=c.right-c.left;
  return {
   left:c.left,right:c.right,ceiling:c.ceiling,floor:c.floor,
   wallX:c.right-18,ladderX:c.right-32,
@@ -412,7 +425,7 @@ function mountainContourNodes(index) {
  return nodes;
 }
 function rockBackingForIce(index,y,baseX){
- if(index<1||index>3||typeof FEATURED_COURSE==='undefined')return baseX;
+ if(index<1||index>4||typeof FEATURED_COURSE==='undefined')return baseX;
  // A real solid bedrock buttress exists behind *every* drawable ice route.
  // A 64-unit inset keeps the rendered ice face from hanging in empty sky.
  // Transition zones outside the climb use a tapered rock shoulder.
