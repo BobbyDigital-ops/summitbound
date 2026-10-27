@@ -14,6 +14,7 @@
     "test:ascent": "node --test tests/ascent-terraces.test.cjs",
     "test:vault": "node --test tests/vault-reach.test.cjs",
     "test:mobile": "node --test tests/mobile-perf.test.cjs",
+    "test:renderer": "node --test tests/renderer-smoke.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

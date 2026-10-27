@@ -22,4 +22,5 @@ jobs:
       - run: npm run test:ascent
       - run: npm run test:vault
       - run: npm run test:mobile
+      - run: npm run test:renderer
       - run: npm run build
