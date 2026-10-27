@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.23 - Cave Checkpoint */
+/** Summitbound v0.9.24 - Gameplay Polish */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.23: Cave Checkpoint';
+    document.title = 'Summitbound — v0.9.24: Gameplay Polish';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {
