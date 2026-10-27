@@ -14,15 +14,15 @@ function medalTargets(seed=routeSeed){
   return sum+(high?Math.max(0,high[2]-m.summit[2])/62:0);
  },0);
  const ladder=Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125;
- const gold=Math.ceil((36+ascent+ladder)*1.04/5)*5;
+ const gold=Math.ceil((48+ascent+ladder)*1.04/5)*5;
  return {gold,silver:Math.ceil(gold*1.32/5)*5,bronze:Math.ceil(gold*1.76/5)*5};
 }
 // Cumulative stage gates spread the course target across the actual
 // climbing distance of each receiving mountain plus a leap/run budget.
 function stageMedalTargets(stage,seed=routeSeed){
- const parts=spires.slice(1,4).map(m=>9+
+ const parts=spires.slice(1,4).map(m=>12+
   (m.ledges.length?Math.max(0,m.ledges.at(-1)[2]-m.summit[2])/62:0));
- parts.push(9+Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125);
+ parts.push(12+Math.max(0,spires[4].cave.floor-spires[4].summit[2])/125);
  const slice=parts.slice(0,Math.max(1,Math.min(4,stage)))
   .reduce((sum,v)=>sum+v,0);
  const ratio=slice/parts.reduce((sum,v)=>sum+v,0);
@@ -100,7 +100,7 @@ function finishTimeTrial(){
  if(mode!=='trial')return '';
  trialSplit(4);
  const medal=medalForTime(elapsed),valid=!trialRun.invalid&&stockPhysicsForTrial()&&
-  trialRun.splits.length===4&&trialRun.splits.every(Number.isFinite);
+  trialRun.splits.length===4&&[0,1,2,3].every(i=>Number.isFinite(trialRun.splits[i]));
  if(valid&&(!trialGhost||elapsed<trialGhost.best)){
   // Cap bytes and only store a validated FULL uninterrupted run.
   const record={version:TRIAL_RECORD_VERSION,seed:routeSeed,
