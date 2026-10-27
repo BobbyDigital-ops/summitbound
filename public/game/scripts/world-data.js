@@ -412,7 +412,7 @@ function mountainContourNodes(index) {
  return nodes;
 }
 function rockBackingForIce(index,y,baseX){
- if(index<1||index>3)return baseX;
+ if(index<1||index>3||typeof FEATURED_COURSE==='undefined')return baseX;
  // A real solid bedrock buttress exists behind *every* drawable ice route.
  // A 64-unit inset keeps the rendered ice face from hanging in empty sky.
  // Transition zones outside the climb use a tapered rock shoulder.
