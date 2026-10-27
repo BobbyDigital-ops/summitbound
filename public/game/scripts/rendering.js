@@ -88,6 +88,22 @@ function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
  paintCtx.restore();
 }
 
+// Rock buttress projected from the SAME cliff contour as the playable ledge.
+// All geometry here is visual only; no surface/landing/collision edits.
+function terraceButtressProfile(i,a,b,y){
+ const width=b-a;
+ const face=mountainContourX(i,y+68);
+ const anchor=Math.max(face+30,a+width*.57);
+ const tip=a-5,depth=86+Math.min(24,width*.1);
+ return [
+  [tip,y+5],[a+width*.23,y+8],[a+width*.55,y+3],
+  [b+4,y+6],[b+9,y+18],[b-width*.07,y+29],
+  [anchor+18,y+61],[anchor+25,y+depth],
+  [anchor-13,y+depth+19],[anchor-27,y+64],
+  [a+width*.13,y+52],[tip-5,y+25]
+ ];
+}
+
 function drawSpire(i,paintCtx=ctx){
  const s = spires[i], L = s.summit[0], R = s.summit[1], T = s.summit[2], tiers = s.ledges;
  const bottom = 2100;
@@ -190,11 +206,12 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.fillStyle='#acc1c560';paintCtx.beginPath();
   paintCtx.moveTo(L+310,T-575);paintCtx.lineTo(L+395,T-370);
   paintCtx.lineTo(L+414,T-168);paintCtx.lineTo(L+364,T-290);paintCtx.closePath();paintCtx.fill();
-  for(const d of [[L+307,T-566,105],[L+372,T-485,120],
-                  [L+440,T-305,130],[L+525,T-150,170]]){
-   paintCtx.strokeStyle='#ecf7f5a6';paintCtx.lineWidth=4;paintCtx.beginPath();
-   paintCtx.moveTo(d[0],d[1]);paintCtx.bezierCurveTo(d[0]+17,d[1]+27,
-   d[0]-8,d[1]+d[2]*.48,d[0]+26,d[1]+d[2]);paintCtx.stroke();
+  // Diffuse rock cracks instead of large, floating white vertical streaks.
+  for(const [dx,dy] of [[342,-432],[431,-248],[509,-100]]){
+   paintCtx.strokeStyle='#95acb64d';paintCtx.lineWidth=2;
+   paintCtx.beginPath();paintCtx.moveTo(L+dx,T+dy);
+   paintCtx.lineTo(L+dx+13,T+dy+19);
+   paintCtx.lineTo(L+dx+6,T+dy+38);paintCtx.stroke();
   }
  }
  // Snow tongues descend from real terrain shelves into broken cliff channels.
@@ -221,10 +238,11 @@ function drawSpire(i,paintCtx=ctx){
  }
 
  // Frozen falls: seasonal ice glazed over fractures, not additional climb paths.
- if(i===1||i===3||i===4){
-  const falls=i===4
-   ?[{x:L+585,y:T-175,length:650,width:43},{x:L+735,y:T+90,length:390,width:22}]
-   :[{x:L+(R-L)*(i===1?.62:.77),y:T+12,length:i===1?395:510,width:i===1?33:46}];
+ if(i===1||i===3){
+  // Seasonal ice on ordinary cliff fissures only. The final summit's
+  // decorative vertical 'white needles' were visually misleading.
+  const falls=[{x:L+(R-L)*(i===1?.62:.77),y:T+12,
+   length:i===1?395:510,width:i===1?33:46}];
   for(const fall of falls){
    const {x,y,length,width}=fall;
    const ice=paintCtx.createLinearGradient(x-width,y,x+width,y);
@@ -259,33 +277,46 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.save();
   // Each natural terrace has thick, uneven bedrock *continuous with* the
   // cliff below. Snow covers the lip, rather than outlining a Mario shelf.
-  const baseGrad=paintCtx.createLinearGradient(a,y,b,y+96);
-  baseGrad.addColorStop(0,'#718794');baseGrad.addColorStop(.34,'#536a79');
-  baseGrad.addColorStop(1,'#203849');
-  paintCtx.fillStyle=baseGrad;paintCtx.beginPath();
-  paintCtx.moveTo(a-5,y+2);
-  paintCtx.lineTo(a+width*.27,y+6+Math.sin(a)*3);
-  paintCtx.lineTo(b-3,y+2);paintCtx.lineTo(b+2,y+17);
-  paintCtx.lineTo(b-width*.12,y+26+(i%3)*5);
-  paintCtx.lineTo(b-width*.3,y+44);
-  paintCtx.lineTo(a+width*.58,y+51+(i%2)*19);
-  paintCtx.lineTo(a+width*.25,y+88);
-  // Exposed bedrock roots back into the continuous mountain contour.
-  // The landing lip is not a detached platform suspended in the chasm.
-  // Attach the outcrop locally instead of creating long triangular fins
-  // when the new shelves are hundreds of world units apart.
-  const rootX=Math.min(b-16,Math.max(a+Math.min(58,width*.32),
-   mountainContourX(i,y+88)-5));
-  paintCtx.lineTo(rootX+18,y+108);
-  paintCtx.lineTo(rootX-5,y+70);
-  paintCtx.lineTo(a-9,y+14);
+  // A stepped, irregular buttress grows back into the ACTUAL mountain face,
+  // not a stand-alone trapezoid or a triangular slab with an empty underside.
+  const rockPoints=terraceButtressProfile(i,a,b,y);
+  const baseGrad=paintCtx.createLinearGradient(a,y,b,y+110);
+  baseGrad.addColorStop(0,'#708895');
+  baseGrad.addColorStop(.26,'#516c7d');
+  baseGrad.addColorStop(.64,'#3d5767');
+  baseGrad.addColorStop(1,'#304959');
+  paintCtx.beginPath();
+  rockPoints.forEach(([x,py],j)=>{
+   if(j===0)paintCtx.moveTo(x,py);else paintCtx.lineTo(x,py);
+  });
+  paintCtx.closePath();paintCtx.fillStyle=baseGrad;paintCtx.fill();
+  // Short inset facets and frost in fissures: the underside remains broken
+  // rock, and joins the same underlying stratified mountain mass.
+  paintCtx.save();paintCtx.clip();
+  const w=width;
+  paintCtx.fillStyle='#182f3b48';paintCtx.beginPath();
+  paintCtx.moveTo(a+w*.40,y+16);
+  paintCtx.lineTo(a+w*.69,y+33);
+  paintCtx.lineTo(rockPoints[7][0]+2,rockPoints[7][1]+9);
+  paintCtx.lineTo(a+w*.44,y+60);
   paintCtx.closePath();paintCtx.fill();
-  paintCtx.strokeStyle='#9db5bc6b';paintCtx.lineWidth=2;
-  paintCtx.beginPath();paintCtx.moveTo(a+11,y+20);
-  paintCtx.lineTo(a+width*.36,y+32);paintCtx.lineTo(a+width*.43,y+59);paintCtx.stroke();
-  paintCtx.strokeStyle='#102b3c99';paintCtx.lineWidth=4;
-  paintCtx.beginPath();paintCtx.moveTo(b-width*.20,y+14);
-  paintCtx.lineTo(b-width*.30,y+47);paintCtx.lineTo(b-width*.36,y+57);paintCtx.stroke();
+  paintCtx.fillStyle='#a8bdc326';paintCtx.beginPath();
+  paintCtx.moveTo(a+w*.17,y+20);
+  paintCtx.lineTo(a+w*.31,y+31);
+  paintCtx.lineTo(a+w*.21,y+75);
+  paintCtx.lineTo(a+w*.07,y+46);
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.strokeStyle='#9eb5bc73';paintCtx.lineWidth=2;
+  paintCtx.beginPath();
+  paintCtx.moveTo(a+w*.09,y+24);
+  paintCtx.lineTo(a+w*.23,y+36);
+  paintCtx.lineTo(a+w*.29,y+59);paintCtx.stroke();
+  paintCtx.strokeStyle='#142c3c88';paintCtx.lineWidth=3;
+  paintCtx.beginPath();
+  paintCtx.moveTo(b-w*.18,y+15);
+  paintCtx.lineTo(b-w*.30,y+51);
+  paintCtx.lineTo(b-w*.34,y+66);paintCtx.stroke();
+  paintCtx.restore();
 
   const cap=paintCtx.createLinearGradient(a,y-12,a,y+13);
   cap.addColorStop(0,'#ffffff');cap.addColorStop(.55,'#eaf5f9');
@@ -515,6 +546,55 @@ function drawIceClimb(i,paintCtx=ctx) {
  * The shape is a scalloped wind-drift embedded into the existing summit snow
  * rather than a separate square ice topping. Drawn once into terrain cache.
  */
+
+/**
+ * Rock-backed shelf entry: the climb line finishes above the landing
+ * surface (the player's feet are ~22 units below its route start).
+ * Overlap the last icy face with the actual snow lip and a short rock
+ * frost apron; never leave a visual gap or invent an extra platform.
+ * This is static terrain art and is cached once per route.
+ */
+function drawIceShelfJoins(i,paintCtx=ctx){
+ const routes=iceRouteNetwork(i);
+ for(const route of routes){
+  const ledge=spires[i].ledges[route.tier];
+  if(!ledge)continue;
+  const x=route.points[0].x,y=ledge[2];
+  const maxLeft=Math.min(49,x-ledge[0]-5);
+  const maxRight=Math.min(50,ledge[1]-x-5);
+  if(maxLeft<6||maxRight<6)continue;
+  paintCtx.save();
+  const melt=paintCtx.createLinearGradient(x,y-32,x+8,y+52);
+  melt.addColorStop(0,'#99cad1e3');
+  melt.addColorStop(.34,'#d2edefe0');
+  melt.addColorStop(.7,'#82b1bf98');
+  melt.addColorStop(1,'#6a94a400');
+  paintCtx.fillStyle=melt;paintCtx.beginPath();
+  paintCtx.moveTo(x-maxLeft*.86,y-31);
+  paintCtx.lineTo(x-maxLeft,y-6);
+  paintCtx.lineTo(x-maxLeft*.59,y+7);
+  paintCtx.lineTo(x-maxLeft*.30,y+22);
+  paintCtx.lineTo(x-5,y+48);
+  paintCtx.lineTo(x+maxRight*.25,y+25);
+  paintCtx.lineTo(x+maxRight*.77,y+10);
+  paintCtx.lineTo(x+maxRight*.94,y-10);
+  paintCtx.lineTo(x+maxRight*.74,y-32);
+  paintCtx.closePath();paintCtx.fill();
+  const drift=paintCtx.createLinearGradient(x,y-12,x,y+16);
+  drift.addColorStop(0,'#fbfffff0');
+  drift.addColorStop(.5,'#e4f4f2ef');
+  drift.addColorStop(1,'#c4dfe4a0');
+  paintCtx.fillStyle=drift;paintCtx.beginPath();
+  paintCtx.moveTo(x-maxLeft-9,y-6);
+  paintCtx.quadraticCurveTo(x-maxLeft*.52,y-14,x-7,y-9);
+  paintCtx.quadraticCurveTo(x+maxRight*.48,y-13,x+maxRight+7,y-4);
+  paintCtx.lineTo(x+maxRight*.82,y+6);
+  paintCtx.quadraticCurveTo(x,y+9,x-maxLeft*.86,y+7);
+  paintCtx.closePath();paintCtx.fill();
+  paintCtx.restore();
+ }
+}
+
 function drawIceCrestSnow(i,paintCtx=ctx){
  const summitY=spires[i].summit[2];
  const routes=iceRouteNetwork(i).filter(route=>route.sharedWith===null);
@@ -749,7 +829,7 @@ function mountainCache(i){
  if(!off)return null;
  off.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
  drawSpire(i,off);
- if(i>0&&i<4){drawIceClimb(i,off);drawIceCrestSnow(i,off);}
+ if(i>0&&i<4){drawIceClimb(i,off);drawIceShelfJoins(i,off);drawIceCrestSnow(i,off);}
  decorate(i,off);
  const data={image,left,top,width,height,bytes:image.width*image.height*4};
  terrainCache.set(i,data);renderStats.terrainBuilds++;
@@ -852,7 +932,7 @@ function draw(){
   if(chunk)ctx.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
   else {
    drawSpire(i);
-   if(i>0&&i<4){drawIceClimb(i);drawIceCrestSnow(i);}
+   if(i>0&&i<4){drawIceClimb(i);drawIceShelfJoins(i);drawIceCrestSnow(i);}
    decorate(i);
   }
  }
