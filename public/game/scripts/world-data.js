@@ -145,7 +145,7 @@ function applyRoute(seed) {
  // massif. Both cave ceiling and floor must remain real collision surfaces.
  const original=caveLayouts[routeSeed];
  const floor=235+Math.round((original.floor-892)*.12);
- const left=original.left-800;
+ const left=original.left-775;
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};
 
