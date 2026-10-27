@@ -1,6 +1,6 @@
 // Summit Leap v0.8.3 — extracted unchanged from v0.8.1.
 document.getElementById('retry').addEventListener('click', retry);
-document.getElementById('shuffle').addEventListener('click', () => { applyRoute(routeSeed + 1); gameReset(); hint('NEW LANDING SHELVES — SAME PHYSICS', 3); });
+// Five Peaks is the only playable course. Keep legacy seed generation for engine QA, not the UI.
 document.getElementById('restart').addEventListener('click', gameReset);
 document.getElementById('again').addEventListener('click', gameReset);
 document.getElementById('campContinue')?.addEventListener('click',continueCaveAscent);
