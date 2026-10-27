@@ -1191,7 +1191,7 @@ function draw(){
  let canDown=p.state==='CLIMBING';
  if(surface?.spire>0&&surface?.spire<4){
   const routes=iceRouteNetwork(surface.spire);
-  if(surface.kind==='summit'){
+  if(surface.kind==='summit'||surface.kind==='arrival'){
    canDown=routes.some(route=>Math.abs(p.x-route.points.at(-1).x)<=28);
   }else if(surface.kind==='ledge'){
    const tier=Number(surface.id.split('-')[1]),entryX=climbEntryX(surface);
@@ -1204,10 +1204,14 @@ function draw(){
  const meterDisplay=p.vault?'block':'none';
  if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
  if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
+ const inCrux=p.standingOn==='a1'?'THE BLACK NOTCH':
+  p.standingOn==='a3'?'THE BROKEN CROWN':null;
  const stageText=completed?'ASCENT COMPLETE':
+  inCrux?'FIVE PEAKS · '+inCrux+' · UPHILL RIDGE VAULT':
   `FIVE PEAKS · PEAK ${Math.min(atStage+1,5)} / 5 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
- const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
+ const status=completed?'Course complete.':p.state==='HANGING'?
+  'AXE CATCH — ALTERNATE A / D FOUR TIMES OR FALL':p.state==='CLIMBING'?
   (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
    'Hold ↑ through rock tunnel · Release to rest'):
   p.vault?`POLE ${p.vault.elapsed/p.vault.rideDuration<.15?'LOADING':p.vault.elapsed/p.vault.rideDuration<.30?'VERTICAL':p.vault.elapsed/p.vault.rideDuration<.47?'HIGH ARC':p.vault.elapsed/p.vault.rideDuration<.72?'DISTANCE':p.vault.elapsed/p.vault.rideDuration<.94?'FADING':'OVERHELD'} · ${Math.round(Math.abs(p.vault.initialVx)/cfg.maxRunSpeed*100)}% RUN-UP`:
