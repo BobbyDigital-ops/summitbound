@@ -118,15 +118,18 @@ function selectTerraces(spire,seed){
  // elevated shelves. Horizontal order is independently shuffled.
  // The real pole can land reliably up to ~145 units uphill. Keep every
  // shelf inside that flight envelope; tower height above shelves can vary.
- const altitudeBands=count===2?[[30,50],[119,143]]:
-  count===3?[[29,46],[73,91],[121,144]]:
-  [[20,35],[54,69],[91,107],[125,145]];
+ // Separate high/low options more clearly, within the real measured 145-unit
+ // uphill vault envelope. Lower shelves are lower, not unreachable highs.
+ const altitudeBands=count===2?[[15,32],[122,145]]:
+  count===3?[[15,33],[71,92],[126,145]]:
+  [[13,27],[49,66],[89,106],[127,145]];
  const widthBands=count===2?[[110,150],[178,235]]:
   count===3?[[100,140],[145,184],[192,237]]:
   [[100,126],[136,164],[173,200],[204,243]];
- const horizontal=count===2?[near,far]:
-  count===3?[near,design.mid,far]:
-  [near,near+59,design.mid+35,far+9];
+ // Wider separation in X; never hard-code the high shelf as the farthest.
+ const horizontal=count===2?[near,far+34]:
+  count===3?[near,design.mid+13,far+32]:
+  [near,near+64,design.mid+53,far+38];
  let best=null,bestScore=-Infinity;
  for(let attempt=0;attempt<(count===4?1500:520);attempt++){
   const zones=[...horizontal],widthSlots=[...widthBands];
@@ -147,10 +150,10 @@ function selectTerraces(spire,seed){
   });
   const sorted=[...ledges].sort((a,b)=>a[2]-b[2]);
   const xs=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
-  if(Math.max(...xs)-Math.min(...xs)<160)continue;
+  if(Math.max(...xs)-Math.min(...xs)<190)continue;
   if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<(count===4?29:40)))continue;
   // Reject superficially different shelves that visually read as one level.
-  if(sorted.at(-1)[2]-sorted[0][2]<95)continue;
+  if(sorted.at(-1)[2]-sorted[0][2]<108)continue;
   const widths=ledges.map(t=>t[1]-t[0]);
   if(Math.max(...widths)-Math.min(...widths)<40)continue;
   if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<35)))continue;

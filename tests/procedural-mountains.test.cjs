@@ -32,7 +32,7 @@ test('procedural routes are deterministic, varied, and maintain live collision g
    assert.ok(ledges.length>=2&&ledges.length<=4);
    if(seed===0)assert.equal(ledges.length,3,'default route must show three choices');
    const elevations=[...ledges].map(t=>t[2]).sort((a,b)=>a-b);
-   assert.ok(elevations.at(-1)-elevations[0]>=95,
+   assert.ok(elevations.at(-1)-elevations[0]>=108,
     'shelves are too level to read as separate landing routes');
    for(let j=1;j<elevations.length;j++)assert.ok(
     elevations[j]-elevations[j-1]>=(ledges.length===4?28:40),

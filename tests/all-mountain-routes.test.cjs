@@ -17,8 +17,8 @@ test('all 997 deterministic routes: every shelf distinct, reachable, and climber
    const heights=ledges.map(t=>t[2]),lefts=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
    const spread=Math.max(...heights)-Math.min(...heights);
    minRiseSpread=Math.min(minRiseSpread,spread);
-   assert.ok(spread>=95,'route '+seed+' stage '+i+' has visually level shelves');
-   assert.ok(Math.max(...lefts)-Math.min(...lefts)>=160,
+   assert.ok(spread>=108,'route '+seed+' stage '+i+' has visually level shelves');
+   assert.ok(Math.max(...lefts)-Math.min(...lefts)>=190,
     'route '+seed+' stage '+i+' lacks horizontal difference');
    for(let j=1;j<sorted.length;j++)
     assert.ok(sorted[j][2]-sorted[j-1][2]>=(ledges.length===4?29:40),
