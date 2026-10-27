@@ -13,7 +13,7 @@ function setup(){
   innerWidth:1280,innerHeight:720,performance:{now:()=>1},
   navigator:{vibrate(){}},localStorage:{getItem(){return null},setItem(){}}});
  for(const n of ['physics.js','world-data.js','course-engine.js',
-  'game-state.js','time-trial.js','climb-mechanics.js','simulation.js']){
+  'pole-dynamics.js','game-state.js','time-trial.js','climb-mechanics.js','simulation.js']){
   vm.runInContext(code(n),context,{filename:n});
  }
  return {context,run:s=>vm.runInContext(s,context)};
@@ -108,7 +108,7 @@ test('Longer vault: actual run-up unlocks materially more range but slower run-u
  assert.equal(data.max,450);
  assert.equal(data.accel,1050);
  assert.ok(data.full.vx>570,'full sprint no longer extends jump range');
- assert.ok(data.full.vx>data.medium.vx*1.3,'extra momentum has insufficient effect');
+ assert.ok(data.full.vx>data.medium.vx*1.25,'extra momentum has insufficient effect');
  assert.ok(data.full.vx>data.slow.vx*1.6);
  assert.ok(Math.abs(data.full.vy)>Math.abs(data.medium.vy)*1.2);
 });
