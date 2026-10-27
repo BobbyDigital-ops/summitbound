@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.8 - Foreground Restoration */
+/** Summitbound v0.9.9 - Visual Recovery */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.8: Foreground Restoration';
+    document.title = 'Summitbound — v0.9.9: Visual Recovery';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

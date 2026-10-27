@@ -3,12 +3,8 @@ const mountainBackdrop = new Image(); mountainBackdrop.src='/game/mountain-backg
 const cliffTexture = new Image(); cliffTexture.src='/game/cliff-texture.png';
 const climberSheet = new Image(); climberSheet.src='/game/mountaineer-red-puffer.png';
 const slateTexture = new Image(); slateTexture.src='/game/rock-slate-seamless.png';
-const alpineFirSprite=new Image();
-alpineFirSprite.onload=()=>{if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();};
-alpineFirSprite.src='/game/art/alpine-fir.svg';
-const alpineScrubSprite=new Image();
-alpineScrubSprite.onload=()=>{if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();};
-alpineScrubSprite.src='/game/art/cliff-scrub.svg';
+// Replaced the inverted vector fir and pasted-on shrub sprites with the
+// established native painted cliff and tree pass. Art files remain for archival reference.
 
 const cfg = {gravity:800,arcadeLift:1.18,arcadeRange:.84,arcadeFlightTempo:.88,runAcceleration:850,maxRunSpeed:360,brakingDecel:2000,poleLength:195,poleStiffness:120,poleDamping:4.5,bendingStiffness:40,maxDeformation:.52,energyRetention:.96,playerMass:70,airborneSteerForce:520,rockFriction:.88,snowFriction:.48,iceFriction:.05,simSpeed:1};
 

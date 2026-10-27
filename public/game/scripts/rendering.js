@@ -3,10 +3,7 @@
 // deposits instead of stacked symmetric triangle/Christmas-tree sprites.
 function pine(cx,ground,s,paintCtx=ctx){
  paintCtx.save();paintCtx.translate(cx,ground);paintCtx.scale(s,s);
- if(alpineFirSprite.complete&&alpineFirSprite.naturalWidth){
-  paintCtx.drawImage(alpineFirSprite,-35,-130,70,130);
-  paintCtx.restore();return;
- }
+ // Restored asymmetric snow-laden conifer silhouette (the SVG had an inverted taper).
  const seed=Math.sin(cx*.093+ground*.025)*31;
  const lean=Math.sin(cx*.033)*7;
  paintCtx.strokeStyle='#292b30';paintCtx.lineWidth=3.5;paintCtx.lineCap='round';
@@ -55,9 +52,9 @@ function pine(cx,ground,s,paintCtx=ctx){
 function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
  const w=R-L;
  paintCtx.save();
- for(let n=0;n<12;n++){
+ for(let n=0;n<7;n++){
   const h=T+90+n*79+(n%3)*17;
-  const frac=.20+(.65*((n*37+i*19)%17)/16);
+  const frac=.30+(.50*((n*37+i*19)%17)/16);
   const x=L+frac*w;
   const rw=16+((n*13+i*17)%18);
   paintCtx.fillStyle=n%3?'#526d7c99':'#3d5c6bba';
@@ -86,12 +83,6 @@ function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
    paintCtx.beginPath();paintCtx.moveTo(x+5,h+11);
    paintCtx.bezierCurveTo(x+3,h+25,x+11,h+47,x+7,h+57);
    paintCtx.stroke();
-  }
- }
- if(alpineScrubSprite.complete&&alpineScrubSprite.naturalWidth){
-  for(const f of [.22,.49,.76]){
-   const x=L+(R-L)*f,y=T+210+f*380;
-   paintCtx.drawImage(alpineScrubSprite,x-38,y-25,76,36);
   }
  }
  paintCtx.restore();
@@ -753,14 +744,7 @@ function draw(){
    ctx.rotate(Math.sin(phase)*.018);
   }
   ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
-  if(running && !p.vault){
-   const part=step-Math.floor(step), alpha=Math.min(.42,Math.max(0,(part-.58)/.42*.42));
-   if(alpha>0){
-    ctx.globalAlpha=alpha;
-    ctx.drawImage(climberSheet, ((pose+1)%8)*200,0,200,256,-39,-93,78,100);
-    ctx.globalAlpha=1;
-   }
-  }
+  // Avoid ghosted/doubled hats: never alpha-overlay mismatched sprite frames.
   ctx.restore();
  } else {
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);
