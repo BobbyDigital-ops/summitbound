@@ -41,5 +41,5 @@ test('wall terrain variation and slow paced ice tools retained',()=>{
  assert.match(r,/function drawIcePicks/);
  assert.match(r,/const beat=p\.climb\.climbBeat\*Math\.PI\*\.72/);
  assert.match(sim,/c\.climbBeat\+=\(oldY-p\.y\)\/24/);
- assert.match(sim,/c\.climbBeat-=\(p\.y-oldY\)\/24/);
+ assert.match(sim,/c\.climbBeat\+=\(oldY-p\.y\)\/24/);
 });
