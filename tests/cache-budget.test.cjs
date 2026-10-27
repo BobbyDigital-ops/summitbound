@@ -46,6 +46,10 @@ test('three visible mountains stay in an LRU cache with a strict memory cap',()=
   'terrain was re-rasterized while same three peaks were repeatedly visible');
  assert.ok(vm.runInContext('renderStats.terrainHits',env)>=150);
  assert.ok(vm.runInContext('renderStats.terrainBytes',env)<=40*1024*1024);
+ const first=vm.runInContext('terrainCache.get(0)',env);
+ assert.ok(first.image.width/first.width>=.70,'foreground cache is too soft');
+ assert.ok(Math.max(first.image.width,first.image.height)<=2305,
+  'mobile auto cache exceeds the safe texture dimension');
  vm.runInContext('mountainCache(3)',env);
  assert.ok(vm.runInContext('terrainCache.size',env)<=3);
 });

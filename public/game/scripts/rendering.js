@@ -672,8 +672,12 @@ function mountainCache(i){
  const left=Math.min(...xs),right=s.summit[1]+210;
  const top=s.summit[2]-(i===4?760:420),bottom=2125;
  const width=right-left,height=bottom-top;
- const scale=graphicsQuality==='low'?.42:graphicsQuality==='high'?.98:(innerWidth<950?.60:.88);
- const pixelScale=Math.min(1,scale,1800/Math.max(width,height));
+ // Mobile auto gets a sharper foreground raster, not a sharper/upscaled
+ // distant background. Larger mountain sheets remain capped per dimension.
+ const scale=graphicsQuality==='low'?.42:
+  graphicsQuality==='high'?1:(innerWidth<950?.72:.94);
+ const maxAxis=graphicsQuality==='high'?2600:(innerWidth<950?2304:2300);
+ const pixelScale=Math.min(1,scale,maxAxis/Math.max(width,height));
  const image=document.createElement('canvas');
  image.width=Math.ceil(width*pixelScale);image.height=Math.ceil(height*pixelScale);
  const off=image.getContext('2d',{alpha:true});
@@ -702,7 +706,7 @@ function backdropTexture(w,h){
  const iw=mountainBackdrop.naturalWidth,ih=mountainBackdrop.naturalHeight;
  const rect=backdropViewport(iw,ih,w,h,0,0);
  const scale=graphicsQuality==='low'?.7:
-  graphicsQuality==='high'?1:(innerWidth<950?.88:1);
+  graphicsQuality==='high'?1:(innerWidth<950?.94:1);
  const width=Math.max(1,Math.ceil(rect.width*scale));
  const height=Math.max(1,Math.ceil(rect.height*scale));
  const key=[iw,ih,w,h,width,height,graphicsQuality].join(':');

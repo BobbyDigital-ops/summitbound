@@ -170,11 +170,17 @@ function tick(dt){
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
 
+// Modest mobile supersampling restores crisp player and ice edges while
+ // avoiding the 3x device DPR (9x pixel count) of modern Android phones.
+ // Auto falls back to 1x after sustained heavy paint times; Low stays 1x.
+let autoPortraitCap=1.2,slowAutoWindows=0,lastTerrainBuilds=-1;
+function canvasRatioFor(quality,width,dpr,autoCap=1.2){
+ const maxRatio=quality==='low'?1:quality==='high'?2:
+  (width<950?autoCap:1.6);
+ return Math.min(Math.max(1,dpr||1),maxRatio);
+}
 function resize(){
- // Native portrait screens benefit far more from a bounded canvas than
- // from an extra 15% DPR in every direction. High remains an opt-in.
- const maxRatio=graphicsQuality==='low'?1:graphicsQuality==='high'?2:(innerWidth<950?1:1.6);
- const ratio=Math.min(devicePixelRatio||1,maxRatio);
+ const ratio=canvasRatioFor(graphicsQuality,innerWidth,devicePixelRatio,autoPortraitCap);
  canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
@@ -214,7 +220,21 @@ function loop(now){
   if(indicator)indicator.textContent=
    'Render '+fps+' fps · draw '+avg.toFixed(1)+' / p95 '+p95.toFixed(1)+
    ' ms · scene '+mem+' MB · builds '+renderStats.terrainBuilds+
-   ' (evict '+renderStats.terrainEvictions+')';
+   ' (evict '+renderStats.terrainEvictions+') · DPR '+
+   canvasRatioFor(graphicsQuality,innerWidth,devicePixelRatio,autoPortraitCap).toFixed(2);
+  // Three consecutive slow, stable (no terrain rebuild) sample windows are
+  // needed before lowering DPR. We never auto-promote repeatedly or oscillate.
+  if(graphicsQuality==='auto'&&innerWidth<950&&autoPortraitCap>1){
+   const stable=renderStats.terrainBuilds===lastTerrainBuilds;
+   slowAutoWindows=stable&&p95>24?slowAutoWindows+1:0;
+   if(slowAutoWindows>=3){
+    autoPortraitCap=1;slowAutoWindows=0;perfDrawSamples.length=0;
+    resize();
+    const mode=document.getElementById('graphicsMode');
+    if(mode)mode.textContent='Graphics: auto (smooth)';
+   }
+  }else slowAutoWindows=0;
+  lastTerrainBuilds=renderStats.terrainBuilds;
   perfStart=now;perfFrames=0;perfRendered=0;
  }
  requestAnimationFrame(loop);

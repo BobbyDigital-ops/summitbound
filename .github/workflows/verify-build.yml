@@ -32,4 +32,5 @@ jobs:
       - run: npm run test:allroutes
       - run: npm run test:ice-art
       - run: npm run test:cache
+      - run: npm run test:resolution
       - run: npm run build

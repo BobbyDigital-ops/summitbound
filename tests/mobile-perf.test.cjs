@@ -28,7 +28,10 @@ test('frame pacing retains 120Hz physics but slows stationary mobile painting',(
  assert.match(sim,/for\(let n = 0; acc >= DT/);
  assert.match(sim,/const stationary=innerWidth<950/);
  assert.match(sim,/renderGap=graphicsQuality==='low'\|\|stationary\?31:0/);
- assert.match(sim,/graphicsQuality==='high'\?2:\(innerWidth<950\?1:1\.6\)/);
+ assert.match(sim,/function canvasRatioFor\(/);
+ assert.match(sim,/quality==='low'\?1:quality==='high'\?2/);
+ assert.match(sim,/autoPortraitCap=1\.2/);
+ assert.match(sim,/slowAutoWindows>=3/);
  assert.match(sim,/p95/);
  assert.match(render,/if\(stageEl\.textContent!==stageText\)/);
  assert.match(render,/if\(timerEl\.textContent!==timeLabel\)/);
