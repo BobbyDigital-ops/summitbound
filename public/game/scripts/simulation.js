@@ -35,7 +35,9 @@ function getLanding(plat){
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
   } else {
    landingHistory[plat.spire - 1] = plat.tier;
-   hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE ICE WALL`, 3);
+   if(plat.tier==='High'||plat.tier==='Ridge'){
+    hint('HIGH ROUTE — PRECISION LANDING!',2.2);haptic([18,30,12]);
+   }else hint(`${plat.tier.toUpperCase()} OUTCROP — BRAKE AND FIND THE ICE WALL`, 3);
   }
  } else if(plat.kind === 'ledge' && plat.spire === atStage){
   hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE ICE WALL`, 2);
