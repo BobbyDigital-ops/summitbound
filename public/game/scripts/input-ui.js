@@ -37,7 +37,12 @@ function processKeyDown(keyStr, codeStr) {
  // On solid ground these same A/D keys still steer the runner.
  const axeSide=(k==='a'||k==='arrowleft'||c==='keya')?-1:
   (k==='d'||k==='arrowright'||c==='keyd')?1:0;
- if(axeSide&&!keys.has(k)&&!keys.has(c))iceAxeStrike(axeSide);
+ if(axeSide&&!keys.has(k)&&!keys.has(c)){
+  iceAxeStrike(axeSide);
+  axeCatchStrike(axeSide);
+ }
+ if((k==='f'||c==='keyf')&&!keys.has(k)&&!keys.has(c))
+  attemptAxeCatch();
 
  const isSpace = k === ' ' || k === 'space' || c === 'space';
  if (isSpace) {
@@ -68,7 +73,7 @@ function processKeyUp(keyStr, codeStr) {
 function handleNativeKeyDown(e) {
  if (!e || typeof e.key !== 'string') return;
  const k = e.key.toLowerCase();
- if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 's', 'a', 'd'].includes(k)) {
+ if ([' ', 'space', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 's', 'a', 'd', 'f'].includes(k)) {
   e.preventDefault();
  }
  processKeyDown(e.key, e.code);
@@ -122,7 +127,10 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pointerdown', () => window.focus());
 
 function control(el, dir){
- el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); if(dir==='left'||dir==='right')iceAxeStrike(dir==='left'?-1:1); fingers[dir].add(e.pointerId); el.classList.add('down'); });
+ el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId); if(dir==='left'||dir==='right'){
+   iceAxeStrike(dir==='left'?-1:1);
+   axeCatchStrike(dir==='left'?-1:1);
+  } fingers[dir].add(e.pointerId); el.classList.add('down'); });
  for(const evt of ['pointerup','pointercancel','lostpointercapture']) el.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); fingers[dir].delete(e.pointerId); el.classList.toggle('down', fingers[dir].size > 0); });
 }
 
@@ -130,6 +138,10 @@ control(document.getElementById('left'), 'left');
 control(document.getElementById('right'), 'right');
 control(document.getElementById('up'), 'up');
 control(document.getElementById('down'), 'down');
+const catchButton=document.getElementById('catch');
+catchButton?.addEventListener('pointerdown',e=>{
+ e.preventDefault();e.stopPropagation();attemptAxeCatch();
+});
 document.getElementById('ghostToggle')?.addEventListener('click',()=>{
  trialGhostVisible=!trialGhostVisible;
  document.getElementById('ghostToggle').textContent=trialGhostVisible?'Ghost: on':'Ghost: off';
