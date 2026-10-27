@@ -59,3 +59,18 @@ test('route or quality reset drops cached images and memory accounting',()=>{
  assert.equal(vm.runInContext('renderStats.terrainBytes',env),0);
  assert.equal(vm.runInContext('renderStats.backdropBytes',env),0);
 });
+
+test('many route changes retain bounded sharp texture memory without repeated rebuilds',()=>{
+ for(let seed=0;seed<36;seed++){
+  vm.runInContext('applyRoute('+seed+')',env);
+  for(let i=1;i<=3;i++)vm.runInContext('mountainCache('+i+')',env);
+  const builds=vm.runInContext('renderStats.terrainBuilds',env);
+  for(let attempt=0;attempt<4;attempt++)
+   for(let i=1;i<=3;i++)vm.runInContext('mountainCache('+i+')',env);
+  assert.equal(vm.runInContext('renderStats.terrainBuilds',env),builds,
+   'standing-still mountain cache churn on route '+seed);
+  assert.equal(vm.runInContext('terrainCache.size',env),3);
+  assert.ok(vm.runInContext('renderStats.terrainBytes',env)<=40*1048576,
+   'sharper canvas cache memory exceeded on route '+seed);
+ }
+});
