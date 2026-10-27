@@ -59,6 +59,40 @@ function installFeaturedCourseGeometry(spires){
   // The cliff contour still follows real ledges and all ice connections.
   peak.rockShoulderLeft=Math.min(peak.summit[0],leftmost-70);
  }
+ prepareFeaturedRidgeCruxes(spires);
+}
+// Two designed, genuinely uphill summit cruxes. The climber exits the ice
+// onto a lower rock ridge and must *vault again* across a deep exposed
+// fracture before gaining the higher takeoff shelf. Not decorative shapes.
+const FEATURED_RIDGE_CRUXES=Object.freeze([
+ {peak:1,gap:320,rise:120,landingWidth:290,name:'The Black Notch'},
+ {peak:3,gap:380,rise:120,landingWidth:290,name:'The Broken Crown'}
+]);
+function prepareFeaturedRidgeCruxes(mountains){
+ for(const crux of FEATURED_RIDGE_CRUXES){
+  const s=mountains[crux.peak],old=s.summit;
+  // The ice endpoints are contained on the real, lower arrival rock.
+  const currentIceEnd=old[0]+(crux.peak===1?224:270);
+  const arrivalRight=Math.max(currentIceEnd+65,old[0]+240);
+  const arrival=[old[0],arrivalRight,old[2],old[3]];
+  const departureLeft=arrivalRight+crux.gap;
+  const departure=[departureLeft,departureLeft+crux.landingWidth,
+    old[2]-crux.rise,old[3]];
+  s.ridgeArrival=arrival;
+  s.ridgeCrux={...crux,from:'a'+crux.peak,to:'s'+crux.peak};
+  s.summit=departure;
+  const downstreamShift=departure[1]-old[1];
+  // Shift all later peaks WITH their ledges, so chasm clearances between
+  // consecutive mountains do not silently become short/easy.
+  for(let j=crux.peak+1;j<mountains.length;j++){
+   const dest=mountains[j];
+   dest.summit=[dest.summit[0]+downstreamShift,dest.summit[1]+downstreamShift,
+    dest.summit[2],dest.summit[3]];
+   dest.ledges=dest.ledges.map(l=>[l[0]+downstreamShift,l[1]+downstreamShift,...l.slice(2)]);
+   if(dest.cave){dest.cave.left+=downstreamShift;dest.cave.right+=downstreamShift;}
+   if(dest.rockShoulderLeft!==undefined)dest.rockShoulderLeft+=downstreamShift;
+  }
+ }
 }
 function featuredCampPosition(peak=2){
  const s=spires[peak],landing=s?.ledges?.[0];
