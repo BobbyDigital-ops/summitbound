@@ -5,6 +5,8 @@ const DT = 1/120; const PI = Math.PI;
 let mode = 'practice', p = {}, platforms = [], fingers = {left:new Set(),right:new Set(),up:new Set(),down:new Set(),vault:null}, keys = new Set(), camera = {x:0,y:0}, acc = 0, prev = performance.now(), elapsed = 0, completed = false, caveActivated = false, peakBuzz = false, trail = [], lastMessage = '', messageTimeout = 0, atStage = 0, lastSafeStage = 0, landingHistory = [];
 
 let caveFireDismissed=false;
+// Temporary practice testing anchor: the actual takeoff surface, not a free checkpoint.
+let practiceTakeoff=null;
 let graphicsQuality='auto'; // auto / low / high, configurable in Tune
 const snow = Array.from({length:190},(_,i)=>({x:((i*7919)%1009)/1009,y:((i*179)%977)/977,r:i%7===0?1.9:.75,speed:.2+(i%5)*.12}));
 
@@ -37,7 +39,7 @@ function spawn(stage=0, keepTime=false){
  hint(stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.', 3);
 }
 
-function gameReset(){landingHistory=[];spawn(0)}
+function gameReset(){landingHistory=[];practiceTakeoff=null;spawn(0)}
 function haptic(ms){try{navigator.vibrate?.(ms)}catch{}}
 function isGround(){return ['GROUNDED','RUNNING','BRAKING','SLIDING'].includes(p.state)}
 function currentPlatform(){return platforms.find(pl=>pl.id===p.standingOn)}
@@ -48,6 +50,8 @@ function plant(){
  if(!pl || !['summit','ledge'].includes(pl.kind) || p.state==='CLIMBING')return;
  const val = PolePhysicsEngine.validatePlantPoint(p.x, p.y, p.facingDir, [pl], cfg);
  if(!val.isValid)return;
+ if(mode==='practice')
+  practiceTakeoff={spire:pl.spire,platformId:pl.id,facingDir:p.facingDir};
  p.vault = PolePhysicsEngine.initVault(p.x, p.y, p.vx, p.vy, val.anchorX, val.anchorY, cfg);
  p.state = 'RIDING_VAULT'; p.anchorX = val.anchorX; p.anchorY = val.anchorY; p.bend = 0; peakBuzz = false; p.standingOn = null;
  haptic(9);
