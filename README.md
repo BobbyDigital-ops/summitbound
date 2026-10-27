@@ -1,3 +1,21 @@
+# Summitbound v0.14.0 — Vertical Precision & Fair Range
+
+**Playable:** one reviewed five-peak course. **Campaign goal:** exactly 100 quality-controlled levels (not yet implemented).
+
+The user's v0.13 playtest exposed two real problems: a jump could bypass the intended ledges and climbs, and the timing spectrum did not offer a near-vertical recovery/control option.
+
+**Changes**
+- **Intentional near-vertical release:** during roughly the first 20–22% of the pole ride, fully loaded recoil can generate a large vertical rise with effectively zero horizontal launch speed. The HUD and vault meter explicitly label this phase **VERTICAL**.
+- **Balanced distance:** the middle of the ride still rewards approach momentum; the full-speed same-height flight reaches roughly 877–928 world units rather than the former ~1319. Beyond ~66% of the ride energy progressively dissipates; overholding loses most of the range. Deterministic, no invisible landing assist or horizontal hard clamp.
+- **Summit geometry correction:** widen actual rock underneath ledges without extending the **walkable snowy summit collider** leftwards. This previously turned a structural rock fix into a shortcut over all the landing shelves. The physical ice exits remain connected to their actual summits.
+- **Proof:** simulated full-speed flights at ~20%, 55%, 85% release gain ~550, 408, 169 world units of height and ~29, 877, 553 units of same-height horizontal range respectively. At the fourth checkpoint's actual geography, full real-physics landing samples still offer multiple safe windows. An independent first-contact sweep across all four crossings found **no direct summit-to-summit shortcuts** in the reviewed Five Peaks slice.
+- **Practice:** same-peak retries remain available for learning; Hardcore/Time Trial remain punishing. PB/ghost data version 7 prevents comparing incompatible physics and terrain records.
+- **Quality gate:** `npm run test:precision-vault` is wired into CI and checks vertical control, maximum free-flight range, timing differences, momentum dependence, zero direct-summit bypass, five-peak course graph and both real campsite checkpoint ledges. The previously approved 997-seed reference layouts remain archived.
+
+**Caveats:** desktop and Android hands-on playtests are still required; simulated geometrical reachability does not certify enjoyable level difficulty, artwork quality or timing medals. Wind, future airborne axe saves and the 100-level content engine remain future phases.
+
+---
+
 # Summitbound v0.13.0 — Dynamic Pole Vault Rebuild
 
 **One playable five-peak vertical slice; exactly 100 levels remains the eventual campaign target.** The former gameplay is preserved in `backup/pre-vault-dynamics-v0121`.
