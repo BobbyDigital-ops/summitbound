@@ -647,9 +647,64 @@ function drawIceCrestSnow(i,paintCtx=ctx){
  }
 }
 
+// One real campsite on the third peak: checkpoint geography is part of
+// the same mountain summit collider, not a floating or separate level.
+function drawFeaturedCampsite(){
+ if(typeof featuredCampPosition!=='function')return;
+ const point=featuredCampPosition(),x=point.x,y=point.y;
+ ctx.save();
+ ctx.fillStyle='#142b3b';ctx.beginPath();
+ ctx.moveTo(x-67,y+1);ctx.lineTo(x-30,y-40);
+ ctx.lineTo(x+17,y-4);ctx.lineTo(x+17,y+3);
+ ctx.closePath();ctx.fill();
+ const canvas=ctx.createLinearGradient(x-62,y-43,x+10,y+6);
+ canvas.addColorStop(0,'#879287');canvas.addColorStop(.55,'#495b57');
+ canvas.addColorStop(1,'#263c3a');
+ ctx.fillStyle=canvas;ctx.beginPath();
+ ctx.moveTo(x-68,y+1);ctx.lineTo(x-31,y-41);
+ ctx.lineTo(x-6,y+1);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#111e29';ctx.lineWidth=2.5;
+ ctx.beginPath();ctx.moveTo(x-31,y-41);ctx.lineTo(x+16,y+2);
+ ctx.moveTo(x-68,y+1);ctx.lineTo(x-6,y+1);ctx.stroke();
+ ctx.fillStyle='#101d23';ctx.beginPath();
+ ctx.moveTo(x-32,y-31);ctx.lineTo(x-11,y-2);ctx.lineTo(x-27,y-2);ctx.closePath();ctx.fill();
+ const fx=x+49,fy=y-5;
+ ctx.strokeStyle='#4d3021';ctx.lineWidth=4;ctx.beginPath();
+ ctx.moveTo(fx-10,fy);ctx.lineTo(fx+11,fy+4);ctx.moveTo(fx+10,fy);ctx.lineTo(fx-8,fy+4);ctx.stroke();
+ const flick=Math.sin(performance.now()*.01)*2;
+ const glow=ctx.createRadialGradient(fx,fy-14,0,fx,fy-14,58);
+ glow.addColorStop(0,'#f5ac3d5a');glow.addColorStop(1,'#f5ac3d00');
+ ctx.fillStyle=glow;ctx.fillRect(fx-65,fy-79,130,100);
+ ctx.fillStyle='#dc7731';ctx.beginPath();ctx.moveTo(fx-9,fy+1);
+ ctx.quadraticCurveTo(fx-15,fy-14,fx+1,fy-27-flick);
+ ctx.quadraticCurveTo(fx+12,fy-11,fx+9,fy+1);ctx.fill();
+ ctx.fillStyle='#ffdd82';ctx.beginPath();ctx.moveTo(fx-3,fy+1);
+ ctx.quadraticCurveTo(fx-7,fy-11,fx+3,fy-16);
+ ctx.lineTo(fx+5,fy+1);ctx.fill();
+ ctx.restore();
+}
+
 function drawCaveLadder() {
  const c=spires[4].cave, x=caveGeometry().ladderX;
- const startY=c.floor-7, endY=c.ceiling+18; // Cave-only metal rungs
+ const startY=c.floor-7, endY=spires[4].summit[2]+10;
+ // Actual tunnel corridor follows the SAME ladder X from cave floor to the
+ // fifth peak. The player emerges at this X with no scripted lateral slide.
+ ctx.save();
+ const tunnel=ctx.createLinearGradient(x-34,endY,x+38,startY);
+ tunnel.addColorStop(0,'#152c3c');tunnel.addColorStop(.35,'#081724');
+ tunnel.addColorStop(1,'#162e3b');
+ ctx.fillStyle=tunnel;ctx.beginPath();
+ ctx.moveTo(x-28,startY+20);ctx.lineTo(x-32,startY-35);
+ ctx.lineTo(x-25,c.ceiling+4);ctx.lineTo(x-27,endY-3);
+ ctx.lineTo(x-12,endY-18);ctx.lineTo(x+15,endY-18);
+ ctx.lineTo(x+29,endY-4);ctx.lineTo(x+25,c.ceiling+4);
+ ctx.lineTo(x+30,startY+20);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#76949d65';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(x-26,startY+15);
+ ctx.lineTo(x-23,c.ceiling+4);ctx.lineTo(x-27,endY-3);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(x+27,startY+15);
+ ctx.lineTo(x+25,c.ceiling+4);ctx.lineTo(x+29,endY-3);ctx.stroke();
+ ctx.restore();
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  // Brushed steel rails and ice-encrusted wall brackets.
  ctx.strokeStyle='#203746';ctx.lineWidth=9;
@@ -997,6 +1052,11 @@ function draw(){
  }
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCave();
  if((spires[4].cave.right-camera.x)*zoom>-200&&(spires[4].cave.left-camera.x)*zoom<w+200)drawCaveLadder();
+ if(typeof featuredCampPosition==='function'){
+  const campsite=featuredCampPosition();
+  if((campsite.x-camera.x)*zoom>-120&&
+    (campsite.x-camera.x)*zoom<w+120)drawFeaturedCampsite();
+ }
  
  // PB ghost shares the existing world transform; no canvas or terrain reraster.
  if(typeof ghostPositionAt==='function'){
@@ -1040,7 +1100,7 @@ function draw(){
  const running=isGround() && Math.abs(p.vx)>30;
  const step=(p.runDistance||0)/55;
  const phase=Math.floor(step)%8;
- const pose=p.state==='STEP_OFF' ? 11 : p.state==='CLIMBING' ? 11
+ const pose=p.state==='CLIMBING' ? 11
   : p.vault?9:(p.state==='AIRBORNE'||p.state==='FALLING')?10
   :running?phase:8;
  if(climberSheet.complete && climberSheet.naturalWidth){
@@ -1104,12 +1164,11 @@ function draw(){
  if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
  if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
  const stageText=completed?'ASCENT COMPLETE':
-  `LEAP ${Math.min(atStage+1,4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
+  `FIVE PEAKS · PEAK ${Math.min(atStage+1,5)} / 5 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
  const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
   (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
-   'Hold ↑ on cave ladder · Release to rest'):p.state==='STEP_OFF'?
-  'Stepping onto the summit':
+   'Hold ↑ through rock tunnel · Release to rest'):
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
  if(subEl.textContent!==status)subEl.textContent=status;
  if(typeof updateTrialHud==='function')updateTrialHud();
