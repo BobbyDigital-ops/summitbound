@@ -1,3 +1,19 @@
+# Summitbound — v0.9.21 Precision Routes (Phase 4B)
+
+**Phase 4B implementation complete, awaiting human AI Studio review.** Active GitHub branch is now `main`, which Google AI Studio syncs. Snapshot `backup/pre-phase4b-v0920` safeguards the previous playable version; `level-template-v0.9.16` retains the approved original geometry reference.
+
+**Ice routes:** removed two decorative vertical frozen waterfalls that looked like duplicate climbing walls, and increased physically justified connections between intersecting climbing routes. Route branches reuse precisely the same upper path, never teleport. All 997 seeds retain accessible ledges and a summit exit; measured 1,043 shared branches across the 2,991 generated mountain stages.
+
+**Controlled descent:** Down/S and a contextual mobile ▼ control reverse climbing speed at the same 62 units/second, stop immediately on release, and allow ascent again mid-wall. From the upper summit, descend along an existing ice route; at a genuinely shared junction you can also continue from the higher ledge down to the lower one. Summit and shelf dismounts use physical route endpoints.
+
+**Landing difficulty:** new first-contact, stopping-distance and safe pole-release-window profiles bias unapproved generated layouts toward narrow high-route windows and generous lower-route windows. 2,987 of 2,991 stage layouts meet the measured high/low challenge distinction; the four remaining ones remain physically playable. The seven approved golden geometry snapshots are unchanged; physics, acceleration, landing collisions, pole spring constants and cave layout remain untouched. A subtle label/haptic acknowledges high landings.
+
+**Validation:** core route, rock backing, ice-junction and difficulty invariants were checked over 997 seeds; four representative ascent/pause/reverse/descent scenarios were exercised in a simulated runtime. New `npm run test:phase4b` tests are wired into GitHub Actions. Visual/physical touch testing in AI Studio is still required; do not treat code tests as visual approval. Vercel may still be build-rate limited.
+
+**Next Phase 5:** fix walking/falling through the cave's right wall, align actual cave collision with visible entrance, carve the cavern into the mountain, position the ladder to the right of the fire, and put Continue/Retry at the campfire without unsolicited popups. Phase 6 climbing/axe/pole animation; Phase 7 Android device readiness.
+
+---
+
 # Summitbound — v0.9.20 Mountain Integration (Phase 4A)
 
 **Completed visual pass:** each landing ledge is drawn with a broken-stone buttress whose deep root is anchored into its actual mountain-contour boundary. The decorative ice entry now overlaps real landing snow and fractured rock, addressing the gap below/along the previously floating icy strips. The final cave mountain's long, decorative white icicles/vertical waterfall streaks are removed and replaced by subdued rock cracks.
