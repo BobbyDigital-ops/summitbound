@@ -34,12 +34,12 @@ for(let seed=0;seed<9;seed++){
   assert.ok(s[4].cave.left-s[3].summit[1]>500);
  });
 }
-test('wall terrain variation and slow paced ice tools retained',()=>{
+test('wall terrain variation and fast distance-driven ice axes retained',()=>{
  const r=fs.readFileSync('public/game/scripts/rendering.js','utf8');
  const sim=fs.readFileSync('public/game/scripts/simulation.js','utf8');
  assert.match(r,/function cliffMicroTerrain/);
  assert.match(r,/function drawIcePicks/);
  assert.match(r,/const beat=p\.climb\.climbBeat\*Math\.PI\*\.72/);
  assert.match(sim,/c\.climbBeat\+=\(oldY-p\.y\)\/24/);
- assert.match(sim,/c\.climbBeat\+=\(oldY-p\.y\)\/24/);
+ assert.match(sim,/iceClimbDisplacement\(c,k,dt\)/);
 });
