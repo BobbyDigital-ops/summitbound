@@ -4,6 +4,7 @@ const DT = 1/120; const PI = Math.PI;
 
 let mode = 'practice', p = {}, platforms = [], fingers = {left:new Set(),right:new Set(),up:new Set(),down:new Set(),vault:null}, keys = new Set(), camera = {x:0,y:0}, acc = 0, prev = performance.now(), elapsed = 0, completed = false, caveActivated = false, peakBuzz = false, trail = [], lastMessage = '', messageTimeout = 0, atStage = 0, lastSafeStage = 0, landingHistory = [];
 
+let caveFireDismissed=false;
 let graphicsQuality='auto'; // auto / low / high, configurable in Tune
 const snow = Array.from({length:190},(_,i)=>({x:((i*7919)%1009)/1009,y:((i*179)%977)/977,r:i%7===0?1.9:.75,speed:.2+(i%5)*.12}));
 
@@ -25,6 +26,9 @@ function spawn(stage=0, keepTime=false){
  p = {x, y:pl.top-22, vx:0, vy:0, state:'GROUNDED', surface:'snow', facingDir:1, runDistance:0, vault:null, anchorX:0, anchorY:0, bend:0, groundedFor:.5, standingOn:pl.id, climb:null};
  if(!keepTime) elapsed=0;
  if(stage===0) caveActivated=false;
+ caveFireDismissed=false;
+ const campActions=document.getElementById('campfireActions');
+ if(campActions)campActions.hidden=true;
  atStage=stage; lastSafeStage=stage; completed=false; trail=[]; acc=0; peakBuzz=false; fingers.vault=null; fingers.up.clear(); fingers.down.clear();
  if(typeof resetTimeTrial==='function')resetTimeTrial();
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
