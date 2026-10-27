@@ -64,12 +64,15 @@ function candidateFlights(){
    if(vy>=0)descending.push({x,feet:y+22,prev});
    if(vy>=0&&y+22>40)break;
   }
-  paths.push({descending,braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
+  paths.push({descending,releaseFeet:r.nextPy+22,
+   braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
  }
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
 }
 function crossingAt(path,height){
+ // A release below the intended shelf is not a reachable uphill landing.
+ if(path.releaseFeet>height)return null;
  const p=path.descending;let lo=0,hi=p.length;
  while(lo<hi){const m=(lo+hi)>>1;if(p[m].feet<height-4)lo=m+1;else hi=m;}
  if(lo===p.length||p[lo].prev>height+3)return null;
