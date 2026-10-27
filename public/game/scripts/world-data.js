@@ -77,7 +77,9 @@ function candidateFlights(){
    const prev=y+22;
    vy+=cfg.gravity*flightStep;x+=kick.vx*flightStep;y+=vy*flightStep;
    if(vy>=0)descending.push({x,feet:y+22,prev});
-   if(vy>=0&&y+22>40)break;
+   // Include real descents to alternative lower shelves; previous 40-unit
+   // cut-off artificially compressed the entire mountain layout.
+   if(vy>=0&&y+22>580)break;
   }
   paths.push({descending,releaseFeet:r.nextPy+22,
    braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
@@ -107,102 +109,68 @@ function viableShelves(ledges,previous){
  }
  return stats.every(s=>s.hits>=3&&s.safe>=2);
 }
+// Physically validated alternatives for ONE receiving mountain.
+// Each tuple: distance from takeoff, rise (negative=below takeoff), width.
+// The choices are not stairs: one landing leads via ice to the NEXT summit.
+const MOUNTAIN_ARCHETYPES={
+ 2:[[[750,-220,215],[410,130,145]],
+    [[590,-240,225],[390,135,130]]],
+ 3:[[[740,-240,210],[480,-35,165],[395,133,130]],
+    [[510,-240,240],[690,-95,185],[580,121,175]],
+    [[720,-210,195],[430,25,170],[590,105,150]],
+    [[555,-220,245],[690,-70,178],[415,145,118]],
+    [[575,-250,225],[420,15,130],[620,105,155]],
+    [[680,-320,260],[460,-50,160],[600,115,135]]],
+ 4:[[[530,-220,240],[700,-155,160],[470,-30,170],[588,120,140]],
+    [[710,-280,205],[520,-140,155],[645,5,135],[395,130,120]],
+    [[600,-280,220],[730,-165,185],[510,-10,145],[400,134,120]]]
+};
+const MOUNTAIN_TIER_NAMES={2:['Low','High'],
+ 3:['Low','Middle','High'],4:['Low','Middle','High','Ridge']};
 let generatorFallbacks=0;
 function selectTerraces(spire,seed){
  const rand=seededRandom(seed,spire),previous=spires[spire-1].summit;
  const design=MOUNTAIN_DESIGNS[spire],count=terraceCount(spire,seed);
- const labels=count===2?['Low','High']:count===3?
-  ['Low','Middle','High']:['Low','Middle','High','Ridge'];
- const near=design.near,far=design.far;
- // Separate altitude bands so a mountain can't render as 2 similarly
- // elevated shelves. Horizontal order is independently shuffled.
- // The real pole can land reliably up to ~145 units uphill. Keep every
- // shelf inside that flight envelope; tower height above shelves can vary.
- // Separate high/low options more clearly, within the real measured 145-unit
- // uphill vault envelope. Lower shelves are lower, not unreachable highs.
- const altitudeBands=count===2?[[15,32],[122,145]]:
-  count===3?[[15,33],[71,92],[126,145]]:
-  [[13,27],[49,66],[89,106],[127,145]];
- const widthBands=count===2?[[110,150],[178,235]]:
-  count===3?[[100,140],[145,184],[192,237]]:
-  [[100,126],[136,164],[173,200],[204,243]];
- // Wider separation in X; never hard-code the high shelf as the farthest.
- const horizontal=count===2?[near,far+34]:
-  count===3?[near,design.mid+13,far+32]:
-  [near,near+64,design.mid+53,far+38];
- let best=null,bestScore=-Infinity;
- for(let attempt=0;attempt<(count===4?1500:520);attempt++){
-  const zones=[...horizontal],widthSlots=[...widthBands];
-  for(let i=zones.length-1;i>0;i--){
-   const j=Math.floor(rand()*(i+1));
-   [zones[i],zones[j]]=[zones[j],zones[i]];
-   const k=Math.floor(rand()*(i+1));
-   [widthSlots[i],widthSlots[k]]=[widthSlots[k],widthSlots[i]];
+ const variants=MOUNTAIN_ARCHETYPES[count];
+ const first=(seed*7+spire*5)%variants.length;
+ const labels=MOUNTAIN_TIER_NAMES[count];
+ // Hand-shaped route families, followed by only small seeded variations.
+ // Do not optimize toward the same three short uphill shelves every time.
+ for(let family=0;family<variants.length;family++){
+  const template=variants[(first+family)%variants.length];
+  for(let attempt=0;attempt<=20;attempt++){
+   const authored=attempt===20;
+   const ledges=template.map(([distance,rise,width],i)=>{
+    const dx=authored?0:Math.floor(rand()*35)-17;
+    const dy=authored?0:Math.floor(rand()*17)-8;
+    const dw=authored?0:Math.floor(rand()*35)-17;
+    const x=previous[1]+distance+dx;
+    return [x,x+width+dw,previous[2]-(rise+dy),
+      ['rock','snow','ice'][(i+Math.floor(rand()*3))%3],labels[i]];
+   });
+   const xs=ledges.map(t=>t[0]),ys=ledges.map(t=>t[2]);
+   const widths=ledges.map(t=>t[1]-t[0]);
+   const byHeight=[...ledges].sort((a,b)=>a[2]-b[2]);
+   if(Math.max(...ys)-Math.min(...ys)<310)continue;
+   if(Math.max(...xs)-Math.min(...xs)<165)continue;
+   if(byHeight.some((t,i)=>i>0&&t[2]-byHeight[i-1][2]<65))continue;
+   if(Math.max(...widths)-Math.min(...widths)<35)continue;
+   if(!viableShelves(ledges,previous))continue;
+   // Rising left face with a crest farther right; retain a real horizontal
+   // pole-planting runup on top without changing the physics or controls.
+   const left=previous[1]+690+Math.floor(rand()*65);
+   const right=Math.max(left+390,
+     Math.max(...ledges.map(t=>t[1]))+235+Math.floor(rand()*96));
+   const highest=Math.min(...ys);
+   const top=Math.min(design.baseAltitude+60,highest-90)
+    -Math.floor(rand()*70);
+   if(ledges.some(t=>t[2]<=top+68))continue;
+   if(authored)generatorFallbacks++;
+   return {ledges,summit:[left,right,top,'snow'],
+    ridge:{character:rand(),roughness:.70+rand()*.7}};
   }
-  const ledges=labels.map((label,i)=>{
-   const [low,high]=altitudeBands[i];
-   const rise=low+Math.floor(rand()*(high-low+1));
-   const left=previous[1]+Math.max(388,zones[i]+Math.floor(rand()*37)-18);
-   const [wmin,wmax]=widthSlots[i];
-   const width=wmin+Math.floor(rand()*(wmax-wmin+1));
-   return [left,left+width,previous[2]-rise,
-    ['rock','snow','ice'][Math.floor(rand()*3)],label];
-  });
-  const sorted=[...ledges].sort((a,b)=>a[2]-b[2]);
-  const xs=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
-  if(Math.max(...xs)-Math.min(...xs)<190)continue;
-  if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<(count===4?29:40)))continue;
-  // Reject superficially different shelves that visually read as one level.
-  if(sorted.at(-1)[2]-sorted[0][2]<108)continue;
-  const widths=ledges.map(t=>t[1]-t[0]);
-  if(Math.max(...widths)-Math.min(...widths)<40)continue;
-  if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<35)))continue;
-  if(!viableShelves(ledges,previous))continue;
-  const left=previous[1]+346+Math.floor(rand()*14);
-  // Summit height and width vary independently of the shelf arrangement.
-  // Its safe takeoff run-up must not disappear even on a short high peak.
-  const right=Math.max(...ends)+215+Math.floor(rand()*200);
-  const highest=Math.min(...ledges.map(t=>t[2]));
-  const upper=Math.min(design.baseAltitude+67,highest-55);
-  const lower=Math.min(design.baseAltitude-60,upper-8);
-  const top=lower+Math.floor(rand()*(upper-lower+1));
-  if(ledges.some(t=>t[2]<top+55||t[0]<left+24))continue;
-  // Prefer compositions whose shelves do not read as a staircase.
-  const rangeY=sorted.at(-1)[2]-sorted[0][2];
-  const sizes=ledges.map(t=>t[1]-t[0]);
-  const score=rangeY*.9+(Math.max(...xs)-Math.min(...xs))*.35+
-   (Math.max(...sizes)-Math.min(...sizes))*.4+
-   (ledges[0][0]>ledges.at(-1)[0]?16:0);
-  if(score>bestScore){
-   bestScore=score;best={ledges,summit:[left,right,top,'snow'],
-    ridge:{character:rand(),roughness:.75+rand()*.6}};
-  }
-  // Don't spend the entire candidate budget after a strong, playable map.
-  // A fully feasible map already beats a speculative 'perfect' map that stalls
-  // browser startup. Inspect only a modest candidate sample after first success.
-  if(best&&attempt>=42)break;
  }
- if(best)return best;
- // Never show a broken mountain if a rare seed cannot satisfy the stricter
- // search. Fall back to a fully flight-validated THREE-choice composition
- // with offsets relative to the ACTUAL preceding summit, not a stale map.
- // This is not permission to accept an unreachable layout.
- const templates={
-  1:[[559,155,33,'rock','Low'],[388,230,81,'snow','Middle'],[457,110,141,'ice','High']],
-  2:[[462,154,31,'snow','Low'],[567,224,91,'rock','Middle'],[391,120,143,'ice','High']],
-  3:[[562,170,45,'rock','Low'],[388,233,85,'snow','Middle'],[468,100,142,'ice','High']]
- };
- const ledges=templates[spire].map(t=>[
-  previous[1]+t[0],previous[1]+t[0]+t[1],previous[2]-t[2],t[3],t[4]]);
- if(!viableShelves(ledges,previous))
-  throw Error('Even the validated fallback is unreachable for '+design.name);
- generatorFallbacks++;
- const highest=Math.min(...ledges.map(t=>t[2]));
- return {ledges,summit:[previous[1]+347,
-  Math.max(...ledges.map(t=>t[1]))+285,
-  Math.min(design.baseAltitude,highest-85),'snow'],
-  ridge:{character:.5,roughness:1}};
-
+ throw Error('No playable mountain composition for route '+seed+', stage '+spire);
 }
 
 function applyRoute(seed){
@@ -250,6 +218,21 @@ function applyRoute(seed){
  * Most of the initial climb is near-vertical, with a short rock-following
  * traverse as the route approaches its own section of the upper crest.
  */
+// Spread actual ascent exits across the summit without changing manual climb.
+function iceExitX(spireIndex,fromTier){
+ const s=spires[spireIndex],min=s.summit[0]+52,max=s.summit[1]-90;
+ const ordered=s.ledges.map((ledge,i)=>({
+  i,wanted:Math.min(max,Math.max(min,ledge[1]-4))
+ })).sort((a,b)=>a.wanted-b.wanted);
+ const exits=[];let last=min-54;
+ for(let n=0;n<ordered.length;n++){
+  const remain=ordered.length-n-1;
+  const x=Math.max(min+n*54,
+   Math.min(max-remain*54,Math.max(last+54,ordered[n].wanted)));
+  exits[ordered[n].i]=x;last=x;
+ }
+ return exits[fromTier];
+}
 function iceClimbPoints(spireIndex,fromTier=null){
  const s=spires[spireIndex];
  if(!s||spireIndex<1||spireIndex>3||s.cave)return [];
@@ -259,7 +242,7 @@ function iceClimbPoints(spireIndex,fromTier=null){
  const startX=ledge[1]-30,startY=ledge[2]-22;
  // Exit near the chosen route's own upper face. Never funnel every ledge
  // backwards to the left corner of the summit.
- const endX=Math.min(s.summit[1]-90,Math.max(s.summit[0]+48,startX+26));
+ const endX=iceExitX(spireIndex,fromTier);
  const endY=s.summit[2]-22;
  const spread=endX-startX,climbHeight=startY-endY;
  const bend={x:startX+spread*.28,y:startY-climbHeight*.64};
@@ -305,7 +288,7 @@ function mountainContourNodes(index) {
  const nodes=[{x:top[0]-12,y:top[2]+2}];
  if(mountain.ledges.length) {
   for(const tier of [...mountain.ledges].sort((a,b)=>a[2]-b[2])) {
-   nodes.push({x:tier[0]-10,y:tier[2]+3});
+   nodes.push({x:tier[0]+Math.min(65,(tier[1]-tier[0])*.45),y:tier[2]+3});
   }
  } else if(mountain.cave) {
   nodes.push({x:mountain.cave.left+72,y:top[2]+48});
@@ -315,7 +298,7 @@ function mountainContourNodes(index) {
   nodes.push({x:top[0]-55,y:top[2]+240});
  }
  const lowest=mountain.ledges.length ? Math.min(...mountain.ledges.map(v=>v[0])) : (mountain.cave ? mountain.cave.left : top[0]);
- nodes.push({x:lowest-85,y:2100});
+ nodes.push({x:lowest-145,y:2100});
  return nodes;
 }
 function mountainContourX(index,y){
