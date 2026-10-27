@@ -107,6 +107,7 @@ function viableShelves(ledges,previous){
  }
  return stats.every(s=>s.hits>=3&&s.safe>=2);
 }
+let generatorFallbacks=0;
 function selectTerraces(spire,seed){
  const rand=seededRandom(seed,spire),previous=spires[spire-1].summit;
  const design=MOUNTAIN_DESIGNS[spire],count=terraceCount(spire,seed);
@@ -148,6 +149,10 @@ function selectTerraces(spire,seed){
   const xs=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
   if(Math.max(...xs)-Math.min(...xs)<160)continue;
   if(sorted.some((t,i)=>i>0&&t[2]-sorted[i-1][2]<(count===4?29:40)))continue;
+  // Reject superficially different shelves that visually read as one level.
+  if(sorted.at(-1)[2]-sorted[0][2]<95)continue;
+  const widths=ledges.map(t=>t[1]-t[0]);
+  if(Math.max(...widths)-Math.min(...widths)<40)continue;
   if(ends.some((x,i)=>ends.some((y,j)=>i!==j&&Math.abs(x-y)<35)))continue;
   if(!viableShelves(ledges,previous))continue;
   const left=previous[1]+346+Math.floor(rand()*14);
@@ -173,8 +178,26 @@ function selectTerraces(spire,seed){
   if(bestScore>255&&attempt>55)break;
  }
  if(best)return best;
- throw Error('Cannot map playable, distinct shelves for '+design.name+
-  ', route '+seed+' without changing pole physics');
+ // Never show a broken mountain if a rare seed cannot satisfy the stricter
+ // search. Fall back to a fully flight-validated THREE-choice composition
+ // with offsets relative to the ACTUAL preceding summit, not a stale map.
+ // This is not permission to accept an unreachable layout.
+ const templates={
+  1:[[559,155,33,'rock','Low'],[384,230,81,'snow','Middle'],[457,110,141,'ice','High']],
+  2:[[462,154,31,'snow','Low'],[567,224,91,'rock','Middle'],[391,120,143,'ice','High']],
+  3:[[562,170,45,'rock','Low'],[377,233,85,'snow','Middle'],[468,100,142,'ice','High']]
+ };
+ const ledges=templates[spire].map(t=>[
+  previous[1]+t[0],previous[1]+t[0]+t[1],previous[2]-t[2],t[3],t[4]]);
+ if(!viableShelves(ledges,previous))
+  throw Error('Even the validated fallback is unreachable for '+design.name);
+ generatorFallbacks++;
+ const highest=Math.min(...ledges.map(t=>t[2]));
+ return {ledges,summit:[previous[1]+347,
+  Math.max(...ledges.map(t=>t[1]))+285,
+  Math.min(design.baseAltitude,highest-85),'snow'],
+  ridge:{character:.5,roughness:1}};
+
 }
 
 function applyRoute(seed){

@@ -16,3 +16,13 @@ Each *jump* has one outgoing summit, a chasm, then **one incoming mountain with 
 **Acceptance criteria:** shelves must have different elevations (not 2 at the same height), distinct landing positions and widths, distinct real first-contact release trajectories with braking room, valid cliff backing and a playable ice climb and summit exit. New Route must rebuild live collision rectangles.
 
 **Separate follow-on work:** real walkable summit slopes, broader/shared/branching natural ice walls, more natural cave and mobile performance; none is disguised as part of the layout generator.
+
+## Route 1 worked map (relative to each preceding takeoff summit)
+
+| Destination | Low shelf (distance / rise / width) | Middle shelf | High shelf | Summit altitude |
+|---|---|---|---|---|
+| Broken Tooth | 559 / 33 / 155 | 384 / 81 / 230 | 457 / 141 / 110 | approx. 796 |
+| Windward Spire | 462 / 31 / 154 | 567 / 91 / 224 | 391 / 143 / 120 | varies by seed |
+| Lantern Crag | 562 / 45 / 170 | 377 / 85 / 233 | 468 / 142 / 100 | varies by seed |
+
+Game units; X distance is measured from the takeoff summit's right edge. Notice that the highest shelf is closer than the low shelf on every example except where they happen to be otherwise ordered. These are examples from a validated route, not fixed coordinates for all routes.

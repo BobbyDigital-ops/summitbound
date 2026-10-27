@@ -29,4 +29,5 @@ jobs:
       - run: npm run test:climb
       - run: npm run test:chasm
       - run: npm run test:procedural
+      - run: npm run test:allroutes
       - run: npm run build
