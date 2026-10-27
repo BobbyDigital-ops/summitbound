@@ -24,7 +24,7 @@ for(const [id, key, output, divisor] of [['liftTune','arcadeLift','liftVal',100]
  });
 }
 
-for(const el of document.querySelectorAll('[data-skip]')) el.addEventListener('click', () => { if(typeof invalidateTimeTrial==='function')invalidateTimeTrial(); spawn(Number(el.dataset.skip), true); document.getElementById('tuning').hidden = true; });
+for(const el of document.querySelectorAll('[data-skip]')) el.addEventListener('click', () => { spawn(Number(el.dataset.skip), true); if(typeof invalidateTimeTrial==='function')invalidateTimeTrial(); document.getElementById('tuning').hidden = true; });
 
 function processKeyDown(keyStr, codeStr) {
  const k = (keyStr || '').toLowerCase();
