@@ -238,33 +238,8 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.stroke();
  }
 
- // Frozen falls: seasonal ice glazed over fractures, not additional climb paths.
- if(i===1||i===3){
-  // Seasonal ice on ordinary cliff fissures only. The final summit's
-  // decorative vertical 'white needles' were visually misleading.
-  const falls=[{x:L+(R-L)*(i===1?.62:.77),y:T+12,
-   length:i===1?395:510,width:i===1?33:46}];
-  for(const fall of falls){
-   const {x,y,length,width}=fall;
-   const ice=paintCtx.createLinearGradient(x-width,y,x+width,y);
-   ice.addColorStop(0,'#729eae00');ice.addColorStop(.23,'#b8e6ead2');
-   ice.addColorStop(.52,'#effbffeb');ice.addColorStop(.77,'#88c8dacc');
-   ice.addColorStop(1,'#4f879900');
-   paintCtx.fillStyle=ice;paintCtx.beginPath();
-   paintCtx.moveTo(x-width*.45,y);paintCtx.quadraticCurveTo(x-width,y+length*.24,x-width*.37,y+length*.5);
-   paintCtx.bezierCurveTo(x-width*.75,y+length*.7,x-width*.30,y+length*.91,x-3,y+length);
-   paintCtx.lineTo(x+width*.29,y+length*.9);
-   paintCtx.bezierCurveTo(x+width*.8,y+length*.70,x+width*.35,y+length*.3,x+width*.43,y);
-   paintCtx.closePath();paintCtx.fill();
-   for(let g=0;g<4;g++){
-    const sx=x-width*.28+g*width*.17;
-    paintCtx.strokeStyle=g%2===0?'#eff9ffbf':'#4a91acaa';
-    paintCtx.lineWidth=g%2===0?2.4:3.2;paintCtx.beginPath();
-    paintCtx.moveTo(sx,y+15);paintCtx.bezierCurveTo(sx+8,y+length*.35,
-     sx-10,y+length*.63,sx+6,y+length*.89);paintCtx.stroke();
-   }
-  }
- }
+ // All ice-coloured features here are climbable routes; don't paint
+ // decorative frozen falls that masquerade as a second ice wall.
  paintCtx.restore();
  // Small crags remain clipped to the mountain rock face, never in the chasm.
  cliffMicroTerrain(i,L,R,T,paintCtx);
