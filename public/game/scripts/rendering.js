@@ -92,16 +92,20 @@ function cliffMicroTerrain(i, L, R, T,paintCtx=ctx) {
 // All geometry here is visual only; no surface/landing/collision edits.
 function terraceButtressProfile(i,a,b,y){
  const width=b-a;
- const tip=a-5,depth=86+Math.min(24,width*.1);
+ // Shelf snow stays on the ACTUAL collision lip. Rock underneath runs
+ // diagonally into the continuous mountain contour at several depths.
+ const tip=a-5,depth=93+Math.min(29,width*.12);
  const face=mountainContourX(i,y+68);
  const rootFace=mountainContourX(i,y+depth+19);
- const anchor=Math.max(face+30,rootFace+28,a+width*.57);
+ const rootDeep=mountainContourX(i,y+depth+54);
+ const anchor=Math.max(face+32,rootFace+30,a+width*.57);
  return [
-  [tip,y+5],[a+width*.23,y+8],[a+width*.55,y+3],
-  [b+4,y+6],[b+9,y+18],[b-width*.07,y+29],
-  [anchor+18,y+61],[anchor+25,y+depth],
-  [anchor-13,y+depth+19],[anchor-27,y+64],
-  [a+width*.13,y+52],[tip-5,y+25]
+  [tip,y+7],[a+width*.13,y+3],[a+width*.37,y+8],
+  [b-15,y+5],[b+6,y+13],[b+5,y+27],
+  [anchor+32,y+59],[anchor+22,y+depth],
+  [rootDeep+30,y+depth+54],[rootDeep-11,y+depth+57],
+  [rootFace-17,y+depth+19],[face-12,y+70],
+  [a+width*.34,y+57],[a+width*.12,y+40],[tip-7,y+20]
  ];
 }
 
@@ -292,6 +296,13 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.moveTo(b-w*.18,y+15);
   paintCtx.lineTo(b-w*.30,y+51);
   paintCtx.lineTo(b-w*.34,y+66);paintCtx.stroke();
+  // Fracture bands link the terrace underside to the same cliff, not a
+  // separate shadow cutout or detached triangular 'platform' asset.
+  const contourAt=mountainContourX(i,y+100);
+  paintCtx.strokeStyle='#a4b6bb48';paintCtx.lineWidth=4.5;
+  paintCtx.beginPath();paintCtx.moveTo(a+width*.37,y+24);
+  paintCtx.bezierCurveTo(a+width*.43,y+58,contourAt-10,y+78,
+   contourAt+29,y+121);paintCtx.stroke();
   paintCtx.restore();
 
   const cap=paintCtx.createLinearGradient(a,y-12,a,y+13);
@@ -302,13 +313,13 @@ function drawSpire(i,paintCtx=ctx){
   const steps=Math.max(6,Math.ceil(width/18));
   for(let q=0;q<=steps;q++){
    const f=q/steps, x=a+f*width;
-   const drift=-6+(Math.sin(f*18+i*2.6)+Math.sin(f*37+i*3.1))*(isSummit?2:1.5);
+   const drift=(isSummit?-6:-3)+ (Math.sin(f*18+i*2.6)+Math.sin(f*37+i*3.1))*(isSummit?2:1.3);
    paintCtx.lineTo(x,y+drift);
   }
   paintCtx.lineTo(b+2,y+2);
   for(let q=steps;q>=0;q--){
    const f=q/steps, x=a+f*width;
-   const base=4+Math.sin(f*13+i)*2.2+(isSummit?2:6*Math.pow(Math.sin(Math.PI*f),2));
+   const base=(isSummit?5:3.5)+Math.sin(f*13+i)*1.4;
    paintCtx.lineTo(x,y+base);
   }
   paintCtx.closePath();paintCtx.fill();
@@ -536,8 +547,8 @@ function drawIceShelfJoins(i,paintCtx=ctx){
   const ledge=spires[i].ledges[route.tier];
   if(!ledge)continue;
   const x=route.points[0].x,y=ledge[2];
-  const maxLeft=Math.min(49,x-ledge[0]-5);
-  const maxRight=Math.min(50,ledge[1]-x-5);
+  const maxLeft=Math.min(34,x-ledge[0]-5);
+  const maxRight=Math.min(30,ledge[1]-x-5);
   if(maxLeft<6||maxRight<6)continue;
   paintCtx.save();
   const melt=paintCtx.createLinearGradient(x,y-32,x+8,y+52);
@@ -550,7 +561,7 @@ function drawIceShelfJoins(i,paintCtx=ctx){
   paintCtx.lineTo(x-maxLeft,y-6);
   paintCtx.lineTo(x-maxLeft*.59,y+7);
   paintCtx.lineTo(x-maxLeft*.30,y+22);
-  paintCtx.lineTo(x-5,y+48);
+  paintCtx.lineTo(x-5,y+28);
   paintCtx.lineTo(x+maxRight*.25,y+25);
   paintCtx.lineTo(x+maxRight*.77,y+10);
   paintCtx.lineTo(x+maxRight*.94,y-10);
@@ -578,7 +589,7 @@ function drawIceCrestSnow(i,paintCtx=ctx){
   const tip=icePositionAt(i,summitY+16,route.tier);
   if(!tip)continue;
   const x=tip.x,span=iceFaceWidths(1,i,route.tier);
-  const radius=Math.max(52,span.left+span.right+26);
+  const radius=Math.max(39,(span.left+span.right)*.46+9);
   const crest=paintCtx.createLinearGradient(x,summitY-16,x,summitY+60);
   crest.addColorStop(0,'#f6ffffed');
   crest.addColorStop(.31,'#e9f7fae0');
@@ -597,7 +608,7 @@ function drawIceCrestSnow(i,paintCtx=ctx){
   for(let n=12;n>=0;n--){
    const t=n/12,xx=x-radius*.78+t*radius*1.56;
    const feathers=(1-Math.abs(2*t-1));
-   const lower=summitY+7+feathers*(27+7*Math.sin(t*17+i*2.1));
+   const lower=summitY+5+feathers*(13+5*Math.sin(t*17+i*2.1));
    paintCtx.lineTo(xx,lower);
   }
   paintCtx.closePath();paintCtx.fillStyle=crest;paintCtx.fill();
