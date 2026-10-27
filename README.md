@@ -1,3 +1,13 @@
+# Summitbound — active development v0.9.18 (Sharper Mobile)
+
+**Phase 1 optimisation delivered:** mobile mountain textures have selectively improved clarity; portrait Auto canvas rendering is capped at 1.20 DPR and safely downgrades to 1x only after repeated expensive draw samples. Terrain/background caching, idle pacing and the original vault physics remain intact.
+
+**Approved level template:** `level-template-v0.9.16` preserves the visually approved mountain layouts. `tests/approved-level-template.test.cjs` protects seven representative seeds in CI, alongside reachability, braking, cliff, ice ascent and the full 997-seed route sweep. New level families require additional manual screenshot/playability review, not merely passing geometry tests.
+
+**Next work:** `docs/post-phase1-roadmap.md` records shared ice routes and blended summit exits (Phase 3); mountain silhouettes, trees and snow (Phase 4); natural cave and interactive campfire (Phase 5); realistic wall-facing climbing animation (Phase 6); device checks and Android preparation (Phase 7). Read `docs/level-design-template-v0916.md` before expanding the procedural level catalogue.
+
+---
+
 # Summitbound — active development v0.9.14 Mapped Mountain Routes
 
 This checkpoint replaces near-horizontal platform stacks with height/distance/width-independent shelves. Each receiving peak usually offers three physically reachable shelf choices; a minority offer two or four. Summit height and crest width also vary. The 997-seed regression sweep passed without fallbacks. See [the mountain layout map](docs/mountain-layouts.md).

@@ -23,3 +23,9 @@
 ## Deliberate phase boundary
 
 **v0.9.16 template is visually approved for now.** Phase 1 addresses mobile performance, frame pacing, caching, memory, DPR and rendering overhead. Optimisation must not silently shrink chasms, change pole physics, flatten mountains or remove independent ice routes.
+
+## Quality gate for large level collections
+
+The current generator provides 997 deterministic routes using a limited set of reviewed shelf archetypes and three receiving mountains per route. More levels should be built from *additional, deliberately different* archetypes, not unbounded random coordinate changes. Preserve the existing golden seeds (0, 1, 2, 7, 42, 250, 996) and add reviewed golden samples when introducing each new family.
+
+The `level-template-v0.9.16` snapshot is immutable. In active development, `tests/approved-level-template.test.cjs` rejects accidental changes to geometry, while the 997-seed tests check first-contact reach, braking room, summit climb exits and deterministic layout variety. Add portrait/desktop visual review, natural rock/ice intersections and difficulty-curated playthroughs before promising a much larger level catalogue. Full campaign assembly and visual similarity scoring are not yet implemented.

@@ -30,3 +30,13 @@ The v0.9.16 mountain layouts are **frozen as a reusable level template** in bran
 ## Remaining performance work
 
 Physical-device trace measurements, high-resolution GPU memory evaluation, final cave static-layer caching if needed, and Android packaging/testing. This phase is intentionally a targeted first pass, not a guaranteed resolution of every handset's stutter.
+
+## Closing pass (v0.9.18)
+
+- Portrait Auto main canvas: **1.20 DPR cap**, while Low remains 1 and High remains opt-in at 2. Foreground mountain texture resolution improves from 0.60 to 0.72 with a 2304px mobile dimension cap and the existing 40 MiB LRU budget.
+- Background stays soft by design (cached at 0.94 Auto portrait); the last desktop cache dimensions and sampling budget are preserved to avoid expensive headless and desktop resampling.
+- Auto quality declines **only after three consecutive stable-cache sample windows above 24ms p95 draw time**, then remains at 1 DPR rather than oscillating. Reselect Auto in Tune to try crisp rendering again.
+- A new regression checks bounded resolution profiles and hysteresis, and the cache test now stresses 36 consecutive generated routes while checking that keeping three mountains visible never triggers repeated rebuilds.
+- The mountain generator's approved geometry is protected by seven deterministic snapshot fingerprints. The 997-route geometric validation is still required.
+
+**Closure:** code and CI validation complete. Actual Android speed, sharpness and frame-time measurements remain a real-device acceptance activity in Phase 7. See `docs/post-phase1-roadmap.md` for the remaining user feedback.
