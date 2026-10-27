@@ -122,8 +122,8 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
    const cliff=mountainContourX(i,ledge[2]+3);
    if(cliff<ledge[0]+12||cliff>ledge[1]-12)
     failures.push('ledge detached from common bedrock '+i+'/'+tier);
-   if(!path?.length||path.at(-1).x<peak.summit[0]+3||
-      path.at(-1).x>peak.summit[1]-3)
+   if(!path?.length||path.at(-1).x<(peak.ridgeArrival||peak.summit)[0]+3||
+      path.at(-1).x>(peak.ridgeArrival||peak.summit)[1]-3)
     failures.push('disconnected ice summit '+i+'/'+tier);
    if(path)for(let n=0;n<=16;n++){
     const y=path.at(-1).y+(path[0].y-path.at(-1).y)*n/16;
@@ -135,6 +135,12 @@ function auditPlayableCourse(spec=FEATURED_COURSE){
   const checkpoint=featuredCheckpointAtPeak(i);
   if(checkpoint?.type==='campsite'&&peak.ledges.length!==1)
    failures.push('checkpoint mountain needs exactly one real landing ledge '+i);
+  if(peak.ridgeArrival){
+   const ridge=shelfTimingProfiles([peak.summit],peak.ridgeArrival)[0];
+   if(ridge.safe<5)failures.push('ridge vault lacks precision but achievable release '+i);
+   const gap=peak.summit[0]-peak.ridgeArrival[1];
+   if(gap<280)failures.push('ridge not physically dangerous '+i);
+  }
   const minGap=Math.min(...peak.ledges.map(l=>l[0]-previous.summit[1]));
   if(minGap<400)failures.push('crossing not sufficiently wide '+i);
   summary.push({peak:i,landings:profiles.map(x=>x.safe),minClearance:minGap});
@@ -158,16 +164,22 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
  peakSet.forEach((peak,i)=>{
   addNode('s'+i,'summit',i,peak.summit);
   peak.ledges.forEach((ledge,t)=>addNode('l'+i+'-'+t,'ledge',i,ledge));
+  if(peak.ridgeArrival){
+   addNode('a'+i,'arrival',i,peak.ridgeArrival);
+   const precision=shelfTimingProfiles([peak.summit],peak.ridgeArrival)[0];
+   if(precision.safe<5)issues.push('unreachable ridge crux '+i);
+   else addEdge('a'+i,'s'+i,'ridge-vault',precision.safe);
+  }
   if(peak.cave)addNode('cave'+i,'cave',i,
    [peak.cave.left,peak.cave.right,peak.cave.floor]);
   if(peak.cave)addEdge('cave'+i,'s'+i,'tunnel-ladder',1);
   peak.ledges.forEach((ledge,t)=>{
    const points=routeResolver?routeResolver(peakSet,i,t):
     peakSet===spires&&i>=1&&i<=4?iceRouteNetwork(i)[t]?.points:null;
-   if(!points||points.at(-1).x<peak.summit[0]+3||
-    points.at(-1).x>peak.summit[1]-3)
+   if(!points||points.at(-1).x<(peak.ridgeArrival||peak.summit)[0]+3||
+    points.at(-1).x>(peak.ridgeArrival||peak.summit)[1]-3)
     issues.push('climb route missing real summit exit: '+i+'/'+t);
-   else addEdge('l'+i+'-'+t,'s'+i,'ice',1);
+   else addEdge('l'+i+'-'+t,peak.ridgeArrival?'a'+i:'s'+i,'ice',1);
   });
  });
  for(let i=1;i<peakSet.length;i++){
