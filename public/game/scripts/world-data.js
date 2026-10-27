@@ -110,7 +110,7 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
 // rather than short shelves stacked in the same narrow left-hand strip.
 const terraceShift={
  1:{High:190,Middle:200,Low:-45},
- 2:{High:350,Middle:250,Low:195},
+ 2:{High:350,Middle:330,Low:195},
  3:{High:225,Middle:190,Low:-15}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
