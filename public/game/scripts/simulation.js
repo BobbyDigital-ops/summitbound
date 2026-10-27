@@ -280,7 +280,8 @@ function tick(dt){
   p.vy += cfg.gravity * fd;
   if(k.left) p.vx -= cfg.airborneSteerForce * fd;
   if(k.right) p.vx += cfg.airborneSteerForce * fd;
-  p.vx = clamp(p.vx, -650, 650);
+  // Do not flatten the skill-driven launch by clipping speed to the old cap.
+  p.vx = clamp(p.vx,-cfg.maxAirborneSpeed,cfg.maxAirborneSpeed);
   p.x += p.vx * fd; p.y += p.vy * fd;
   if(trail.length === 0 || Math.hypot(p.x - trail.at(-1).x, p.y - trail.at(-1).y) > 8){
    trail.push({x:p.x, y:p.y}); if(trail.length > 52) trail.shift();

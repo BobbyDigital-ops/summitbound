@@ -1,3 +1,13 @@
+# v0.13.0 — Vault physics separated from mountain authoring
+
+The five-peak reference geography is now **frozen as authored input**, so physics can be redesigned without making the old seed-zero procedural selector fail or move the mountains. The active course samples `PolePhysicsEngine` after `pole-dynamics.js` is loaded, while the frozen pre-Phase-8 selector remains available without that module.
+
+**Dynamic release spectrum:** swing angle and fixed hand-to-pole-tip distance vary continuously during a pole ride. Loading builds energy, the middle swing trades vertical lift for forward range, and a late release loses power. The gamer must choose the trajectory needed by the next ledge rather than hit one nominal universal best release tick. Air speed isn't artificially clipped below the physically calculated launch.
+
+**Level QA:** the graph compiler verifies intended paths and actual braking windows under the new physics. Both campsite ledges, all alternative shelves and four real ice paths remain reachable. Those are mathematical necessary conditions, not proof that a jump feels fair. Maintain the 100-level target, not 'unlimited playable levels' claims.
+
+---
+
 # v0.12.1 testing note — full-speed vaults and quick retry
 
 Practice retries now remember the **actual successful pole plant source**. Failed vaults restart there; manually pressing Retry Peak on solid terrain restarts from the current terrain. No momentum is granted on spawn and the last legitimate campsite checkpoint is preserved. Time Trial and Hardcore are not changed by this practice assist.

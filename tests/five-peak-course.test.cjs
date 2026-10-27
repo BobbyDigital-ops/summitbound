@@ -13,7 +13,7 @@ function harness(includeGame=false){
   innerWidth:1200,innerHeight:760,performance:{now:()=>1},
   navigator:{vibrate(){}},
   localStorage:{getItem(){return null},setItem(){}}});
- const sources=['physics.js','world-data.js','course-engine.js'];
+ const sources=['physics.js','world-data.js','course-engine.js','pole-dynamics.js'];
  if(includeGame)sources.push('game-state.js','time-trial.js','climb-mechanics.js','simulation.js');
  for(const file of sources)vm.runInContext(script(file),context,{filename:file});
  if(!includeGame)vm.runInContext('applyRoute(0)',context);
