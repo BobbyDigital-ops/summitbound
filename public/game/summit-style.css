@@ -75,3 +75,7 @@ button.sel{background:#78847f;color:#10191c;border-color:#b1bab4}
 #controls button{background:#17242dcf;border-radius:10px}#controls button.down{background:#68787d;color:#0b151c}
 #help{background:#101c26bc;border-radius:4px;color:#d0d9d8}
 #tuning{background:#101b24f2;border-color:#83949d69;border-radius:6px}
+
+#catch{display:block;position:fixed;z-index:8;bottom:max(96px,calc(env(safe-area-inset-bottom) + 92px));right:max(16px,env(safe-area-inset-right));min-width:105px;min-height:55px;border:1px solid #bec6bb89;background:#243440e0;letter-spacing:.08em;font-size:12px;font-weight:900}
+#catch[hidden]{display:none}
+@media(max-width:760px){#catch{bottom:max(85px,calc(env(safe-area-inset-bottom) + 78px));min-height:57px;right:11px}}
