@@ -272,7 +272,10 @@ function drawSpire(i,paintCtx=ctx){
   paintCtx.lineTo(a+width*.25,y+88);
   // Exposed bedrock roots back into the continuous mountain contour.
   // The landing lip is not a detached platform suspended in the chasm.
-  const rootX=mountainContourX(i,y+88)-5;
+  // Attach the outcrop locally instead of creating long triangular fins
+  // when the new shelves are hundreds of world units apart.
+  const rootX=Math.min(b-16,Math.max(a+Math.min(58,width*.32),
+   mountainContourX(i,y+88)-5));
   paintCtx.lineTo(rootX+18,y+108);
   paintCtx.lineTo(rootX-5,y+70);
   paintCtx.lineTo(a-9,y+14);
