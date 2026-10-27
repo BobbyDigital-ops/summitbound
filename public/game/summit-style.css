@@ -41,3 +41,6 @@
  #medalPace{font-size:10px}
  #trialSplit{font-size:9px}
 }
+
+#trialNextGate{font-size:10px;color:#e9deb5}
+@media(max-width:760px){#trialNextGate{font-size:9px}}
