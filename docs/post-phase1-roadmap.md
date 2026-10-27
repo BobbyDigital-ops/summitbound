@@ -13,6 +13,14 @@
 - Increase undersized cliff trees proportionately; improve near-versus-far depth without blurring the climber or restoring costly full-frame effects.
 - True walkable slopes are separate physics/collision work and require explicit tests before implementation.
 
+## Phase 4C — time gates, challenge curve, ledge/snow polish (implemented v0.9.22; needs playtesting)
+
+The new Time Trial mode adds bronze/silver/gold course cutoffs, cumulative stage gates and split timing, plus optional local personal-best ghosts. Gold remains deliberately ambitious; provisional thresholds scale with the accepted mountain layout and require real-player adjustment. A run with tuning or skipped stages never saves a PB. Trial failure resets the run to avoid checkpoint-cheating.
+
+Rendering uses deeper irregular rooted terraces and tighter snow caps on actual collision ledges, with smaller summit ice/snow feathering and shorter ice-root frosting. The generated stage difficulty increases through stricter high-landing first-contact and release-window preference, capped at four viable candidate selections per mountain to protect mobile performance. All approved golden seed fingerprints remain protected.
+
+A local 80-route bounded-generation sample and representative full draw/game-loop smoke passed. A 997-route full sweep of the previous unbounded variant found all options reachable, but that exhaustive search was too slow for mobile; the bounded version therefore needs its GitHub full-test run and manual review before final acceptance.
+
 ## Phase 5 — cave and campfire interaction
 - Keep the **improved cave height**.
 - Make the cave feel recessed and organically carved into the cliff rather than a separate building/box.
