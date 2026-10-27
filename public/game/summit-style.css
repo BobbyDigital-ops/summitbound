@@ -44,3 +44,18 @@
 
 #trialNextGate{font-size:10px;color:#e9deb5}
 @media(max-width:760px){#trialNextGate{font-size:9px}}
+
+/* Small in-world checkpoint choice. Never a blocking arrival popup. */
+#campfireActions{position:fixed;z-index:7;left:50%;transform:translateX(-50%);
+ bottom:max(94px,calc(env(safe-area-inset-bottom) + 84px));
+ display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+ border:1px solid #dfb87799;border-radius:12px;
+ background:#122b3de9;padding:9px;box-shadow:0 6px 22px #06162199;
+ max-width:calc(100vw - 20px)}
+#campfireActions[hidden]{display:none}
+#campfireActions span{color:#f5ca81;font-size:11px;font-weight:800;letter-spacing:.07em}
+#campfireActions button{white-space:nowrap;background:#29445b;border-color:#e0c18a88}
+@media(max-width:760px){#campfireActions{bottom:max(83px,calc(env(safe-area-inset-bottom) + 76px));
+ width:min(310px,calc(100vw - 28px));padding:6px;gap:5px}
+ #campfireActions button{font-size:11px;padding:8px}
+ #campfireActions span{flex-basis:100%;text-align:center}}
