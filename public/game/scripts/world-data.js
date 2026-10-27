@@ -437,6 +437,16 @@ function rockBackingForIce(index,y,baseX){
   const x=iceXOnPath(points,y);
   face=Math.min(face,x-64*Math.max(0,fade));
  }
+ // At actual landing lips the bedrock cuts through the ledge. Smooth
+ // the shoulder over 44 vertical units, rather than a detached shelf fin.
+ for(const ledge of spires[index].ledges){
+  const distance=Math.abs(y-(ledge[2]+3));
+  if(distance>=44)continue;
+  const t=distance<=10?1:(44-distance)/34;
+  const smooth=t*t*(3-2*t);
+  const desired=ledge[0]+Math.min(40,(ledge[1]-ledge[0])*.25);
+  face+=Math.max(0,desired-face)*smooth;
+ }
  return face;
 }
 // Source of truth for the opposite cliff boundary. Ice backing and
