@@ -34,7 +34,7 @@ function spawn(stage=0, keepTime=false){
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
  const zoom = getZoom();
  camera.x = x - .26 * innerWidth / zoom; camera.y = p.y - .60 * innerHeight / zoom;
- hint(stage ? 'Retry this ascent.' : 'Four leaps to the Cave of Embers — land high to climb less.', 3);
+ hint(stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.', 3);
 }
 
 function gameReset(){landingHistory=[];spawn(0)}
