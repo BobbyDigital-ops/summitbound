@@ -208,6 +208,7 @@ function retryFinalLeap(){
 function tick(dt){
  if(completed) return;
  elapsed += dt;
+ if(typeof updateHanging==='function'&&updateHanging(dt))return;
  if(typeof trialTick==='function')trialTick();
  const k = input(), ground = isGround(), prevFeet = p.y + 22, prevX=p.x;
  
