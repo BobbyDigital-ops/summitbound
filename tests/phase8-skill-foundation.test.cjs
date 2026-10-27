@@ -115,3 +115,13 @@ test('Phase 8: a real landing shelf may also be a pole launch surface',()=>{
  })()`);
  assert.equal(found[0],'RIDING_VAULT','a sufficiently wide real ledge cannot serve as a shortcut');
 });
+
+test('Phase 8: A/D keys and mobile left/right buttons translate to axes only while attached',()=>{
+ const input=code('input-ui.js');
+ const html=fs.readFileSync('public/game/summit-leap-v081.html','utf8');
+ assert.match(input,/axeSide&&!keys.has\(k\)&&!keys.has\(c\)/);
+ assert.match(input,/iceAxeStrike\(axeSide\)/);
+ assert.match(input,/dir==='left'\?-1:1/);
+ assert.match(html,/game\/scripts\/climb-mechanics.js/);
+ assert.match(html,/alternate A \/ D or ◀ ▶ rapidly/);
+});
