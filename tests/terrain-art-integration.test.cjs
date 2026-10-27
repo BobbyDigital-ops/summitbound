@@ -8,8 +8,8 @@ vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),vmCt
 test('ice footing is anchored to each *actual* landing shelf',()=>{
  assert.match(src,/function drawIceShelfJoins\(i,paintCtx=ctx\)/);
  assert.match(src,/const x=route\.points\[0\]\.x,y=ledge\[2\]/);
- assert.match(src,/const maxLeft=Math\.min\(49,x-ledge\[0\]-5\)/);
- assert.match(src,/const maxRight=Math\.min\(50,ledge\[1\]-x-5\)/);
+ assert.match(src,/const maxLeft=Math\.min\(34,x-ledge\[0\]-5\)/);
+ assert.match(src,/const maxRight=Math\.min\(30,ledge\[1\]-x-5\)/);
  assert.match(src,/drawIceClimb\(i,off\);drawIceShelfJoins\(i,off\);drawIceCrestSnow\(i,off\)/);
  assert.match(src,/drawIceClimb\(i\);drawIceShelfJoins\(i\);drawIceCrestSnow\(i\)/);
  for(const seed of [0,1,2,7,42,250,996]){
