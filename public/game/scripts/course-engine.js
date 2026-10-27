@@ -37,6 +37,8 @@ function installFeaturedCourseGeometry(spires){
  // cannot bypass the checkpoint via a broad, easy lower platform.
  spires[2].ledges=[spires[2].ledges.at(-1)];
  spires[2].ledges[0][4]='Checkpoint';
+ spires[2].name='Windward Camp';
+ spires[4].name='Firespine Camp';
  const cave=spires[4].cave,shift=FEATURED_COURSE.peakShifts[4];
  const campLeft=cave.left+shift,campWidth=177;
  spires[4].ledges=[[campLeft,campLeft+campWidth,cave.floor,'snow','Checkpoint']];
