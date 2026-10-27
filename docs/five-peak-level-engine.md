@@ -1,3 +1,19 @@
+# Five Peaks — v0.12 campsite-only architecture
+
+Current curated level: Wolvesgate → Broken Tooth → Windward Camp → Lantern Crag → Firespine Camp. Five peaks, four leap crossings, two checkpoint mountains.
+
+**No caves in the active course.** Windward Camp and Firespine Camp each have exactly one deliberately difficult ledge. Their checkpoint activates on contact, not upon reaching the summit. That ledge leads into an integrated icefall, followed by the next summit. Neither mountain has a cave collider, tunnel rendering, ladder or invisible transition. Historical cave implementation remains for archived tests only.
+
+**One coherent bedrock/ice model.** All landing ledges lie within the parent mountain's bedrock envelope. Four receiving-peak route networks join to real summit colliders. All ice paths and cliffs are generated from the same physical left/right bounds, with vertical upper sections so ice ends on the summit without sideways motion. Every peak, including Wolvesgate, uses the same rock shading, facets, cracks and snow treatment.
+
+**Fair difficulty:** chasm clearances vary roughly 452–671 world units, with physics-checked first-contact options on each crossing. A landing is demanding; walking to its ice face shouldn't be. Settled-ledge traction and climb interaction are tuned independently from aerial release timing and landing momentum. Accidental physical ledge saves are preserved.
+
+**Course graph:** `compilePhysicalCourseGraph` and `auditPlayableCourse` reject unreachable destinations, invalid/unsupported ice, inaccessible checkpoint ledges or invalid course paths. A shortcut is only legitimate when a pole-release path from a real ledge is verified. This demo does not yet contain such a shortcut; it is a future design objective. There is still only ONE playable authored course, not an unlimited-level generator. Exactly 100 high-quality levels are the eventual product goal.
+
+**Pending:** physical Android playtesting, cohesive rugged/menacing visual overhaul, actual speedrun data for medal calibration, emergency axe-catch mechanic design, purposeful environmental wind, and substantial curated procedural/hand-authored route variation.
+
+---
+
 # Summitbound: Five Peaks vertical slice and scalable course engine
 
 **Active commercial target:** exactly **100** quality-controlled levels. **Currently playable:** one five-summit level (four major crossings). The 997 historic procedural seeds are retained for reference/test coverage, not selectable in the player UI.
