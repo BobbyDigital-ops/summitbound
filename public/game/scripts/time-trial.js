@@ -1,6 +1,6 @@
 // Summitbound Phase 4C: seeded time trials, medal gates and replayable local ghosts.
 // Records are course-specific, validated against versioned terrain + stock physics.
-const TRIAL_RECORD_VERSION=1;
+const TRIAL_RECORD_VERSION=2;
 const TRIAL_SAMPLE_SECONDS=.12;
 const TRIAL_MAX_SAMPLES=3500;
 let trialRun={samples:[],splits:[],nextSample:0,invalid:false};
@@ -33,7 +33,7 @@ function stageMedalTargets(stage,seed=routeSeed){
 function stockPhysicsForTrial(){
  return cfg.gravity===800&&cfg.arcadeLift===1.18&&cfg.arcadeRange===.84&&
   cfg.arcadeFlightTempo===.88&&cfg.brakingDecel===2000&&
-  cfg.maxRunSpeed===360&&cfg.airborneSteerForce===520;
+  cfg.maxRunSpeed===360&&cfg.airborneSteerForce===225;
 }
 function trialRecordKey(seed=routeSeed){
  return 'summitbound:trial:v'+TRIAL_RECORD_VERSION+':route:'+seed;
