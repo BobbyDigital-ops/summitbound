@@ -1011,7 +1011,19 @@ function draw(){
  const upControl=document.getElementById('up');
  if(upControl.hidden===nearRungs)upControl.hidden=!nearRungs;
  const downControl=document.getElementById('down');
- const canDown=p.state==='CLIMBING'||(isGround()&&currentPlatform()?.kind==='summit'&&currentPlatform()?.spire>0&&currentPlatform()?.spire<4);
+ const surface=isGround()?currentPlatform():null;
+ let canDown=p.state==='CLIMBING';
+ if(surface?.spire>0&&surface?.spire<4){
+  const routes=iceRouteNetwork(surface.spire);
+  if(surface.kind==='summit'){
+   canDown=routes.some(route=>Math.abs(p.x-route.points.at(-1).x)<=28);
+  }else if(surface.kind==='ledge'){
+   const tier=Number(surface.id.split('-')[1]),entryX=climbEntryX(surface);
+   canDown=routes.some(route=>route.sharedWith===tier &&
+    Math.abs(p.x-entryX)<=28 &&
+    Math.abs(iceXOnPath(route.points,surface.top-22)-entryX)<=28);
+  }
+ }
  if(downControl.hidden===canDown)downControl.hidden=!canDown;
  const meterDisplay=p.vault?'block':'none';
  if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
