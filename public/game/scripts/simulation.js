@@ -3,10 +3,10 @@ function formatTime(t){return Math.floor(t/60) + ':' + String(Math.floor(t%60)).
 
 function caveRespawn(){
  const c = spires[4].cave; spawn(3, true); caveActivated = true; atStage = 4; lastSafeStage = 4;
- p.x = c.right - 58; p.y = c.floor - 22; p.vx = 0; p.vy = 0; p.surface = 'rock';
+ p.x = caveGeometry().fireX - 12; p.y = c.floor - 22; p.vx = 0; p.vy = 0; p.surface = 'rock';
  p.state = 'GROUNDED'; p.standingOn = 'cave4'; p.groundedFor = .6;
  camera.x = p.x - .35 * innerWidth / getZoom(); camera.y = p.y - .57 * innerHeight / getZoom();
- hint('CAMPFIRE CHECKPOINT — CLIMB WHEN READY', 3);
+ hint('CAMPFIRE CHECKPOINT — FOLLOW THE LADDER TO THE RIGHT', 3);
 }
 
 function fail(){
@@ -28,7 +28,7 @@ function getLanding(plat){
  if(plat.kind === 'cave'){
   atStage = 4; lastSafeStage = 4; caveActivated = true; landingHistory[3] = 'Cave checkpoint';
   if(typeof trialSplit==='function')trialSplit(4);
-  hint('CHECKPOINT! WARM CAMPFIRE — CLIMB THE LADDER TO THE FINAL SUMMIT', 4); haptic([25,45,25]);
+  hint('CHECKPOINT! FIRE AHEAD · LADDER ON RIGHT', 3); haptic([25,45,25]);
   // Keep the cave as the retry checkpoint; finish only after the ladder exit.
   return;
  }
@@ -114,11 +114,38 @@ function climbStartDown(){
  return true;
 }
 
+// Contextual, non-blocking fire actions appear only beside the checkpoint.
+// Practice players can replay the final leap; in timed/hardcore modes the
+// checkpoint does not interrupt the run or bypass the mode's reset rules.
+function updateCaveCampfire(){
+ const actions=document.getElementById('campfireActions');
+ if(!actions)return;
+ const cg=caveGeometry(),atFire=caveActivated&&!completed&&
+  mode==='practice'&&isGround()&&p.standingOn==='cave4'&&
+  Math.abs(p.x-cg.fireX)<=46;
+ if(Math.abs(p.x-cg.fireX)>72)caveFireDismissed=false;
+ const show=atFire&&!caveFireDismissed;
+ if(actions.hidden===show)actions.hidden=!show;
+}
+function continueCaveAscent(){
+ if(!caveActivated||p.standingOn!=='cave4')return;
+ caveFireDismissed=true;
+ document.getElementById('campfireActions').hidden=true;
+ hint('FOLLOW THE RIGHT-HAND LADDER · HOLD W / ↑',3);
+}
+function retryFinalLeap(){
+ if(!caveActivated||mode!=='practice')return;
+ caveActivated=false;
+ landingHistory.length=3;
+ spawn(3,true);
+ hint('FINAL LEAP RETRY — THE CAVE IS AHEAD',3);
+}
+
 function tick(dt){
  if(completed) return;
  elapsed += dt;
  if(typeof trialTick==='function')trialTick();
- const k = input(), ground = isGround(), prevFeet = p.y + 22;
+ const k = input(), ground = isGround(), prevFeet = p.y + 22, prevX=p.x;
  
  if(p.state === 'CLIMBING'){
   const c = p.climb;
@@ -193,6 +220,15 @@ function tick(dt){
   if(p.x < 12){ p.x = 12; p.vx = 0; }
  }
  
+ // The visible back of the cave is solid stone. Stop runners and airborne
+ // arrivals before they escape through its right wall. Do not 'teleport'
+ // someone who fell down outside the cave back into the chamber.
+ const cg=caveGeometry();
+ const insideCaveHeight=p.y+22>=cg.headroomY&&p.y-22<=cg.floor+8;
+ if((p.standingOn==='cave4'||insideCaveHeight)&&
+    prevX>=cg.openingLeft&&prevX<=cg.wallX+3&&p.x>cg.wallX){
+  p.x=cg.wallX;p.vx=0;
+ }
  // Cave roof ceiling check
  if((p.state === 'AIRBORNE' || p.state === 'FALLING') && p.vx > 0){
   const c = spires[4].cave, bodyTop = p.y - 23;
@@ -230,6 +266,7 @@ function tick(dt){
  }
  
  if(p.y > Math.max(1520, (spires[Math.min(atStage + 1, 4)].ledges[2]?.[2] ?? spires[4].cave.floor) + 490) || p.x > 8100 || p.x < -90) fail();
+ updateCaveCampfire();
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
 
