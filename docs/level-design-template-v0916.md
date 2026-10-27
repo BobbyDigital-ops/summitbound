@@ -1,6 +1,6 @@
 # Summitbound — reusable level template (frozen v0.9.16)
 
-**Approved visual/gameplay baseline:** `level-template-v0.9.16` branch at `9cde4c561d3901e813c6b2cd7a50456c6dafe3b3`. This branch is a **snapshot**, not the active development branch. Current feature work stays on `dev/visual-recovery-v099-v0912`; never overwrite the snapshot or merge it to `main` without approval.
+**Approved visual/gameplay baseline:** `level-template-v0.9.16` branch at `9cde4c561d3901e813c6b2cd7a50456c6dafe3b3`. This branch is a **snapshot**, not the active development branch. As of v0.9.21, current feature work stays on `main` for Google AI Studio sync. Preserve the `level-template-v0.9.16` snapshot and the `backup/pre-phase4b-v0920` backup; never overwrite them.
 
 ## Preserve these rules when adding mountains
 
