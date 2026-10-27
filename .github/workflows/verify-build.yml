@@ -47,4 +47,5 @@ jobs:
       - run: npm run test:peak-retry
       - run: npm run test:vault-dynamics
       - run: npm run test:precision-vault
+      - run: npm run test:reforge
       - run: npm run build
