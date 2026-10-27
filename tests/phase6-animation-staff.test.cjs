@@ -31,7 +31,7 @@ test('Phase 6: wall-facing rear pose and ice tools use distance instead of frame
  assert.match(art,/drawClimberWallFacing\(p\.climb\.climbBeat\)/);
  assert.match(art,/const beat=p\.climb\.climbBeat\*Math\.PI\*\.72/);
  assert.match(simulation,/c\.climbBeat\+=\(oldY-p\.y\)\/24/);
- assert.match(simulation,/c\.climbBeat-=\(p\.y-oldY\)\/24/);
+ assert.match(simulation,/iceClimbDisplacement\(c,k,dt\)/);
  assert.equal((art.match(/drawImage\(climberSheet, pose\*200/g)||[]).length,1,
    'climbing overlays should not duplicate the head sprite');
 });
