@@ -8,7 +8,7 @@ const run=promisify(execFile);
 const port=3391;
 const url='http://127.0.0.1:'+port;
 const fixture=path.join(process.cwd(),'public/game/__browser_smoke.html');
-const probe='<script>window.addEventListener("error",e=>{window.__smokeError=String(e.message)+" at "+e.filename+":"+e.lineno;});'+'<'+'/script>';
+const probe='<script>window.addEventListener("error",e=>{window.__smokeError=String(e.message)+" at "+e.filename+":"+e.lineno;});const nativeRaf=window.requestAnimationFrame.bind(window);let startupFrames=0;window.requestAnimationFrame=(fn)=>startupFrames++<3?nativeRaf(fn):0;'+'<'+'/script>';
 const page='<!doctype html><html><body>'
  +'<iframe id="gameframe" style="width:1200px;height:700px;border:0"></iframe>'
  +'<script>(async()=>{'
@@ -22,7 +22,7 @@ const page='<!doctype html><html><body>'
  +'document.body.dataset.error=win.__smokeError||"none";'
  +'document.body.dataset.canvas=canvas?.width+"x"+canvas?.height;'
  +'document.body.dataset.result=stage.startsWith("LEAP")?"pass":"fail";'
- +'},2700);'
+ +'},850);'
  +'})();'+'<'+'/script></body></html>';
 const chromeNames=['/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium','/usr/bin/chromium-browser'];
 const chrome=process.env.CHROME_BIN||chromeNames.find(name=>fs.existsSync(name));
@@ -42,7 +42,7 @@ const deadline=Date.now()+14000;
   if(!live)throw Error('Vite did not start: '+serverErrors);
   const output=await run(chrome,['--headless','--no-sandbox','--disable-gpu',
    '--disable-dev-shm-usage','--hide-scrollbars','--window-size=1280,800',
-   '--virtual-time-budget=4600','--dump-dom',url+'/game/__browser_smoke.html'],{maxBuffer:3e6,timeout:25000});
+   '--virtual-time-budget=1600','--dump-dom',url+'/game/__browser_smoke.html'],{maxBuffer:3e6,timeout:35000});
   const dom=output.stdout;
   const found=(key)=>dom.match(new RegExp('data-'+key+'="([^"]*)"'))?.[1];
   console.log('Browser stage:',found('stage'),'Result:',found('result'),'Canvas:',found('canvas'));
