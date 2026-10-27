@@ -119,15 +119,20 @@ class PolePhysicsEngine {
         };
     }
     static calculateReleaseVelocity(vx, vy, state, config) {
-        const approach = Math.max(0, state.facingDir * state.initialVx);
-        const runRatio = clamp(approach / Math.max(1, config.maxRunSpeed), 0, 1);
-        const assistance = approach < 20 ? 0.08 : 0.62 + 0.38 * Math.sqrt(runRatio);
-        const u = clamp(state.elapsed / state.rideDuration, 0, 1);
-        const late = Math.max(0, state.elapsed - state.rideDuration);
-        const latePenalty = Math.exp(-1.6 * late);
-        const launchX = state.facingDir * (610 - 200 * u) * assistance * latePenalty * (config.arcadeRange ?? 1);
-        const launchY = -(185 + 330 * u) * assistance * latePenalty * (config.arcadeLift ?? 1) + config.gravity * 0.5 * late;
-        return { vx: launchX, vy: launchY };
+        // Phase 8: deterministic player-controlled release. Speed, loading
+        // position and launch timing all affect trajectory. No secret rescue.
+        const ratio=clamp(Math.max(0,state.facingDir*state.initialVx)/
+            Math.max(1,config.maxRunSpeed),0,1);
+        const u=clamp(state.elapsed/state.rideDuration,0,1.35);
+        const precision=Math.max(0.19,1-Math.abs(u-0.68)*1.22);
+        const late=Math.exp(-3.6*Math.max(0,u-0.96));
+        const strength=(0.18+0.82*Math.pow(ratio,1.9))*precision*late;
+        const angle=clamp(u,0,1);
+        return {
+            vx:state.facingDir*(690-210*angle)*strength*(config.arcadeRange??1),
+            vy:-(215+355*angle)*strength*(config.arcadeLift??1)
+                +config.gravity*0.5*Math.max(0,state.elapsed-state.rideDuration)
+        };
     }
 }
 
