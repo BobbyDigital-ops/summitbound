@@ -1,3 +1,21 @@
+# SUMMITBOUND v0.20.0 — THE REFORGE
+
+**New playable vertical slice:** five peaks, four huge chasm vaults, two physically distinct precision uphill ridge vaults, four climbable ice routes, and two deliberately challenging campsites. **Future campaign: exactly 100 levels**, which are not yet implemented.
+
+The previous functioning v0.14.0 version is backed up at `backup/pre-gameplay-art-overhaul-v0140`. Development took place on `dev/five-peaks-challenge-and-bleak-art` and is intended for merging to `main` so Google AI Studio can sync the revised game.
+
+**New gameplay:** The Black Notch and The Broken Crown require a second pole vault after climbing out of the chasm. A lower arrival plateau is separated from a higher takeoff ridge by a genuine physical crevasse. The illustrated fractured wall also has real collision. No scripted sideways sliding or automatic ledge switching. Vault and A/D climbing physics remain responsive and unchanged from the validated v0.14.0 model.
+
+**One-shot ice axe recovery:** press F on desktop or AXE CATCH on mobile when falling just past a real ledge edge. A precisely timed near-miss embeds an axe; alternate A/D or mobile ◀ ▶ four times within 2.6 seconds to pull yourself up. One attempt per airborne vault, no magnetism, no auto-grab. If you miss, you fall to the geography below or last genuine campsite checkpoint.
+
+**Dark art overhaul:** `bleak-art.js` draws ALL five mountains using unified fractured granite and desaturated, rock-backed ice, genuine gaps between separate ridges, slender crusted snow rather than thick cartoon platforms, and weather-beaten tents with restrained ember light. The bright background is heavily desaturated and the interface palette is charcoal and steel. These drawn forms share placement data with actual colliders.
+
+**Validation:** `npm run test:reforge` plus existing climb, pole, trial and mobile regressions are wired into CI. Script-level and integrated 120Hz simulation checks covered both uphill climbs, correct ice dismounts, sidewall collision, precision axe recovery and five-peak route connectivity. Full GitHub Actions completion, visual browser snapshots and real device feel have not been independently confirmed.
+
+**Detailed technical handoff:** [docs/reforge-v020.md](docs/reforge-v020.md). **Quality policy:** don't expand to 100 levels until this five-peak gameplay slice is compelling and has passed human/Android playtests.
+
+---
+
 # Summitbound v0.14.0 — Vertical Precision & Fair Range
 
 **Playable:** one reviewed five-peak course. **Campaign goal:** exactly 100 quality-controlled levels (not yet implemented).
