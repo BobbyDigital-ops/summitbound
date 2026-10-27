@@ -237,6 +237,8 @@ function tick(dt){
    p.state='GROUNDED';p.standingOn=summit.id;
    p.surface=summit.surfaceType;p.vx=0;p.vy=0;
    p.groundedFor=.4;p.climb=null;
+   if(mode==='practice'&&summit.kind==='arrival')
+    practiceTakeoff={spire:c.spire,platformId:summit.id,facingDir:1};
    if(typeof FEATURED_COURSE==='undefined')activateCampsiteCheckpoint(c.spire);
    hint(c.isIce?'ICE EXIT — SUMMIT REACHED':'TUNNEL EXIT — SUMMIT REACHED',1.8);
    if(c.spire===4)win();
