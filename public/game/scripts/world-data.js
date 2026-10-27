@@ -175,7 +175,9 @@ function selectTerraces(spire,seed){
     ridge:{character:rand(),roughness:.75+rand()*.6}};
   }
   // Don't spend the entire candidate budget after a strong, playable map.
-  if(bestScore>255&&attempt>55)break;
+  // A fully feasible map already beats a speculative 'perfect' map that stalls
+  // browser startup. Inspect only a modest candidate sample after first success.
+  if(best&&attempt>=42)break;
  }
  if(best)return best;
  // Never show a broken mountain if a rare seed cannot satisfy the stricter
