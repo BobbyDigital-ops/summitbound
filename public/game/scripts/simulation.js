@@ -39,7 +39,7 @@ function practiceRespawnFromTakeoff(){
  // Restart with an honest run-up. Do not grant velocity or carry the
  // failed jump's momentum over. Narrow launch shelves stay narrow.
  const room=pl.right-pl.left;
- const offset=pl.kind==='summit'?Math.min(150,room*.22):
+ const offset=pl.kind==='summit'||pl.kind==='arrival'?Math.min(150,room*.22):
   Math.max(14,Math.min(30,room-127));
  p.x=pl.left+offset;p.y=pl.top-22;p.vx=0;p.vy=0;
  p.facingDir=launch.facingDir;p.standingOn=pl.id;
@@ -93,7 +93,10 @@ function getLanding(plat){
  if(plat.spire > atStage){
   atStage = plat.spire;
   if(typeof trialSplit==='function')trialSplit(plat.spire);
-  if(plat.kind === 'summit'){ 
+  if(plat.kind==='arrival'){
+   landingHistory[plat.spire-1]='Ice ridge reached';
+   hint('ICE CREST — VAULT THE FRACTURED RIDGE TO CONTINUE',3);
+  }else if(plat.kind === 'summit'){
    activateCampsiteCheckpoint(plat.spire);
    landingHistory[plat.spire - 1] = 'Direct summit';
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
@@ -119,7 +122,7 @@ function win(){
 }
 
 function climbStart(plat){
- const goal = platforms.find(v => v.id === 's' + plat.spire);
+ const goal = platforms.find(v => v.id === (spires[plat.spire].ridgeArrival?'a':'s') + plat.spire);
  if(!goal) return;
  const rungX = climbEntryX(plat);
  if(Math.abs(p.x - rungX) > (plat.kind==='ledge'?39:28)) return;
@@ -143,10 +146,10 @@ function climbStart(plat){
 // real ice branches meet) shelf -> next lower shelf. No arbitrary teleport.
 function climbStartDown(){
  const standing=currentPlatform(),index=standing?.spire;
- if(index<1||index>(typeof FEATURED_COURSE!=='undefined'?4:3)||!['summit','ledge'].includes(standing.kind))return false;
+ if(index<1||index>(typeof FEATURED_COURSE!=='undefined'?4:3)||!['summit','ledge','arrival'].includes(standing.kind))return false;
  const routes=iceRouteNetwork(index);
  let selected;
- if(standing.kind==='summit'){
+ if(standing.kind==='summit'||standing.kind==='arrival'){
   selected=routes.map(route=>({route,entry:route.points.at(-1)}))
    .filter(x=>x.entry&&Math.abs(p.x-x.entry.x)<=28)
    .sort((a,b)=>Math.abs(p.x-a.entry.x)-Math.abs(p.x-b.entry.x)||
@@ -168,7 +171,7 @@ function climbStartDown(){
  p.x=entry.x;p.y=entry.y;
  p.climb={originX:climbEntryX(ledge),originY:route.points[0].y,
   targetX:route.points.at(-1).x,lipX:route.points.at(-1).x,
-  targetY:spires[index].summit[2]-22,
+  targetY:(spires[index].ridgeArrival||spires[index].summit)[2]-22,
   spire:index,climbBeat:0,exitTime:0,isIce:true,tierIndex:route.tier};
  hint('HOLD ↓ / S TO DESCEND · ↑ / W TO REVERSE',2.3);
  return true;
@@ -226,7 +229,7 @@ function tick(dt){
   // meets its summit. No STEP_OFF interpolation or invisible sideways slide.
   if(p.y<=c.targetY+.25 && (oldY>p.y||k.up)){
    p.y=c.targetY;
-   const summit=platforms.find(pl=>pl.id==='s'+c.spire);
+   const summit=platforms.find(pl=>pl.id===(spires[c.spire].ridgeArrival?'a':'s')+c.spire);
    if(!summit||p.x<summit.left+3||p.x>summit.right-3){
     fail();return;
    }
@@ -236,6 +239,7 @@ function tick(dt){
    if(typeof FEATURED_COURSE==='undefined')activateCampsiteCheckpoint(c.spire);
    hint(c.isIce?'ICE EXIT — SUMMIT REACHED':'TUNNEL EXIT — SUMMIT REACHED',1.8);
    if(c.spire===4)win();
+   else if(spires[c.spire].ridgeCrux)hint('RIDGE CRUX — VAULT THE FRACTURE TO REACH THE TAKEOFF CROWN',3.2);
   }
   else if(p.y>=c.originY-.25 && k.down){
    const ledge=platforms.find(pl=>pl.spire===c.spire&&pl.kind===(c.isIce?'ledge':'cave')&&
@@ -437,7 +441,7 @@ function retry(){
   // The manual Retry Peak button also works before making a new vault:
   // if standing on a newly reached summit, practice that peak directly.
   const standing=isGround()?currentPlatform():null;
-  if(standing&&['summit','ledge'].includes(standing.kind))
+  if(standing&&['summit','ledge','arrival'].includes(standing.kind))
    practiceTakeoff={spire:standing.spire,platformId:standing.id,
     facingDir:p.facingDir||1};
   practiceRespawnFromTakeoff();
