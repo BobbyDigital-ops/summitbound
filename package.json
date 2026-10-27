@@ -31,6 +31,7 @@
     "test:terrain-art": "node --test tests/terrain-art-integration.test.cjs",
     "test:phase4b": "node --test tests/phase4b-risk-descent.test.cjs",
     "test:phase4c": "node --test tests/phase4c-trials-ghost.test.cjs",
+    "test:phase5": "node --test tests/phase5-cave.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
