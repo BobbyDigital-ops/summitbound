@@ -1035,6 +1035,9 @@ function draw(){
   Math.abs(p.x-climbEntryX(currentPlatform()))<45);
  const upControl=document.getElementById('up');
  if(upControl.hidden===nearRungs)upControl.hidden=!nearRungs;
+ const downControl=document.getElementById('down');
+ const canDown=p.state==='CLIMBING'||(isGround()&&currentPlatform()?.kind==='summit'&&currentPlatform()?.spire>0&&currentPlatform()?.spire<4);
+ if(downControl.hidden===canDown)downControl.hidden=!canDown;
  const meterDisplay=p.vault?'block':'none';
  if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
  if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
@@ -1042,7 +1045,7 @@ function draw(){
   `LEAP ${Math.min(atStage+1,4)} / 4 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
  const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
-  (p.climb?.isIce?'Hold ↑ to ice climb · Release to rest':
+  (p.climb?.isIce?'↑ climb · ↓ descend · Release to rest':
    'Hold ↑ on cave ladder · Release to rest'):p.state==='STEP_OFF'?
   'Stepping onto the summit':
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
