@@ -6,7 +6,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
 const FEATURED_COURSE=Object.freeze({
- id:'five-peaks',version:2,levelNumber:1,campaignSize:100,peakCount:5,
+ id:'five-peaks',version:3,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
  checkpoints:Object.freeze([{peak:0,type:'start'},
    {peak:2,type:'campsite',ledge:0},{peak:4,type:'campsite',ledge:0}]),
@@ -53,8 +53,11 @@ function installFeaturedCourseGeometry(spires){
  // tested chasm distances do not become accidentally shorter.
  for(let i=1;i<spires.length;i++){
   const peak=spires[i],leftmost=Math.min(...peak.ledges.map(l=>l[0]));
-  peak.summit=[Math.min(peak.summit[0],leftmost-70),
-   peak.summit[1],peak.summit[2],peak.summit[3]];
+  // Rock can be wider than its exposed, *walkable* summit crest.
+  // Extending summit[0] to the leftmost ledge inadvertently made the
+  // entire climbing section bypassable with one high-arc vault.
+  // The cliff contour still follows real ledges and all ice connections.
+  peak.rockShoulderLeft=Math.min(peak.summit[0],leftmost-70);
  }
 }
 function featuredCampPosition(peak=2){
