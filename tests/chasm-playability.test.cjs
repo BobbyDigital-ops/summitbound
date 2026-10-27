@@ -59,8 +59,11 @@ for(const seed of [...Array.from({length:60},(_,i)=>i),97,99,250,512,996]){
     const result=results.get(t[4]);
     assert.ok(result.hits>=3,'no real landing window on '+t[4]+' at spire '+i+' seed '+seed);
     assert.ok(result.safe>=2,'cannot brake safely on '+t[4]+' at spire '+i+' seed '+seed);
-    assert.ok(t[0]>=spires[i].summit[0]+25,
-     'shelf detached to left of the mountain crest: '+t[4]+' spire '+i);
+    assert.ok(t[0]<spires[i].summit[1]-85,
+     'shelf beyond receiving mountain face: '+t[4]+' spire '+i);
+    const contour=vm.runInContext('mountainContourX('+i+','+(t[2]+3)+')',ctx);
+    assert.ok(contour>t[0]+15&&contour<t[1]+30,
+     'shelf cannot project into open air while joined to mountain face');
    }
    const ice=vm.runInContext('independentIceRoutes('+i+')',ctx);
    for(let j=1;j<ice.length;j++)
