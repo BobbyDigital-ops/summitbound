@@ -1,3 +1,13 @@
+# Current v0.12 — no caves in Five Peaks demo
+
+Five mountains, two campsite checkpoint mountains (peaks 3 and 5, each with ONE difficult landing shelf), larger integrated bedrock, vertical real ice exits, consistent first-to-last cliff fracture material and more controllable ledge traversal. No artificial summit sliding or hidden cave ladder. Time Trial ghosts versioned after route/topology change.
+
+**Next design concept (not yet coded):** mid-flight stretched-out climber with axes forward and a single hard-timing emergency ledge catch. Must contact REAL geometry, with an explicitly timed action (and a carefully designed mobile input). One attempt, no auto-grab, no added invisible flight range; success should lead to a short deliberate pull-up.
+
+Goal remains **exactly 100** premium-quality courses; don't broaden the playable catalogue until this five-peak sequence feels fair and compelling.
+
+---
+
 # Confirmed target: 100 levels (not 110 or 100+)
 
 **Phase 8 v0.10.0:** skill-biased deterministic vault release, alternating A/D axe climbing, landing-swept recovery and direct physical ice exits; intermediate shelf planting enabled. Core physics and controls need real Android feel review. `backup/pre-phase8-v0924` protects old gameplay.
