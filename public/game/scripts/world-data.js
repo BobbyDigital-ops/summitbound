@@ -82,15 +82,16 @@ function candidateFlights(){
    // cut-off artificially compressed the entire mountain layout.
    if(vy>=0&&y+22>580)break;
   }
-  paths.push({descending,releaseFeet:r.nextPy+22,releaseTick:tick,
+  paths.push({descending,approachSpeed:speed,releaseFeet:r.nextPy+22,releaseTick:tick,
    braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
  }
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
 }
-function shelfTimingProfiles(ledges,previous){
+function shelfTimingProfiles(ledges,previous,maxApproachSpeed=Infinity){
  const stats=ledges.map(()=>({hits:0,safe:0,ticks:new Set()}));
  for(const path of candidateFlights()){
+  if(path.approachSpeed>maxApproachSpeed)continue;
   let first=-1,contact=0;
   for(const step of path.descending){
    for(let i=0;i<ledges.length;i++){
