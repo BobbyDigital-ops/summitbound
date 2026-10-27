@@ -1,3 +1,16 @@
+# Summitbound — v0.9.24 Gameplay Systems (Phases 5–7 progress)
+
+**Development branch:** `main` (the branch synced by Google AI Studio). The v0.9.22 and v0.9.23 states are protected as `backup/pre-phase5-v0922` and `backup/pre-phase6-v0923`. The original `level-template-v0.9.16` golden route geometry is deliberately unchanged.
+
+- **Phase 5 — cave/checkpoint implemented:** real solid right-hand cave wall for grounded and airborne movement, entry from the left remains open, aligned collision/visual back wall. Right-hand ladder and a separate left campfire use the same geometry reference. Contextual Continue ascent / Retry leap controls appear only near the campfire in Practice; Time Trial and Hardcore continue without intrusive popups. Preserve campfire respawn and ascent victory.
+- **Phase 6 — initial animation/shaft correctness implemented:** during ice climbing, temporary wall-facing red-jacket back silhouette and hand/foot axe cycle follow actual ascent/descent distance and freeze on release. New curved vault staff renderer maintains the specified 195 world-unit **material arc length** (validated over extreme reaches); no pole simulation, release, or level physics modifications. Full production character sprites and art direction remain deferred.
+- **Phase 7 — Android-focused engineering groundwork:** prevent hidden-tab game-loop progression and stuck virtual controls after pagehide/blur/visibility transitions; reset accumulated physics time safely on resume. Touch controls and render diagnostics remain in place. **Hardware performance profiling, store packaging, and release are NOT complete.**
+- **Regression coverage:** `npm run test:phase5`, `npm run test:phase6`, `npm run test:phase7` have been added to CI. Manual VM/integration checks confirmed cave/right-wall/ladder across seven golden routes and pole arc material length across extreme positions. Full automated GitHub CI status and actual Google AI Studio/Android visual playtests are **not yet verified**.
+
+**Deferred work:** the user's playtest still reports some ledges looking glued onto cliffs, oddly stretched snow-to-ice features, and an overall easy difficulty curve. Instead of endless patchwork, consolidate these into a dedicated visual and challenge overhaul: [graphics-overhaul-backlog.md](docs/graphics-overhaul-backlog.md). Preserve v0.9.24's logical geometry and player controls during that future overhaul.
+
+---
+
 # Summitbound — v0.9.22 Phase 4C: Terrain, Time Trials & PB Ghosts
 
 **Code complete, pending real-device/AI Studio visual and feel review.** Development remains on `main` for Google AI Studio; `backup/pre-phase4c-v0921` preserves the previous version. The frozen `level-template-v0.9.16` and all seven approved geometry fingerprints are unchanged.
