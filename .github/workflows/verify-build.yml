@@ -1,7 +1,7 @@
 name: Verify Summitbound build
 on:
   push:
-    branches: [main, 'dev/mega-v092-v097']
+    branches: [main, 'dev/mega-v092-v097', 'fix/v098-foreground-rendering']
   workflow_dispatch:
 permissions:
   contents: read
