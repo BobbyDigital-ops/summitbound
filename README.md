@@ -1,3 +1,20 @@
+# Summitbound v0.12.0 — Five Peaks / Campsite Consolidation
+
+**Playable now:** one five-peak vertical slice. **Target:** exactly 100 authored/validated campaign levels; the engine is not yet an unlimited level-production system. Backup `backup/pre-campsite-consolidation-v0110` preserves the previous cave-based prototype.
+
+- **All caves removed from this playable slice:** receiving peaks 3 and 5 (indices 2/4) are each a **single challenging campsite ledge** with a tent and fire. The checkpoint activates on physically landing there; the climber continues by a real ice face to the summit. Ordinary peaks retain alternative shelves. `spires[4].cave=null` while old cave code survives in the archived seed model.
+- **Better mountain structure:** summit bedrock mass widens leftwards around all landing shelves; shared cliff/ice geometry ensures no unsupported ice and actual icy exits have a vertical final section so the climber never traverses sideways on an invisible shoulder. Tested chasm gaps stay genuinely large (approx. 452–671 world units).
+- **Consistent geology:** the starting peak, middle spires and final peak all use the same rock gradient, clipped fracture-facet vocabulary, snow and ice pipeline. The final cave's special cartoon spike silhouette is no longer used. Visual review and the future major rugged art overhaul are still necessary.
+- **Reliable walking after a successful landing:** stronger controlled friction on ledges, responsive low-speed reversal once settled, and an intentional larger Up/W ice engagement window. Fast, risky airborne landings are unchanged. Alternating A/D ice picks are retained.
+- **Checkpoint correctness:** only the two single-ledge campsites save progress. Missed leaps can still catch genuine lower ledges; complete falls return to the correct camp. Final ice ascent completes the entire five-peak run.
+- **Validated course:** four crossing profiles currently report 3/16/4, 4, 2/6/2, and 4 validated braking-safe launch samples across their respective intended ledges. Graph compiler and `npm run test:five-peaks` now cover both camps, all four rock-backed ice climbs, exact exits and low-speed handling.
+- **Time trial:** medals now estimate four actual ice ascents without a cave ladder; previous physics/terrain PBs cannot be replayed against the new course (ghost format v4).
+- **Planned, NOT implemented:** a very strict, physically contact-based airborne ice-axe ledge save mechanic. Should require an explicit precisely timed action at a real rocky lip, with no magnetic grab. Assess fairness with visual feedback and mobile latency before implementation.
+
+**Visual/feel sign-off is outstanding.** Simulation and source checks cannot replace a real desktop/Android playtest. Gold/silver/bronze thresholds must be calibrated using skilled players' actual run times. Likewise, unlimited procedural variety and a complete 100-level campaign do **not** exist yet.
+
+---
+
 # Summitbound — Five Peaks v0.11.0 (one curated vertical slice)
 
 **Active playable content: ONE five-peak continuous run** (four major crossings ending at the cave-tunnel summit). The intended commercial campaign remains **exactly 100 levels**, but the other legacy routes have been removed from the playable interface. Their generator, regressions and backup `backup/pre-five-peak-slice-v0100` remain available for future work.
