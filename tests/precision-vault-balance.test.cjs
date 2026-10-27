@@ -47,7 +47,7 @@ test('Range is useful but cannot bridge whole mountains; late releases visibly l
   most=Math.max(most,fullFlight(run,450,tick/100).range);
  assert.ok(most<985,'one leap can skip entire climbing sections again: '+most);
 });
-test('Every receiving summit requires a real platform/ice approach, not a direct vault shortcut',()=>{
+test('Every receiving summit requires a real platform/ice approach, not a direct vault shortcut, including steering',()=>{
  const run=runtime();
  const result=run(`(()=>{
   const result=[];
@@ -57,14 +57,17 @@ test('Every receiving summit requires a real platform/ice approach, not a direct
    let direct=0,ledgeHits=0;
    for(const offset of [120,140,170,200])
     for(const speed of [300,375,450])
-     for(let tick=36;tick<=205;tick+=6){
+     for(let tick=36;tick<=205;tick+=6)
+     for(const steer of [-1,0,1]){
       const x=takeoff[1]-offset,y=takeoff[2]-22;
       const s=PolePhysicsEngine.initVault(x,y,speed,0,x+120,takeoff[2],cfg);
       const r=PolePhysicsEngine.stepVault(s,tick/120,cfg);
       const k=PolePhysicsEngine.calculateReleaseVelocity(r.nextVx,r.nextVy,r.state,cfg);
-      let xx=r.nextPx,yy=r.nextPy,vy=k.vy,hit=-1,dt=cfg.arcadeFlightTempo/120;
+      let xx=r.nextPx,yy=r.nextPy,vy=k.vy,vx=k.vx,hit=-1,dt=cfg.arcadeFlightTempo/120;
       for(let j=0;j<500&&hit<0;j++){
-       const old=yy+22;vy+=cfg.gravity*dt;xx+=k.vx*dt;yy+=vy*dt;
+       const old=yy+22;vy+=cfg.gravity*dt;
+       vx=clamp(vx+steer*cfg.airborneSteerForce*dt,-cfg.maxAirborneSpeed,cfg.maxAirborneSpeed);
+       xx+=vx*dt;yy+=vy*dt;
        if(vy<0)continue;
        for(let id=0;id<surfaces.length;id++){
         const pl=surfaces[id];
