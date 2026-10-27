@@ -6,8 +6,8 @@ test('ice faces stop below the snowy lip and shared trunks are not painted twice
  assert.match(src,/const renderTop=Math\.min\(lower\.y-12/);
  assert.match(src,/function drawIceCrestSnow\(/);
  assert.match(src,/const routes=iceRouteNetwork\(i\)\.filter/);
- assert.match(src,/drawIceClimb\(i,off\);drawIceCrestSnow\(i,off\)/);
- assert.match(src,/drawIceClimb\(i\);drawIceCrestSnow\(i\)/);
+ assert.match(src,/drawIceClimb\(i,off\);drawIceShelfJoins\(i,off\);drawIceCrestSnow\(i,off\)/);
+ assert.match(src,/drawIceClimb\(i\);drawIceShelfJoins\(i\);drawIceCrestSnow\(i\)/);
  assert.doesNotMatch(src,/sections\.push\(\{x:upper\.x,y:upper\.y/,
   'visible ice reaches above the summit rim again');
 });
