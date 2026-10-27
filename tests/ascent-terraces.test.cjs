@@ -5,16 +5,23 @@ const ctx=vm.createContext({Image:class Image{},document:{getElementById:()=>nul
 vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 vm.runInContext(src,ctx);
 for(let seed=0;seed<9;seed++){
- test('route '+seed+': ALL destinations above previous summit',()=>{
+ test('route '+seed+': alternatives span high and low shelves before the uphill summit',()=>{
   vm.runInContext('applyRoute('+seed+')',ctx);
   const s=vm.runInContext('spires',ctx);
   for(let i=1;i<=3;i++){
    for(const ledge of s[i].ledges){
-    assert.ok(ledge[2]<s[i-1].summit[2],
-      'must climb in altitude at spire '+i+' '+ledge[4]);
+    assert.ok(ledge[2]<s[i-1].summit[2]+375,
+      'cannot descend beyond safe landing envelope at spire '+i+' '+ledge[4]);
     assert.ok(ledge[2]>s[i].summit[2]+35,
       'ledge remains below its own summit '+i+' '+ledge[4]);
    }
+   const low=s[i].ledges[0],high=s[i].ledges.at(-1);
+   assert.ok(low[2]>s[i-1].summit[2]+145,
+    'lower shelf needs substantial descent and longer ice climb');
+   assert.ok(high[2]<s[i-1].summit[2]-75,
+    'upper shelf must materially save climbing');
+   assert.ok(s[i].summit[2]<s[i-1].summit[2]-130,
+    'the summit must still progress uphill');
    const xs=s[i].ledges.map(a=>a[0]);
    assert.ok(xs.length===1 || Math.max(...xs)-Math.min(...xs)>115,
       'terraces need meaningful horizontal stagger');
