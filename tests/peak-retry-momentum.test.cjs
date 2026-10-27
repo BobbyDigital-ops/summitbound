@@ -77,7 +77,7 @@ test('Peak retry: a newly reached campsite takes precedence over previous takeof
  assert.equal(result.safe,2);
  assert.equal(result.surface,'l2-0');
 });
-test('Peak retry: Time Trial and Hardcore never retain Practice's retry anchor',()=>{
+test('Peak retry: Time Trial and Hardcore never retain a Practice retry anchor',()=>{
  const {run}=setup();
  const results=run(`(()=>{
   const result=[];
@@ -121,4 +121,26 @@ test('Five Peaks remains physics-reachable after sprint change; shortcut needs r
   'short ledge falsely certified as full-speed, no-runway shortcut');
  assert.deepEqual(Array.from(run('candidateFlights().map(p=>p.approachSpeed).filter((x,i,a)=>a.indexOf(x)===i)')),
   [300,375,450]);
+});
+
+test('Manual Retry Peak uses the current summit before another vault',()=>{
+ const {run}=setup();
+ const r=run(`(()=>{
+  mode='practice';gameReset();
+  const old=platforms.find(x=>x.id==='s0');
+  p={x:old.left+200,y:old.top-22,vx:420,vy:0,state:'RUNNING',
+   surface:'snow',standingOn:'s0',groundedFor:.6,facingDir:1};
+  plant();
+  const current=platforms.find(x=>x.id==='s1');
+  p={x:current.left+200,y:current.top-22,vx:0,vy:0,
+   state:'GROUNDED',surface:'snow',standingOn:current.id,
+   groundedFor:.6,facingDir:1};
+  atStage=1;retry();
+  return {stage:atStage,standing:p.standingOn,remembered:practiceTakeoff.platformId,
+   safe:lastSafeStage};
+ })()`);
+ assert.equal(r.stage,1);
+ assert.equal(r.standing,'s1');
+ assert.equal(r.remembered,'s1');
+ assert.equal(r.safe,0);
 });
