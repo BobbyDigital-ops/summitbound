@@ -33,6 +33,7 @@
     "test:phase4c": "node --test tests/phase4c-trials-ghost.test.cjs",
     "test:phase5": "node --test tests/phase5-cave.test.cjs",
     "test:phase6": "node --test tests/phase6-animation-staff.test.cjs",
+    "test:phase7": "node --test tests/phase7-mobile-lifecycle.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
