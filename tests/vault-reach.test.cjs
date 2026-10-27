@@ -54,9 +54,8 @@ for(let seed=0;seed<9;seed++){
      : spires[stage].ledges;
    const possible=landings.map(t=>possibleLanding(prev,t));
    const count=possible.filter(Boolean).length;
-   console.log('REACH_DIAGNOSTIC',JSON.stringify({seed,stage,previousSummit:prev[2],options:landings.map((x,i)=>({tier:x[4]||'Cave',x:x[0],y:x[2],possible:!!possible[i]}))}));
-   assert.ok(count>=0,'diagnostic pass');
-   if(stage<4 && landings.length>1) assert.ok(count>=0,
+   assert.ok(count>=1,'no viable airborne ascent at stage '+stage+' seed '+seed);
+   if(stage<4 && landings.length>1) assert.ok(count===landings.length,
      'at least two real risk/reward landing choices should remain at stage '+stage+' seed '+seed);
   }
  });

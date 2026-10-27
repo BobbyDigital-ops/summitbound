@@ -108,29 +108,30 @@ const originalTierY={1:{High:1010,Middle:1130,Low:1240},
  3:{High:810,Middle:935,Low:1050}};
 // Increasing X with elevation carves an upward diagonal up the approach face,
 // rather than short shelves stacked in the same narrow left-hand strip.
-const terraceShift={
- 1:{High:190,Middle:200,Low:-45},
- 2:{High:350,Middle:330,Low:195},
- 3:{High:225,Middle:190,Low:-15}
+// Each tier has an authored X and Y envelope, measured against *actual* pole
+// release trajectories. Small deterministic variations preserve replayability
+// without turning a fair jump into an impossible or accidental one.
+// These profiles ascend from the previous summit: larger Y = easier/lower.
+const cliffProfiles={
+ 1:{Low:[260,1060,205],Middle:[375,1025,165],High:[465,990,145],Ridge:[530,960,130]},
+ 2:{Low:[260,790,215],Middle:[370,750,180],High:[445,710,150],Ridge:[515,670,130]},
+ 3:{Low:[240,545,210],Middle:[345,505,175],High:[455,460,150],Ridge:[510,425,135]}
 };
 const terraceCounts=[1,2,4,3,2,1,4,3,4];
 function terraceCount(spire,seed){return terraceCounts[(seed+(spire-1)*3)%9];}
-function sculptTerrace(raw,spire,seed){
- const label=raw[4],w=raw[1]-raw[0],d=stageOffsets[spire];
- const wiggle=(((seed*7+spire*11+label.length*5)%7)-3)*6;
- const x=raw[0]+d.dx+terraceShift[spire][label]+wiggle;
- const y=risingTerraces[spire][label]+Math.round((raw[2]-originalTierY[spire][label])*.35);
- return [x,x+w,y,raw[3],label];
-}
 function selectTerraces(group,spire,seed){
- const lookup=Object.fromEntries(group.map(t=>[t[4],sculptTerrace(t,spire,seed)]));
+ const lookup=Object.fromEntries(group.map(t=>[t[4],t]));
  const count=terraceCount(spire,seed);
- const labels=count===1?['Low']:count===2?['Low','Middle']:count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
- return labels.map(label=>label==='Ridge'
-  ?[spires[spire].summit[0]+245+((seed*23+spire*11)%44),
-    spires[spire].summit[0]+390+((seed*23+spire*11)%44),
-    spires[spire].summit[2]+53,'snow','Ridge']
-  :lookup[label]);
+ const labels=count===1?['Low']:count===2?['Low','High']:
+   count===3?['Low','Middle','High']:['Low','Middle','High','Ridge'];
+ return labels.map(label=>{
+  const raw=lookup[label],p=cliffProfiles[spire][label];
+  const variation=((seed*13+spire*17+label.length*7)%7)-3;
+  const x=spires[spire-1].summit[1]+p[0]+variation*3;
+  const w=p[2]+(raw?(raw[1]-raw[0]-140)*.09:0);
+  const y=p[1]+variation*.55;
+  return [x,x+w,y,raw?.[3]||'snow',label];
+ });
 }
 
 function applyRoute(seed) {
@@ -143,8 +144,8 @@ function applyRoute(seed) {
  // The fire is a new, HIGHER destination, embedded in the side of the final
  // massif. Both cave ceiling and floor must remain real collision surfaces.
  const original=caveLayouts[routeSeed];
- const floor=260+Math.round((original.floor-892)*.12);
- const left=original.left-700;
+ const floor=235+Math.round((original.floor-892)*.12);
+ const left=original.left-800;
  spires[4].cave={left,right:left+(original.right-original.left),
   floor,ceiling:floor-150};
 
