@@ -1,4 +1,4 @@
-// Summitbound v0.13 — physical pole swing and directional spring release.
+// Summitbound v0.14 — precision vaults: near-vertical or measured horizontal release.
 // This module replaces ONLY the playable vault. Frozen archived route samples
 // retain the original physics for the historical 997-route reference suite.
 (() => {
@@ -51,12 +51,14 @@
    return classicRelease.call(this,vx,vy,state,config);
   const ratio=clamp(state.facingDir*state.initialVx/Math.max(1,config.maxRunSpeed),0,1);
   const u=state.elapsed/state.rideDuration;
-  const theta=.12+1.4*u;
-  // Momentum feeds a spring. Early release throws higher; later release
-  // follows the pole round for a long, lower arc; overholding bleeds power.
-  const charge=clamp((u-.07)/.19,0,1);
-  const collapse=Math.max(.04,1-clamp((u-1.0)/.19,0,1)*.96);
-  const energy=(230+740*Math.pow(ratio,1.6))*charge*collapse;
+  // The first part of the loaded swing can be released almost vertically.
+  // Continuing the sweep redirects the SAME stored energy forwards.
+  const theta=1.22*clamp((u-.22)/.56,0,1);
+  // Momentum feeds a spring. An early release throws almost vertically. A middle release turns
+  // spring recoil into distance, and holding too long bleeds power.
+  const charge=clamp((u-.08)/.12,0,1);
+  const collapse=1-clamp((u-.94)/.24,0,1)*.95;
+  const energy=(100+670*Math.pow(ratio,1.65))*charge*collapse;
   // Players choose throw angle by releasing during the shaft's sweep.
   return {
    vx:state.facingDir*energy*Math.sin(theta)*(config.arcadeRange??1),
