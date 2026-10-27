@@ -1,3 +1,15 @@
+# Summitbound — v0.9.20 Mountain Integration (Phase 4A)
+
+**Completed visual pass:** each landing ledge is drawn with a broken-stone buttress whose deep root is anchored into its actual mountain-contour boundary. The decorative ice entry now overlaps real landing snow and fractured rock, addressing the gap below/along the previously floating icy strips. The final cave mountain's long, decorative white icicles/vertical waterfall streaks are removed and replaced by subdued rock cracks.
+
+**Deliberately unchanged:** every summit, shelf, cave collider, seeded layout, climb route, vault trajectory and user control; Android rendering optimisations/cached terrain remain. No redesign of the cave landing or the climber animation is included.
+
+**Validation:** geometry-root tests across representative seeds, cached and uncached draw-order smoke tests, extra terrain-art tests, all 997 reachability routes, seven v0.9.16 golden level fingerprints, mobile cache tests and Vite build. Visual appearance still requires actual Android/desktop review.
+
+**Next:** Phase 4B — measure how hard high/middle/low landings actually are using successful timing windows, tune LEVEL DESIGN for the desired high-risk/high-reward feeling, and add restrained successful-high-landing feedback. Phase 5 — cave approach/collision, carved entrance, ladder position and campfire selection. Later: animation, pole shape, Android publication checks.
+
+---
+
 # Summitbound — v0.9.19 Natural Ice Routes (Phase 3)
 
 **Done:** natural ice-route network that conditionally shares the upper climb only where a lower ice path actually passes through a higher shelf's ice entrance. Other shelves retain independent climbs. Snow-covered summit caps now overlap and bury the formerly blunt cyan tops, with irregular frost tongues and a brief on-ridge step-off.

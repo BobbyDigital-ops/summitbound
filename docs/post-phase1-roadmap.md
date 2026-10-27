@@ -8,7 +8,7 @@
 - Maintain independently reachable summit exits with no sudden clipping or teleport, preserve slow manual climb and legitimate checkpoint behaviour.
 - Validate lower, middle and high shelves, ascent length and exit safety in both landscape and portrait.
 
-## Phase 4 — mountain and landscape polish
+## Phase 4A — landing rock and ice visual integration (implemented v0.9.20; needs visual review)
 - Neaten the ice-to-crest intersection, uneven snow ridges and cliff roots; avoid flat rectangular tops and unrealistic floating triangular shelf fins.
 - Increase undersized cliff trees proportionately; improve near-versus-far depth without blurring the climber or restoring costly full-frame effects.
 - True walkable slopes are separate physics/collision work and require explicit tests before implementation.
@@ -45,3 +45,18 @@
 - The static mountain cache draws only each unique ice segment (children stop at their merge), rather than overpainting a cyan trunk several times. Frozen surfaces end UNDER the top snow; irregular windblown white drifts soften the join along the summit.
 - After climbing, ice exits require a short 20-unit step onto a legally walkable snow plateau. Ladder exit unchanged.
 - New test suites `test:ice-network` and `test:ice-snow` cover all 997 route seeds and artwork invariants. **Visual approval and a real touch-device climb are still required.**
+
+## Next — Phase 4B: real high-platform risk/reward
+
+Do not mistake shelf height alone for a genuine challenge. Enumerate successful pole **release timing windows** (using the existing physics and first-contact collision checks) for high, middle and low choices on every accepted generated mountain. Deliberately craft narrow but fair high-route windows, broad lower-shelf survival windows and meaningful time/ice-ascent tradeoffs. Adjust authored level arrangements, NOT the vault spring constants, to achieve the reward. Consider minimal, optional landing acknowledgement (short sound, haptic and "HIGH ROUTE" label); no interrupting popups. Distinct timing/reward profiles must be part of scaling the template to many future levels.
+
+## Phase 5 cave landing and presentation notes
+
+The user playback shows the cave appearing to accept the player while the character overshoots or glances off the invisible collision/roof rule. Align the ACTUAL collision target with the visible cave entrance and slightly improve the reasonable landing window; preserve the challenge. Retain the improved cave height, recess the cave naturally into the rock, move the ladder to the right of the campfire and trigger Continue/Retry only when the player approaches the fire. Do not address by altering vault physics.
+
+## Phase 4A verified changes
+
+- `terraceButtressProfile` roots each outcrop into the continuous level cliff at its real depth, rather than a disconnected angular trapezoid.
+- `drawIceShelfJoins` overlays ice and frost across real shelf entry/footing; cached terrain draws the ice, footing and summit snow in that order.
+- Removed decorative full-height frozen waterfalls and oversized white scratch marks from the last cave summit. These were art-only features, not climb routes.
+- No mountain/collider coordinate changes; approved level template and 997-route tests remain mandatory.
