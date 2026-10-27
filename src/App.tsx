@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-/** Summitbound v0.9.7 - Mobile Release Candidate */
+/** Summitbound v0.9.8 - Foreground Restoration */
 export default function App() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    document.title = 'Summitbound — v0.9.7: Mobile Release Candidate';
+    document.title = 'Summitbound — v0.9.8: Foreground Restoration';
 
     const focusIframe = () => {
       if (iframeRef.current && iframeRef.current.contentWindow) {

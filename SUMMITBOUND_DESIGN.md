@@ -1,5 +1,5 @@
 # SUMMITBOUND — active design brief
-**Current build:** v0.9.7 Mobile Release Candidate — six-checkpoint mega update on development branch, all automated tests and a full renderer smoke test across nine routes pass. Awaiting HUMAN browser and mobile playtesting. Original v0.9.1 protected at `backup/v091-before-mega`.
+**Current build:** v0.9.8 Foreground Restoration — six-checkpoint mega update on development branch, all automated tests and a full renderer smoke test across nine routes pass. Awaiting HUMAN browser and mobile playtesting. Original v0.9.1 protected at `backup/v091-before-mega`.
 **Canonical outstanding backlog:** https://github.com/BobbyDigital-ops/summitbound/issues/1
 
 ## Game promise
@@ -43,3 +43,6 @@ Terraces are horizontally staggered and lead to a coherent uphill route. Smaller
 Validation: CI includes ice, cliff, wooden staff, leap, art, ascent, physical vault reachability, mobile structure and **runtime Canvas rendering for all nine routes**. CI cannot certify actual 60 FPS on Android, finger controls under load, artistic fidelity, or fun/jump difficulty. User's AI Studio preview and standalone mobile browser must be used for those checks.
 
 Protected old version: `backup/v091-before-mega`. The player-facing label changes to **MOBILE RELEASE CANDIDATE · v0.9.7**. Use GitHub as the source of truth, and never force-push to overwrite Gemini changes.
+
+## v0.9.8 — real-browser rendering crash fix
+The blank Vercel foreground originated from a visibility check reading `s.ledges` from a summit coordinate array; it must read `spires[i].ledges`. It threw before mountain and player drawing, leaving the HUD in its initial state. Added a **real headless Chromium startup test** (tests/browser-smoke.cjs), confirming the game reaches `LEAP 1 / 4` and records any JavaScript errors. Older mock Canvas tests did not cover this. Vault physics and controls remain unchanged. Release has browser-verified startup, but hardware mobile performance still requires a real device check.
