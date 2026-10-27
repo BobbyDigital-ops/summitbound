@@ -444,8 +444,9 @@ function rockBackingForIce(index,y,baseX){
 function mountainFlankX(index,y){
  const s=spires[index],R=s.summit[1],T=s.summit[2];
  const depth=y-T,character=s.ridge?.character??.5;
- const recede=Math.min(index===4?95:175+character*85,
-  depth*(index===4?.075:.12+character*.12));
+ const legacyCave=index===4&&typeof FEATURED_COURSE==='undefined';
+ const recede=Math.min(legacyCave?95:175+character*85,
+  depth*(legacyCave?.075:.12+character*.12));
  const stratified=Math.sin(depth*.0068+index)*
   Math.sin(depth*.0029+index*1.5)*22;
  return R+14-recede+Math.sin(depth*.014+index)*18+
