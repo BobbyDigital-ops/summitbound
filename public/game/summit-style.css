@@ -24,3 +24,20 @@
  #performanceLabel{display:block;flex:1 1 100%;min-width:0;
   overflow-wrap:anywhere;line-height:1.35}
 }
+
+/* Route-specific medal gates with a compact, non-modal race HUD. */
+#trialHud{position:fixed;z-index:5;right:14px;top:96px;display:flex;
+ flex-direction:column;gap:3px;align-items:flex-end;text-align:right;
+ background:#0a253ecc;border:1px solid #d7c29477;padding:8px 11px;
+ border-radius:11px;box-shadow:0 3px 12px #00132055;pointer-events:none;
+ max-width:min(340px,49vw);font-size:11px;color:#e6f4fd}
+#trialHud[hidden]{display:none}
+#medalPace{color:#f1c968;letter-spacing:.055em;font-size:12px}
+#medalTargets{font-weight:750;color:#e7e9e8}
+#trialBest{color:#a9e9e7}
+#trialSplit{color:#d4e8ed;max-width:100%;white-space:normal;font-size:10px}
+@media(max-width:760px){
+ #trialHud{top:89px;right:5px;max-width:48vw;padding:5px 7px;gap:2px;font-size:9px}
+ #medalPace{font-size:10px}
+ #trialSplit{font-size:9px}
+}
