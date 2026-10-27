@@ -1,3 +1,17 @@
+# Summitbound — active development: v0.9.13 Procedural Peaks
+
+Active game: `public/game/summit-leap-v081.html` with modular Canvas scripts under `public/game/scripts/`. Development branch: `dev/visual-recovery-v099-v0912`. Main is not automatically updated by this branch.
+
+## v0.9.13 (procedural mountain Phase 2)
+- 997 deterministic route seeds; mountains now vary in summit height, crest width, exposed cliff taper and shelf arrangement.
+- Usually 2–4 shelves per mountain; a rare special layout has one. Each shelf independently varies horizontal distance, length, elevation and surface. High shelf does **not** have to be farther away than low shelf.
+- Potential shelves are accepted only if flight sampling using the **existing** `PolePhysicsEngine` finds real first-contact landings and adequate braking windows. Summit collision run-up is rebuilt with each route. Existing vault physics and control handling are unchanged.
+- All prior regressions remain; `npm run test:procedural` additionally checks 51 routes and `test:chasm` checks extra difficult seeds.
+- Phase 3 shared/branched ice walls, fully walkable sloped summits, visual cave work and performance diagnosis remain *future* tasks; do not assume these are implemented.
+- A green CI result confirms automated tests, **not** a complete manual gameplay review.
+
+---
+
 # Summit Leap — v0.8.3 Clean Foundation
 
 Read [CLEAN_FOUNDATION.md](CLEAN_FOUNDATION.md) for the active architecture and migration notes.
