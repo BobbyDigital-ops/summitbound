@@ -1197,6 +1197,8 @@ function draw(){
  const status=completed?'Checkpoint reached.':p.state==='CLIMBING'?
   (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
    'Hold ↑ through rock tunnel · Release to rest'):
+  p.vault?`VAULT · ${Math.round(Math.abs(p.vault.initialVx)/cfg.maxRunSpeed*100)}% RUN-UP · RELEASE TO FLY`:
+  isGround()?`RUN-UP ${Math.round(Math.abs(p.vx)/cfg.maxRunSpeed*100)}% · SPEED ${Math.round(Math.abs(p.vx))}/${cfg.maxRunSpeed}`:
   `Speed ${Math.round(Math.abs(p.vx))} · ${p.state.toLowerCase().replaceAll('_',' ')}`;
  if(subEl.textContent!==status)subEl.textContent=status;
  if(typeof updateTrialHud==='function')updateTrialHud();
