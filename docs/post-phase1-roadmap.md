@@ -1,3 +1,15 @@
+# Confirmed target: 100 levels (not 110 or 100+)
+
+**Phase 8 v0.10.0:** skill-biased deterministic vault release, alternating A/D axe climbing, landing-swept recovery and direct physical ice exits; intermediate shelf planting enabled. Core physics and controls need real Android feel review. `backup/pre-phase8-v0924` protects old gameplay.
+
+**Phase 9 planned:** redesign topological mountain network as one continuous route; *much larger and variable* physically reachable leap distances, forked intermediate-ledge shortcuts, cave shafts and campfire/tent checkpoints. Player remains in one continuous ascent, checkpoints do not end courses.
+
+**Phase 10 planned:** cohesive rugged, menacing non-cartoonish mountain, snow, rock, cave and climber art. Fix detached ledges and snow 'bridges' at the terrain-model level.
+
+**Later:** 100 authored/curated levels, validated challenge variety and accessibility; transparent Bronze/Silver/Gold timing, PB ghosts; deterministic telegraphed wind/weather hazards; Android commercial packaging only after real performance and playtests.
+
+---
+
 # Summitbound — development handoff after Phase 1 (v0.9.18)
 
 **Approved and retained:** v0.9.16 procedural mountain layout template (separate frozen branch `level-template-v0.9.16`). The high, middle and lower alternative landings, difficult jumps, painterly mountain atmosphere, Up/W climbing, pole physics and controls must survive all later phases. The Phase 1 sharpness optimisations must also remain subject to phone profiling.
