@@ -1,0 +1,40 @@
+# Summitbound: Five Peaks vertical slice and scalable course engine
+
+**Active commercial target:** exactly **100** quality-controlled levels. **Currently playable:** one five-summit level (four major crossings). The 997 historic procedural seeds are retained for reference/test coverage, not selectable in the player UI.
+
+## Single source of truth
+- `course-engine.js` contains `FEATURED_COURSE` (identity, five peak motifs, per-peak offsets, *different* per-ledge landing clearances, campsite/cave checkpoints), `installFeaturedCourseGeometry`, `auditPlayableCourse` and `compilePhysicalCourseGraph`.
+- `world-data.js` owns summit, ledge, cave, ice route and **both** left and right rock contours. Ice art and movement use the same anchored route geometry.
+- `rendering.js` paints the solid mountain inside those contours, plus a campsite and a tunnel that follows the exact cave ladder coordinate. Never use a separate visual bridge, false ice waterfall or slide-to-summit action.
+- `simulation.js` processes actual first-contact landings, axe climbing and checkpoint logic. No summit automatically saves progress: the third-peak camp and fifth-peak cave do.
+
+## Five Peaks hand-curation
+| Crossing | Intended choice | Audited first-contact safe opportunities |
+|---|---|---|
+| Start → Broken Tooth | Distant lower rescue, middle platform, narrow upper approach | Low 3 / Middle 16 / High 4 |
+| Broken Tooth → Windward Spire | Long lower rescue, middle, technical high | Low 2 / Middle 13 / High 4 |
+| Windward → Lantern Crag | Further and increasingly narrow risk/reward | Low 2 / Middle 6 / High 2 |
+| Lantern → Firespine cave | Recessed cave checkpoint, ladder through rock | Four safe sampled releases |
+
+These counts are based on the internal representative vault-release sampler. They establish **possible** routes, not perceived difficulty, route quality or human success rates. The four major gap clearances vary roughly 452–655 world units. No verified direct intermediate-ledge shortcut exists in this initial slice; do not fake one.
+
+## Non-negotiable quality gates for every additional level
+1. **Real physics:** each intended launch has room to plant the pole, and each destination offers at least a validated safe release range. A superhuman/unreachable jump is rejected; no invisible flight assistance.
+2. **Route graph:** connect accessible launch surfaces, ledges, climbs, cave shafts and checkpoints with measured physical edges. A complete path and fair recovery alternatives must exist. Ledge-to-next-peak shortcuts are accepted only when the sampler proves them.
+3. **Rock backing:** every vertex and intermediate part of the visible ice corridor lies inside the **same** left/right mountain silhouette, with minimum margin. The ice must actually end on a legal summit point.
+4. **Failure:** any physical landing can save a bad attempt. An uncaught fall returns to the last *meaningful* checkpoint. The engine does not silently restart at every peak.
+5. **Gameplay quality:** separate intended high-skill and safer slower alternatives, progressively varied gap sizes, geometry and pacing. Similar seeds are not automatically different levels. Real human assessment is mandatory.
+6. **Visual quality:** inspect mountain composition, camp, cave, rock texture, snow shape, and exact collisions in landscape and portrait; reject detached platforms or tunnels behind pasted-on scenery.
+7. **Production:** tests plus a complete Android playthrough with profiler evidence. Do not label a level ready because unit tests pass.
+
+## How to grow this beyond the first five peaks
+- Next engine milestone: author a catalogue of independent cliff, ridge, cave, campsite and ice-shaft archetypes. Each carries collision and visual geometry, potential takeoffs, real climb graph and difficulty intent.
+- Compose candidate multi-peak runs *through a validated manifest*, not unbounded random coordinate jitter. The route compiler's loops are data-driven in peak count, but additional peak counts are **not** yet fully supported by the current UI/simulation/rendering. These must be refactored as one task.
+- For each candidate: generate physical course graph; simulate first-contact pole-release windows for *all* intended edges and all viable launch surfaces; validate falls and checkpoints; reject unsupported ice and false ledges; score difficulty and topology uniqueness.
+- Promote candidates into the 100-level campaign only after curated playtesting, real Android performance tests and human signoff. Keep deterministic seeds for reproducibility, but **never claim unlimited playable levels merely because a generator can output unlimited seeds**.
+- Later include readable, deterministic wind/environmental metadata in each manifest, and tune time-trial medal targets using actual playthrough completion times and PB ghosts.
+
+## Current known limits
+The new cliff-backing correction still needs **actual screenshot confirmation** to ensure the rock and ice LOOK natural, not just geometrically overlap. Character and overall mountain art remain cartoonish; a cohesive rugged visual overhaul is still required. The cave tunnel is a functional drawn shaft, not final production-quality interior art. A full CI run and physical Android playtest remain outstanding. Vercel may still be build-rate-limited.
+
+**Related:** `tests/five-peak-course.test.cjs` and `docs/graphics-overhaul-backlog.md`.
