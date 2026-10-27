@@ -10,7 +10,7 @@ const ctx2d=new Proxy({},{
 const env=vm.createContext({
  Image:class Image{constructor(){this.complete=false;this.naturalWidth=0;this.naturalHeight=0;}},
  document:{getElementById:()=>null,createElement:()=>({width:0,height:0,getContext:()=>ctx2d})},
- innerWidth:844,innerHeight:480,PI:Math.PI,ctx:ctx2d,
+ innerWidth:844,innerHeight:480,PI:Math.PI,ctx:ctx2d,graphicsQuality:'auto',
  performance:{now:()=>1000},platforms:[],
 });
 for(const path of ['public/game/scripts/world-data.js','public/game/scripts/rendering.js']){
