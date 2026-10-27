@@ -20,8 +20,8 @@ function axeCatchOpportunity(){
 function attemptAxeCatch(){
  if(p.state!=='AIRBORNE'&&p.state!=='FALLING')return false;
  if(catchUsed)return false;
+ const found=axeCatchOpportunity();
  catchUsed=true; // Even a badly timed press expends the ONE attempt.
- const found=axeCatchOpportunityAllowSpent();
  if(!found){hint('MISSED THE ROCK — NO SECOND THROW',.9);return false;}
  const pl=found.pl,face=p.facingDir>=0?1:-1;
  p.state='HANGING';p.vx=0;p.vy=0;
@@ -32,14 +32,15 @@ function attemptAxeCatch(){
  hint('AXE BITE! ALTERNATE A / D TO HAUL UP',2);
  haptic([23,32,12]);return true;
 }
-function axeCatchOpportunityAllowSpent(){
- const spent=catchUsed;catchUsed=false;
- const target=axeCatchOpportunity();catchUsed=spent;return target;
-}
 function axeCatchStrike(side){
  if(p.state!=='HANGING'||!p.catchLedge||![-1,1].includes(side))return false;
  const c=p.catchLedge;
  if(c.lastSide===side)return false;
+ const gap=elapsed-c.lastStrikeAt;
+ // Fast rhythm is rewarded, but sub-frame keyboard spam and alternating
+ // several actions in one physics tick cannot finish a rescue instantly.
+ if(gap<.085)return false;
+ if(gap>.85&&c.strokes>0)c.strokes=0;
  c.lastSide=side;c.strokes++;c.lastStrikeAt=elapsed;
  haptic(5);
  if(c.strokes>=4){
