@@ -299,6 +299,21 @@ function tick(dt){
   if(p.x < 12){ p.x = 12; p.vx = 0; }
  }
  
+ // Actual collision against the upper crux wall shares the precise same
+ // geometric function as the rendered granite. A low miss hits solid rock
+ // and drops into the fracture; it cannot phase through the mountain.
+ if((p.state==='AIRBORNE'||p.state==='FALLING')&&p.vx>0){
+  for(const i of [1,3]){
+   const m=spires[i];
+   if(!m?.ridgeCrux||p.y<m.summit[2]+15||p.y>m.summit[2]+630)continue;
+   const wall=ridgeUpperWallX(i,p.y)-13;
+   if(prevX<wall&&p.x>=wall){
+    p.x=wall;p.vx=-Math.abs(p.vx)*.15;p.vy=Math.max(30,p.vy);
+    if(messageTimeout<.5)hint('STRIKE THE ROCK — TOO LOW',1.3);
+    haptic(11);
+   }
+  }
+ }
  // The visible back of the cave is solid stone. Stop runners and airborne
  // arrivals before they escape through its right wall. Do not 'teleport'
  // someone who fell down outside the cave back into the chamber.
