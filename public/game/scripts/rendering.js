@@ -532,8 +532,9 @@ function decorate(i,paintCtx=ctx){
  for(const [f,size] of treeLayouts[i]) pine(l+f*w,top-8,size,paintCtx);
  if(i>0 && i<4){
   const tiers=spires[i].ledges;
-  for(const idx of [0,2]){
-   const ledge=tiers[idx],width=ledge[1]-ledge[0];
+  for(const [idx,ledge] of tiers.entries()){
+   if(idx%2!==0)continue;
+   const width=ledge[1]-ledge[0];
    if(width>110) pine(ledge[0]+19+(i%2)*7,ledge[2]-7,.66+(i%3)*.11,paintCtx);
   }
  }
