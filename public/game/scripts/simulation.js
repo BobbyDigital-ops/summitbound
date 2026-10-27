@@ -23,6 +23,12 @@ function fail(){
  }
 }
 
+function activateCampsiteCheckpoint(stage){
+ if(stage!==2||lastSafeStage>=2)return;
+ lastSafeStage=2;
+ hint('FIVE PEAKS — CAMPFIRE CHECKPOINT REACHED',3.5);
+ haptic([17,35,17]);
+}
 function getLanding(plat){
  p.standingOn = plat.id; p.surface = plat.surfaceType; p.groundedFor = 0;
  if(plat.kind === 'cave'){
@@ -36,7 +42,8 @@ function getLanding(plat){
   atStage = plat.spire;
   if(typeof trialSplit==='function')trialSplit(plat.spire);
   if(plat.kind === 'summit'){ 
-   lastSafeStage = plat.spire; landingHistory[plat.spire - 1] = 'Direct summit';
+   activateCampsiteCheckpoint(plat.spire);
+   landingHistory[plat.spire - 1] = 'Direct summit';
    hint('PERFECT! DIRECT SUMMIT — CLIMB SKIPPED', 3); haptic([12,30,12]);
   } else {
    landingHistory[plat.spire - 1] = plat.tier;
@@ -47,6 +54,7 @@ function getLanding(plat){
  } else if(plat.kind === 'ledge' && plat.spire === atStage){
   hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE ICE WALL`, 2);
  }
+ if(plat.kind === 'summit' && plat.spire === 2)activateCampsiteCheckpoint(2);
  if(plat.kind === 'summit' && plat.spire === 4) win();
 }
 
@@ -66,7 +74,7 @@ function climbStart(plat){
  p.state = 'CLIMBING'; p.vx = 0; p.vy = 0; p.standingOn = null; p.x = rungX;
  const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
  const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
- const lipX=exit?.x ?? (goal.left+40);
+ const lipX=exit?.x ?? rungX;
  // Ice routes terminate at their physical summit vertex, with NO scripted
  // sideways step. The cave ladder still uses its own tunnel transition.
  const stepX=lipX; // A real exit must already lie inside its summit collider.
@@ -161,19 +169,20 @@ function tick(dt){
   const point=c.isIce?icePositionAt(c.spire,p.y,c.tierIndex):null;
   if(c.isIce&&!point){fail();return;}
   p.x=c.isIce?point.x:c.originX;
-  // An ice path terminates ON the summit; never slide the climber through
-  // empty space after reaching its endpoint.
+  // An icefall or cave tunnel ends where the physical climb route actually
+  // meets its summit. No STEP_OFF interpolation or invisible sideways slide.
   if(p.y<=c.targetY+.25 && (oldY>p.y||k.up)){
    p.y=c.targetY;
-   if(c.isIce){
-    const summit=platforms.find(pl=>pl.id==='s'+c.spire);
-    if(!summit||p.x<summit.left+3||p.x>summit.right-3){fail();return;}
-    p.state='GROUNDED';p.standingOn=summit.id;
-    p.surface=summit.surfaceType;p.vx=0;p.vy=0;
-    p.groundedFor=.4;lastSafeStage=c.spire;p.climb=null;
-    hint('ICE EXIT — SUMMIT REACHED',1.8);
-    if(c.spire===4)win();
-   }else{p.state='STEP_OFF';c.exitTime=0;}
+   const summit=platforms.find(pl=>pl.id==='s'+c.spire);
+   if(!summit||p.x<summit.left+3||p.x>summit.right-3){
+    fail();return;
+   }
+   p.state='GROUNDED';p.standingOn=summit.id;
+   p.surface=summit.surfaceType;p.vx=0;p.vy=0;
+   p.groundedFor=.4;p.climb=null;
+   activateCampsiteCheckpoint(c.spire);
+   hint(c.isIce?'ICE EXIT — SUMMIT REACHED':'TUNNEL EXIT — SUMMIT REACHED',1.8);
+   if(c.spire===4)win();
   }
   else if(p.y>=c.originY-.25 && k.down){
    const ledge=platforms.find(pl=>pl.spire===c.spire&&pl.kind===(c.isIce?'ledge':'cave')&&
@@ -184,19 +193,7 @@ function tick(dt){
   return;
  }
  
- if(p.state === 'STEP_OFF'){
-  const c = p.climb; c.exitTime += dt;
-  const delta = c.targetX - p.x;
-  const advance = Math.sign(delta)*Math.min(Math.abs(delta),
-   (c.isIce?115:175)*dt);
-  p.x += advance;
-  if(Math.abs(c.targetX - p.x) < .5){
-   const stage = c.spire; p.x = c.targetX; p.state = 'GROUNDED'; p.vx = 0; p.vy = 0; p.surface = 'snow'; p.standingOn = 's' + stage; p.groundedFor = .4; lastSafeStage = stage;
-   hint(stage === 4 ? 'FIRE ABOVE — SECTION COMPLETE!' : 'SUMMIT REACHED — READY FOR NEXT LEAP', 2);
-   if(stage === 4) win();
-  }
-  return;
- }
+
  
  if(ground && k.down && !k.up && climbStartDown())return;
 
