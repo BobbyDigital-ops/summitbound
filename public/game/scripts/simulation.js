@@ -72,21 +72,37 @@ function climbStart(plat){
 
 // Begin a reversible ice descent from the upper summit. Select the closest
 // genuine ice exit, with no teleport into a different path.
+// Down/S reverses an active climb. On a platform it enters the nearest
+// physical ice route: summit -> highest connected shelf, then (where the
+// real ice branches meet) shelf -> next lower shelf. No arbitrary teleport.
 function climbStartDown(){
- const summit=currentPlatform(),index=summit?.spire;
- if(summit?.kind!=='summit'||index<1||index>3)return false;
+ const standing=currentPlatform(),index=standing?.spire;
+ if(index<1||index>3||!['summit','ledge'].includes(standing.kind))return false;
  const routes=iceRouteNetwork(index);
- const candidates=routes.map(route=>({route,exit:route.points.at(-1)}))
-  .filter(entry=>entry.exit&&Math.abs(p.x-entry.exit.x)<32)
-  .sort((a,b)=>Math.abs(a.exit.x-p.x)-Math.abs(b.exit.x-p.x));
- if(!candidates.length)return false;
- const {route,exit}=candidates[0],ledge=platforms.find(pl=>pl.id==='l'+index+'-'+route.tier)
-  ||platforms.find(pl=>pl.spire===index&&pl.kind==='ledge'&&Number(pl.id.split('-')[1])===route.tier);
+ let selected;
+ if(standing.kind==='summit'){
+  selected=routes.map(route=>({route,entry:route.points.at(-1)}))
+   .filter(x=>x.entry&&Math.abs(p.x-x.entry.x)<=28)
+   .sort((a,b)=>Math.abs(p.x-a.entry.x)-Math.abs(p.x-b.entry.x)||
+     a.route.points[0].y-b.route.points[0].y)[0];
+ }else{
+  const tier=Number(standing.id.split('-')[1]),entryX=climbEntryX(standing);
+  selected=routes.filter(route=>route.sharedWith===tier)
+   .map(route=>({route,entry:{x:iceXOnPath(route.points,standing.top-22),
+    y:standing.top-22}}))
+   .filter(x=>Math.abs(p.x-entryX)<=28&&
+    Math.abs(x.entry.x-entryX)<=28)
+   .sort((a,b)=>a.route.points[0].y-b.route.points[0].y)[0];
+ }
+ if(!selected)return false;
+ const {route,entry}=selected;
+ const ledge=platforms.find(pl=>pl.id==='l'+index+'-'+route.tier);
  if(!ledge)return false;
  p.state='CLIMBING';p.vx=0;p.vy=0;p.standingOn=null;
- p.x=exit.x;p.y=exit.y;
+ p.x=entry.x;p.y=entry.y;
  p.climb={originX:climbEntryX(ledge),originY:route.points[0].y,
-  targetX:exit.x,lipX:exit.x,targetY:spires[index].summit[2]-22,
+  targetX:route.points.at(-1).x,lipX:route.points.at(-1).x,
+  targetY:spires[index].summit[2]-22,
   spire:index,climbBeat:0,exitTime:0,isIce:true,tierIndex:route.tier};
  hint('HOLD ↓ / S TO DESCEND · ↑ / W TO REVERSE',2.3);
  return true;
