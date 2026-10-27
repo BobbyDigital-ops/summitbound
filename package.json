@@ -20,6 +20,7 @@
     "test:terrain": "node --test tests/terrain-balance.test.cjs",
     "test:climb": "node --test tests/climb-playability.test.cjs",
     "test:chasm": "node --test tests/chasm-playability.test.cjs",
+    "test:procedural": "node --test tests/procedural-mountains.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

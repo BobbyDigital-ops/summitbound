@@ -34,8 +34,13 @@ const caveLayouts = [
 const leapTitles = ['OPENING CHASM','WINDWARD RISE','STEEP ICE CRUX','CAVERN APPROACH'];
 let routeSeed=0;
 
-const terraceCounts=[2,3,4,3,2,4,3,1,4];
-function terraceCount(spire,seed){return terraceCounts[((seed%9)+(spire-1)*4)%9];}
+// Multi-choice ascents are the norm. An occasional rare, single-ledge
+// challenge remains available, but never dominates the starting nine routes.
+const terraceCounts=[2,3,4,3,2,4,3,2,4];
+function terraceCount(spire,seed){
+ if(seed>0&&seed%41===40&&spire===3)return 1;
+ return terraceCounts[((seed%9)+(spire-1)*4)%9];
+}
 function seededRandom(seed,spire){
  let state=(Math.imul(seed+1,2654435761)^Math.imul(spire+11,1597334677))>>>0;
  return ()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return state/4294967296;};

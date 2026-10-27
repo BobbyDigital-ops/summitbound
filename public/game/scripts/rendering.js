@@ -97,6 +97,8 @@ function drawSpire(i,paintCtx=ctx){
  paintCtx.beginPath();
  paintCtx.moveTo(mountainContourX(i,T+2),T+2);
  const crestSteps=Math.max(24,Math.round((R-L)/12));
+ const ridgeCharacter=s.ridge?.character??.5;
+ const ridgeRoughness=s.ridge?.roughness??1;
  // The fifth destination is a *towering* peak, not a flat platform with a
  // cave painted onto its side. The ice-cave entrance is far below its summit.
  const finalRidge=[[0,0],[.08,-1],[.13,-45],[.20,-105],[.24,-218],
@@ -113,7 +115,8 @@ function drawSpire(i,paintCtx=ctx){
  for(let n=1;n<=crestSteps;n++){
   const f=n/crestSteps,x=L+(R-L)*f;
   const crag=(i===4 ? ridgeAt(f) :
-   -(4+17*Math.pow(Math.max(0,Math.sin(f*18+i*3.7)),4))
+   -(4+17*ridgeRoughness*Math.pow(Math.max(0,
+     Math.sin(f*(14+ridgeCharacter*15)+i*3.7)),4))
    *(f>.21&&f<.86?1:0));
   // Broken wind-scoured crown rather than an unvaried ruler-straight top.
   // Keep the silhouette close to the actual flat, playable takeoff surface.
@@ -125,7 +128,8 @@ function drawSpire(i,paintCtx=ctx){
  // wall; overshooting the crest still leaves clear open-air space.
  for(let y=T+23;y<bottom;y+=27){
   const depth=y-T;
-  const recede=Math.min(i===4?95:205,depth*(i===4?.075:.18));
+  const recede=Math.min(i===4?95:175+ridgeCharacter*85,
+   depth*(i===4?.075:.12+ridgeCharacter*.12));
   const stratified=Math.sin(depth*.0068+i)*Math.sin(depth*.0029+i*1.5)*22;
   const flank=R+14-recede+Math.sin(depth*.014+i)*18+
    Math.sin(depth*.047+i*2)*7+stratified;

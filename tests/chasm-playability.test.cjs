@@ -41,7 +41,7 @@ function routePaths(launch,targets){
    }
  return hits;
 }
-for(let seed=0;seed<9;seed++){
+for(const seed of [...Array.from({length:24},(_,i)=>i),40,99,996]){
  test('seed '+seed+' has demanding yet stoppable ledges and independent ice exits',()=>{
   vm.runInContext('applyRoute('+seed+')',ctx);
   for(let i=1;i<=3;i++){
