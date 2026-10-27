@@ -10,7 +10,9 @@
 - **Regression:** stock ghost replay records are versioned to v2 after the physics changes; scripted checks now cover vault consistency, axes, actual ice exits, rescue landings, and ledge launch, and are added to CI. Trial medals remain provisional until a reliable set of full real-person runs exists.
 - **NOT Phase 8:** the present four-crossing level and its dated mountain geometry remain temporarily in place. Phase 9 will create wider, VARIABLE gaps, branching physically continuous mountains, campsites, cave tunnels and longer continuous progression; Phase 10 will replace the persistent cartoonish asset and glued ledge system. Wind/weather belongs to a later deterministic, telegraphed environmental system.
 
-**Quality bar:** predictable failures, meaningful mastery, recoverable unintended landings and logically connected terrain — not artificially generous leaps or scripted summit slides. Shipping exactly 100 levels requires fully curated/bot-validated **and human playtested** level layouts across real Android devices.
+**Quality bar:** predictable failures, meaningful mastery, recoverable unintended landings and logically connected terrain — not artificially generous leaps or scripted summit slides.
+
+**Known level-design debt identified by the new physics:** the old high-versus-low timing ratio is no longer a reliable difficulty certificate. In a sampled 122-seed check (366 receiving-mountain stages), about 60% retained a tighter highest-ledge release window than the low alternative; every sampled ledge was still reachable. **Phase 9 MUST re-author topology and route grading** before accepting the eventual 100-level campaign. Physical reachability alone does not satisfy our commercial difficulty bar. Shipping exactly 100 levels requires fully curated/bot-validated **and human playtested** level layouts across real Android devices.
 
 ---
 
