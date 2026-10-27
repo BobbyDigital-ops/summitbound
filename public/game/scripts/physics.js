@@ -129,7 +129,10 @@ class PolePhysicsEngine {
         const strength=(0.18+0.82*Math.pow(ratio,1.9))*precision*late;
         const angle=clamp(u,0,1);
         return {
-            vx:state.facingDir*(690-210*angle)*strength*(config.arcadeRange??1),
+            // Full-sprint momentum unlocks longer, faster crossings. The
+            // launch is not a flat distance boost: inadequate run-up lowers
+            // both forward reach and lift under the same release timing.
+            vx:state.facingDir*(825-205*angle)*strength*(config.arcadeRange??1),
             vy:-(215+355*angle)*strength*(config.arcadeLift??1)
                 +config.gravity*0.5*Math.max(0,state.elapsed-state.rideDuration)
         };
