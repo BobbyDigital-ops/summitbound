@@ -107,7 +107,7 @@ test('Longer vault: actual run-up unlocks materially more range but slower run-u
  })()`);
  assert.equal(data.max,450);
  assert.equal(data.accel,1050);
- assert.ok(data.full.vx>570,'full sprint no longer extends jump range');
+ assert.ok(data.full.vx>500&&data.full.vx<700,'full sprint must be useful without the excessive v0.13 range');
  assert.ok(data.full.vx>data.medium.vx*1.25,'extra momentum has insufficient effect');
  assert.ok(data.full.vx>data.slow.vx*1.6);
  assert.ok(Math.abs(data.full.vy)>Math.abs(data.medium.vy)*1.2);
