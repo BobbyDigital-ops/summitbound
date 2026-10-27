@@ -24,6 +24,9 @@ test('keyboard, pointer and vault controls still attached',()=>{
  assert.match(input,/control\(document\.getElementById\('up'\), 'up'\)/);
  assert.match(input,/release\(\)/);
 });
-test('user-visible version always updated on checkpoint',()=>{
- assert.match(html,/MOBILE RELEASE CANDIDATE · v0\.9\.7/);
+test('player HUD release version stays in sync with document title',()=>{
+ const match=html.match(/<title>Summitbound — ([^<]*?) (v\d+\.\d+\.\d+)<\/title>/);
+ assert.ok(match,'document title has semver release');
+ const label=match[1].toUpperCase()+' · '+match[2];
+ assert.ok(html.includes('<small>'+label+'</small>'),'visible HUD shows same release as title');
 });
