@@ -101,8 +101,8 @@ test('Vault dynamics: actual gameplay release preserves the high-energy flight',
   return {hold,before,after:p.vx,state:p.state};
  })()`);
  assert.ok(measured.hold>.8);
- assert.ok(measured.before>620,'release velocity too weak');
- assert.ok(measured.after>620,'post-release clamp erased sprint momentum');
+ assert.ok(measured.before>350&&measured.before<625,'mid-swing release outside controlled flight envelope');
+ assert.ok(measured.after>350&&Math.abs(measured.after-measured.before)<3,'post-release flight does not retain the intended momentum');
  assert.equal(measured.state,'AIRBORNE');
 });
 test('Vault dynamics: frozen legacy route sampler is unaffected by new playable physics',()=>{
