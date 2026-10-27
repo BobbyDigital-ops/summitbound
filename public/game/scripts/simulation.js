@@ -68,6 +68,28 @@ function climbStart(plat){
  hint(plat.kind === 'cave' ? 'HOLD W / ↑ — CLIMB THE CAVE LADDER' : 'HOLD W / ↑ — CLIMB THE ICE WITH YOUR PICKS', 2.5); haptic(7);
 }
 
+// Begin a reversible ice descent from the upper summit. Select the closest
+// genuine ice exit, with no teleport into a different path.
+function climbStartDown(){
+ const summit=currentPlatform(),index=summit?.spire;
+ if(summit?.kind!=='summit'||index<1||index>3)return false;
+ const routes=iceRouteNetwork(index);
+ const candidates=routes.map(route=>({route,exit:route.points.at(-1)}))
+  .filter(entry=>entry.exit&&Math.abs(p.x-entry.exit.x)<32)
+  .sort((a,b)=>Math.abs(a.exit.x-p.x)-Math.abs(b.exit.x-p.x));
+ if(!candidates.length)return false;
+ const {route,exit}=candidates[0],ledge=platforms.find(pl=>pl.id==='l'+index+'-'+route.tier)
+  ||platforms.find(pl=>pl.spire===index&&pl.kind==='ledge'&&Number(pl.id.split('-')[1])===route.tier);
+ if(!ledge)return false;
+ p.state='CLIMBING';p.vx=0;p.vy=0;p.standingOn=null;
+ p.x=exit.x;p.y=exit.y;
+ p.climb={originX:climbEntryX(ledge),originY:route.points[0].y,
+  targetX:exit.x,lipX:exit.x,targetY:spires[index].summit[2]-22,
+  spire:index,climbBeat:0,exitTime:0,isIce:true,tierIndex:route.tier};
+ hint('HOLD ↓ / S TO DESCEND · ↑ / W TO REVERSE',2.3);
+ return true;
+}
+
 function tick(dt){
  if(completed) return;
  elapsed += dt;
@@ -75,11 +97,19 @@ function tick(dt){
  
  if(p.state === 'CLIMBING'){
   const c = p.climb;
-  if(k.up){
-   const oldY = p.y; p.y = Math.max(c.targetY, p.y - 62 * dt); c.climbBeat += (oldY - p.y) / 24;
+  if(k.up && !k.down){
+   const oldY=p.y;p.y=Math.max(c.targetY,p.y-62*dt);c.climbBeat+=(oldY-p.y)/24;
+  }else if(k.down && !k.up){
+   const oldY=p.y;p.y=Math.min(c.originY,p.y+62*dt);c.climbBeat-=(p.y-oldY)/24;
   }
-  p.x = c.isIce ? icePositionAt(c.spire,p.y,c.tierIndex).x : c.originX; // Follow one continuous ice line, or the cave ladder
-  if(p.y <= c.targetY + .25){ p.y = c.targetY; p.state = 'STEP_OFF'; c.exitTime = 0; }
+  p.x=c.isIce?icePositionAt(c.spire,p.y,c.tierIndex).x:c.originX;
+  if(p.y<=c.targetY+.25 && k.up){p.y=c.targetY;p.state='STEP_OFF';c.exitTime=0;}
+  else if(p.y>=c.originY-.25 && k.down){
+   const ledge=platforms.find(pl=>pl.spire===c.spire&&pl.kind===(c.isIce?'ledge':'cave')&&
+    (!c.isIce||Number(pl.id.split('-')[1])===c.tierIndex));
+   if(ledge){p.y=ledge.top-22;p.x=c.originX;p.state='GROUNDED';p.vx=0;p.vy=0;
+    p.surface=ledge.surfaceType;p.standingOn=ledge.id;p.groundedFor=.4;p.climb=null;}
+  }
   return;
  }
  
@@ -97,6 +127,8 @@ function tick(dt){
   return;
  }
  
+ if(ground && k.down && !k.up && climbStartDown())return;
+
  if(ground){
   const direction = k.right === k.left ? 0 : k.right ? 1 : -1;
   if(direction){
