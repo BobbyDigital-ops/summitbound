@@ -38,4 +38,5 @@ jobs:
       - run: npm run test:ice-snow
       - run: npm run test:terrain-art
       - run: npm run test:phase4b
+      - run: npm run test:phase4c
       - run: npm run build
