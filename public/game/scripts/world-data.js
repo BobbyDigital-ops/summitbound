@@ -229,7 +229,8 @@ function applyRoute(seed){
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
  if(typeof iceRouteCache!=='undefined')iceRouteCache.clear();
  for(let i=1;i<=3;i++){
-  const generated=selectTerraces(i,routeSeed);
+  const source=typeof FEATURED_BASE_LAYOUTS!=='undefined'?FEATURED_BASE_LAYOUTS[i-1]:null;
+  const generated=source?{summit:[...source.summit],ledges:source.ledges.map(l=>[...l]),ridge:{...source.ridge}}:selectTerraces(i,routeSeed);
   spires[i].summit=generated.summit;
   spires[i].ledges=generated.ledges;
   spires[i].ridge=generated.ridge;
