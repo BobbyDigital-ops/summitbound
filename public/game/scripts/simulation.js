@@ -67,8 +67,8 @@ function climbStart(plat){
  const isIce=plat.kind==='ledge',tierIndex=isIce?Number(plat.id.split('-')[1]):null;
  const exit=isIce?iceClimbPoints(plat.spire,tierIndex).at(-1):null;
  const lipX=exit?.x ?? (goal.left+40);
- // Ice reaches the snow lip at lipX; a short controlled step places both
- // feet inside the walkable ridge. The cave ladder remains unchanged.
+ // Ice routes terminate at their physical summit vertex, with NO scripted
+ // sideways step. The cave ladder still uses its own tunnel transition.
  const stepX=lipX; // A real exit must already lie inside its summit collider.
  p.climb={originX:rungX,originY:p.y,targetX:stepX,lipX,
   targetY:goal.top-22,spire:plat.spire,climbBeat:0,exitTime:0,
