@@ -57,7 +57,10 @@
   // Momentum feeds a spring. An early release throws almost vertically. A middle release turns
   // spring recoil into distance, and holding too long bleeds power.
   const charge=clamp((u-.08)/.12,0,1);
-  const collapse=1-clamp((u-.94)/.24,0,1)*.95;
+  // Recoil peaks around the middle of the ride. Holding beyond that
+  // burns energy rather than making every late release travel equally far.
+  const collapse=(1-.48*clamp((u-.66)/.27,0,1))*
+    (1-.95*clamp((u-1.02)/.16,0,1));
   const energy=(100+670*Math.pow(ratio,1.65))*charge*collapse;
   // Players choose throw angle by releasing during the shaft's sweep.
   return {
