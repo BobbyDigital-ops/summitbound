@@ -14,11 +14,13 @@ for(let route=0;route<9;route++){
    for(let t=0;t<nodes.length-1;t++)assert.ok(nodes[t].y<nodes[t+1].y);
    for(const tier of mountain.ledges){
     const edge=vm.runInContext('mountainContourX('+i+','+(tier[2]+3)+')',ctx);
-    assert.ok(edge<=tier[0]-8,'solid exterior face begins beyond the landing shelf');
     assert.ok(Number.isFinite(edge));
-    for(let x=tier[0];x<=tier[1];x+=8){
-     assert.ok(x>edge,'landing span must overlap the rock body');
-    }
+    // The playable lip must project into open air but its inner part must
+    // embed in the solid mountain body; no suspended ledges or giant fins.
+    assert.ok(edge>=tier[0]+15,'shelf has no exposed lip outside the rock');
+    assert.ok(edge<=tier[1]-15,'shelf no longer overlaps the mountain body');
+    assert.ok(tier[0]+10<edge&&tier[1]-10>edge,
+     'cliff must actually intersect the ledge span');
    }
    for(let y=mountain.summit[2]+4;y<2100;y+=11){
     assert.ok(Number.isFinite(vm.runInContext('mountainContourX('+i+','+y+')',ctx)));
