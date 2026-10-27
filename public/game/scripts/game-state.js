@@ -26,6 +26,7 @@ function spawn(stage=0, keepTime=false){
  if(!keepTime) elapsed=0;
  if(stage===0) caveActivated=false;
  atStage=stage; lastSafeStage=stage; completed=false; trail=[]; acc=0; peakBuzz=false; fingers.vault=null; fingers.up.clear(); fingers.down.clear();
+ if(typeof resetTimeTrial==='function')resetTimeTrial();
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
  const zoom = getZoom();
  camera.x = x - .26 * innerWidth / zoom; camera.y = p.y - .60 * innerHeight / zoom;
