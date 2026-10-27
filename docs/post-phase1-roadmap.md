@@ -21,22 +21,22 @@ Rendering uses deeper irregular rooted terraces and tighter snow caps on actual 
 
 A local 80-route bounded-generation sample and representative full draw/game-loop smoke passed. A 997-route full sweep of the previous unbounded variant found all options reachable, but that exhaustive search was too slow for mobile; the bounded version therefore needs its GitHub full-test run and manual review before final acceptance.
 
-## Phase 5 — cave and campfire interaction
-- Keep the **improved cave height**.
-- Make the cave feel recessed and organically carved into the cliff rather than a separate building/box.
-- Move cave ladder to the **right of the fire**, leaving visual and walking separation.
-- Avoid arrival popup. Near the actual fire, let the player choose **Continue ascent** or **Retry leap**; preserve cave checkpoint and final summit victory.
+## Phase 5 — cave and campfire (implemented in v0.9.23; visual review deferred)
+- Solid physical right wall stops running and airborne escape; left-hand cave approach is intentionally open. The fire, ladder and back wall share world-space geometry.
+- Ladder on right, fire separate on the left. Non-modal Continue / Retry appear only when near the fire in Practice. Time Trial/Hardcore proceed uninterrupted. Practice Retry starts at the preceding summit; checkpoint respawn and actual final ladder victory remain.
+- Tested logic against golden route seeds; exact mouth silhouette and visual integration remain part of future graphics overhaul.
 
-## Phase 6 — character and ice axes
-- Make the red-jacket climber less chibi/cartoonish and slightly more natural while readable at phone scale.
-- During climbing, turn the climber to face the wall (rear / three-quarter rear profile); alternate axes and foot placements with real body weight transfer. Pause the animation immediately when Up/W is released.
-- Keep the pole's arc length fixed and physics untouched; review only its painted bending shape, carrying pose and animation.
-- Avoid giant white foreground snowball/circle effects.
+## Phase 6 — climber and pole (initial work implemented in v0.9.24)
+- Climbing animation moves as a function of physical climb distance and pauses/reverses with Up/W and Down/S. A temporary rear-facing pose masks the front-face sprite while on ice.
+- Staff renderer enforces constant 195-unit material arc length, including extreme chord cases. **Pole physics remain untouched.**
+- Replacing the chibi-ish sprite artwork with coherent final side/rear/vault sprites and fully natural weighted axe/foot animation belongs to the later graphical overhaul.
 
-## Phase 7 — integrated validation and Android readiness
-- Profile physical Android device (idle, running, vaulting, climbing, cave) in Chrome using new Render FPS, p95 draw milliseconds, DPR, cache builds and canvas MB diagnostics.
-- Keep Android-first mobile publishing prep separate from source-code performance fixes. Check phone safe-areas, touch hit targets, viewport size and backgrounding.
-- Require actual full playthroughs and visual screenshots for new families in addition to 997-seed first-contact, braking and ice-exit tests.
+## Phase 7 — Android-first readiness (partly implemented v0.9.24; not release-ready)
+- App/tab visibility, blur and pagehide clear all touch and keyboard holds; resuming resets the 120 Hz simulation clock instead of fast-forwarding time trials.
+- Browser/mobile performance diagnostics and safe-area touch controls continue from earlier phases.
+- **Outstanding:** inspect real Android Chrome performance (idle / walking / vault / climbing / cave), p95 draw, memory, portrait touch, orientation/focus and production packaging. Do not claim Google Play readiness without real device validation.
+
+**Deferred graphics and difficulty:** see `docs/graphics-overhaul-backlog.md` for naturally rooted ledges, stretched snow joins, coherent painterly cliff assets, temporary climber rear-pose replacement and revised challenge/medal calibration.
 
 ## Scaling the mountain template without quality erosion
 - **Current:** 997 deterministic route seeds, ordinarily three receiving mountains and two-to-four shelf choices, generated from a SMALL set of curated `MOUNTAIN_ARCHETYPES`. This is a strong base but **not** 997 manually distinct mountains or an unlimited campaign.
