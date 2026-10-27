@@ -33,7 +33,8 @@ test('final cave peak has no long white needle waterfall graphics',()=>{
  assert.doesNotMatch(rock,/\[L\+307,T-566,105\]/);
  assert.doesNotMatch(rock,/#[eE][cC][fF]7[fF]5[a-fA-F\d]{2}/);
  assert.match(rock,/Diffuse rock cracks instead of large/);
- assert.match(src,/if\(i===1\|\|i===3\)\{/);
+ assert.doesNotMatch(src,/if\(i===1\|\|i===3\)\{/);
+ assert.match(src,/All ice-coloured features here are climbable routes/);
  assert.doesNotMatch(src,/x:L\+585,y:T-175,length:650/);
 });
 test('integrated outcrops use live mountain contours instead of detached triangular roots',()=>{
