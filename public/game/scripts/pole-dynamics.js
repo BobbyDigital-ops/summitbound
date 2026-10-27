@@ -51,12 +51,13 @@
    return classicRelease.call(this,vx,vy,state,config);
   const ratio=clamp(state.facingDir*state.initialVx/Math.max(1,config.maxRunSpeed),0,1);
   const u=state.elapsed/state.rideDuration;
-  const theta=.22+2.05*u;
+  const theta=.12+1.4*u;
   // Momentum feeds a spring. Early release throws higher; later release
   // follows the pole round for a long, lower arc; overholding bleeds power.
   const charge=clamp((u-.07)/.19,0,1);
   const collapse=Math.max(.04,1-clamp((u-1.0)/.19,0,1)*.96);
-  const energy=(230+590*Math.pow(ratio,1.6))*charge*collapse;
+  const energy=(230+740*Math.pow(ratio,1.6))*charge*collapse;
+  // Players choose throw angle by releasing during the shaft's sweep.
   return {
    vx:state.facingDir*energy*Math.sin(theta)*(config.arcadeRange??1),
    vy:-energy*Math.cos(theta)*(config.arcadeLift??1)+
