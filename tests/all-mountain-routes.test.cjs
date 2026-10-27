@@ -17,7 +17,7 @@ test('all 997 deterministic routes: every shelf distinct, reachable, and climber
    const heights=ledges.map(t=>t[2]),lefts=ledges.map(t=>t[0]),ends=ledges.map(t=>t[1]);
    const spread=Math.max(...heights)-Math.min(...heights);
    minRiseSpread=Math.min(minRiseSpread,spread);
-   assert.ok(spread>=108,'route '+seed+' stage '+i+' has visually level shelves');
+   assert.ok(spread>=310,'route '+seed+' stage '+i+' has visually level shelves');
    assert.ok(Math.max(...lefts)-Math.min(...lefts)>=190,
     'route '+seed+' stage '+i+' lacks horizontal difference');
    for(let j=1;j<sorted.length;j++)
@@ -26,12 +26,17 @@ test('all 997 deterministic routes: every shelf distinct, reachable, and climber
    for(const t of ledges){
     lowWidth=Math.min(lowWidth,t[1]-t[0]);highWidth=Math.max(highWidth,t[1]-t[0]);
     assert.ok(t[0]-prior[1]>=365,'unintentionally tiny chasm');
-    assert.ok(t[2]<prior[2]&&t[2]>peak[2]+50,'invalid climb height');
+    assert.ok(t[2]<prior[2]+375&&t[2]>peak[2]+68,
+     'invalid mountain landing or summit climb height');
     const ice=vm.runInContext('iceClimbPoints('+i+','+ledges.indexOf(t)+')',ctx);
     assert.ok(ice.length===3,'missing climb for shelf');
     assert.ok(ice.at(-1).x>=peak[0]+40&&ice.at(-1).x<=peak[1]-85,
      'ice route does not exit onto summit');
    }
+   assert.ok(ledges[0][2]>prior[2]+145&&ledges.at(-1)[2]<prior[2]-75,
+    'mountain missing one high and one genuinely low landing');
+   assert.ok(peak[0]>ledges.at(-1)[0],
+    'summit crest does not rise beyond highest exposed shelf');
    assert.ok(vm.runInContext('viableShelves(spires['+i+'].ledges,spires['+(i-1)+'].summit)',ctx),
     'route '+seed+' stage '+i+' is unreachable under actual vault flight/first contact');
    const hi=ledges.find(t=>t[4]==='High'),lo=ledges.find(t=>t[4]==='Low');
