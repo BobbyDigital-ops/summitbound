@@ -62,3 +62,16 @@
 
 /* Phase 8: legible narrow release window; marker is driven by actual vault time. */
 #bar::after{display:none}
+
+/* The Reforge: restrained steel / charcoal interface; amber is reserved
+   for the fire and checkpoint, not saturated cartoon controls. */
+body{background:#0a131d}#top{background:linear-gradient(180deg,#0b151bf4,#14222cd3);border-bottom-color:#9ba6a42b}
+button{background:#19242cbf;border-color:#8e9a9d45;border-radius:6px}
+button.sel{background:#78847f;color:#10191c;border-color:#b1bab4}
+#brand small{color:#b1bab9}#hud{background:#111d25c2;border-color:#8c9da247;border-radius:5px}
+#hud strong{color:#c7c9c2}#hud div{color:#bac6c9}#notice{color:#ebeeea;text-shadow:0 2px 8px #080c10}
+#meter{background:#14212baf;padding:5px 8px;border:1px solid #83959960;border-radius:5px}
+#bar{background:linear-gradient(90deg,#4a6370 0%,#87949a 35%,#b1b4a4 58%,#686b61 79%,#323238 100%);border-color:#a6b2b0}
+#controls button{background:#17242dcf;border-radius:10px}#controls button.down{background:#68787d;color:#0b151c}
+#help{background:#101c26bc;border-radius:4px;color:#d0d9d8}
+#tuning{background:#101b24f2;border-color:#83949d69;border-radius:6px}
