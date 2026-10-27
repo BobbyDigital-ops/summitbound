@@ -1,3 +1,19 @@
+# Summitbound Five Peaks v0.12.1 — Practice Peak Retry & Sprint Momentum
+
+**Playable demo:** one continuous five-peak course (future campaign target: **exactly 100 levels**). This release is intentionally for rapid playtesting; it does NOT soften Time Trial or Hardcore mode.
+
+- **Temporary practice testing:** after a failed vault, Practice now respawns on the same actual takeoff summit or ledge, not the earlier campsite. The Retry Peak button (or R) also restarts from the mountain currently beneath you if grounded. Velocity resets to zero, so the player must build a real run-up. A checkpoint legitimately gained *after* the launch takes priority. A Practice retry cannot silently unlock a new checkpoint.
+- **Longer, skill-based vaults:** running top speed **360 → 450** and summit run acceleration **850 → 1050**. Actual release horizontal velocity at the ideal timing and maximum sprint is approximately **576** rather than 460 (about 25% higher). Importantly, slow/partial run-ups are weaker under the new normalised momentum model. Pole dimensions, gravity, deterministic release timing and airborne steering remain unchanged.
+- **Feedback:** the HUD displays run-up speed as a percentage of the new maximum and shows saved approach momentum while vaulting. A long leap should come from a properly built sprint, not a fixed distance cheat.
+- **Qualification:** the Four-Crossing Five Peaks course remains physics-validated with available 300/375/450-speed samples. The physical route compiler now limits shelf shortcuts to approach speed actually attainable on that ledge's finite runway. No artificially certified direct shortcut from a tiny ledge.
+- **Archived tests:** historical v0.9.16 approved mountain geometry is still reproducible, using a frozen historical **test-only** vault sampler. Actual game physics always uses the more powerful, deterministic v0.12.1 release.
+- **Trials:** new physics changes invalidate older personal-best ghosts (storage record version 5). Gold/Silver/Bronze thresholds remain provisional until representative human runs are collected.
+- **Tests:** `npm run test:peak-retry`, wired into CI, covers true peak respawn, campsite preservation, stricter modes, launch velocity scaling, the course audit and finite ledge runways. A physical desktop/Android feel review and full CI result remain outstanding.
+
+**Next player check:** use Practice and the Retry Peak button to repeatedly attempt the difficult campsite leap. Compare low-speed and full-speed vaults and test the release timing. Our long-term principle remains difficult but repeatable leaps, fair checkpoints, and no random movement or catch assistance.
+
+---
+
 # Summitbound v0.12.0 — Five Peaks / Campsite Consolidation
 
 **Playable now:** one five-peak vertical slice. **Target:** exactly 100 authored/validated campaign levels; the engine is not yet an unlimited level-production system. Backup `backup/pre-campsite-consolidation-v0110` preserves the previous cave-based prototype.
