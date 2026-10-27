@@ -63,27 +63,30 @@ function candidateFlights(){
  if(signature===cachedFlightPhysics&&cachedFlights)return cachedFlights;
  if(typeof PolePhysicsEngine==='undefined')
   throw Error('Actual pole physics must be loaded before generating terrain');
- const paths=[],dt=1/120,flightStep=dt*cfg.arcadeFlightTempo;
+ const sampleCfg=typeof FEATURED_COURSE==='undefined'?
+  {...cfg,maxRunSpeed:360,runAcceleration:850,archivedArcadePhysics:true}:
+  cfg;
+ const paths=[],dt=1/120,flightStep=dt*sampleCfg.arcadeFlightTempo;
  for(const offset of [120,140,170,200])
  for(const speed of (typeof FEATURED_COURSE!=='undefined'?
   [300,375,450]:[260,320,360]))
  for(let tick=42;tick<=210;tick+=12){
   const start=-offset,py=-22;
-  const initial=PolePhysicsEngine.initVault(start,py,speed,0,start+120,0,cfg);
-  const r=PolePhysicsEngine.stepVault(initial,tick*dt,cfg);
-  const kick=PolePhysicsEngine.calculateReleaseVelocity(r.nextVx,r.nextVy,r.state,cfg);
+  const initial=PolePhysicsEngine.initVault(start,py,speed,0,start+120,0,sampleCfg);
+  const r=PolePhysicsEngine.stepVault(initial,tick*dt,sampleCfg);
+  const kick=PolePhysicsEngine.calculateReleaseVelocity(r.nextVx,r.nextVy,r.state,sampleCfg);
   let x=r.nextPx,y=r.nextPy,vy=kick.vy;
   const descending=[];
   for(let step=0;step<325;step++){
    const prev=y+22;
-   vy+=cfg.gravity*flightStep;x+=kick.vx*flightStep;y+=vy*flightStep;
+   vy+=sampleCfg.gravity*flightStep;x+=kick.vx*flightStep;y+=vy*flightStep;
    if(vy>=0)descending.push({x,feet:y+22,prev});
    // Include real descents to alternative lower shelves; previous 40-unit
    // cut-off artificially compressed the entire mountain layout.
    if(vy>=0&&y+22>580)break;
   }
   paths.push({descending,approachSpeed:speed,releaseFeet:r.nextPy+22,releaseTick:tick,
-   braking:kick.vx*kick.vx/(2*cfg.brakingDecel)});
+   braking:kick.vx*kick.vx/(2*sampleCfg.brakingDecel)});
  }
  cachedFlightPhysics=signature;cachedFlights=paths;
  return paths;
