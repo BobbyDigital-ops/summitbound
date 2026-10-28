@@ -125,6 +125,7 @@ function fullAudit(){
 }
 function install(seed=currentSeed){
  currentSeed=Math.max(1,Math.floor(Number(seed)||1));
+ for(const m of spires)delete m.moduleAssembly;
  const baseline=clonePeaks();let best=null,report=null;
  // Small independent modules are generated and then evaluated against the
  // real 120 Hz vault contact sampler, ice exits, crux, checkpoints and graph.
@@ -158,8 +159,22 @@ function install(seed=currentSeed){
   report={certified:false,seed:currentSeed,changes:{changed:0,amount:0},
    reason:'No physically certified variant; preserved original collision layout'};
  }
- for(let i=0;i<spires.length;i++)
-  spires[i].moduleAssembly=generateAssembly(spires[i],i,currentSeed);
+ for(let i=0;i<spires.length;i++){
+  const peak=spires[i];
+  peak.moduleAssembly=generateAssembly(peak,i,currentSeed);
+  if(typeof SummitPeakMesh!=='undefined'){
+   const mesh=SummitPeakMesh.meshFor(peak,i,currentSeed);
+   const check=SummitPeakMesh.audit(mesh,i,peak);
+   if(!check.valid)throw Error('Physical mountain assembly rejected: '+check.errors.join(', '));
+   peak.moduleAssembly.mesh=mesh;
+   // Polygon pieces, not the old "art anchors", are now authoritative.
+   peak.moduleAssembly.pieces=mesh.parts.map(p=>({
+    id:p.id,role:p.role,connector:p.connector,
+    polygon:p.polygon,joinId:p.joinId||null,parent:p.parent||null
+   }));
+   peak.moduleAssembly.slots=mesh.slots;
+  }
+ }
  // Snapshot the route as well as the piece catalog; the actual platform
  // objects are built by applyRoute immediately after this method returns.
  lastReport=report;return report;
@@ -169,6 +184,8 @@ function auditInstalled(){
  for(let i=0;i<all.length;i++){
   const m=all[i];
   if(!m||m.pieces.length<3||m.pieces.length>7)issues.push('piece count '+i);
+  if(m?.mesh){const checked=SummitPeakMesh.audit(m.mesh,i,spires[i]);
+   if(!checked.valid)issues.push(...checked.errors.map(e=>'mesh '+i+': '+e));}
   for(const piece of m?.pieces||[])if(piece.connector!=='ROOT'&&!CONNECTOR[piece.connector])
    issues.push('connector '+i+'/'+piece.id);
   for(const slot of m?.slots||[]){
