@@ -1170,8 +1170,8 @@ function draw(){
   if(p.state==='CLIMBING'&&p.climb?.isIce)ctx.scale(.88,1.04);
   if(!(typeof drawSpriteMountaineer==='function'&&drawSpriteMountaineer(ctx,p)))
    ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
-  if(p.state==='CLIMBING'&&p.climb?.isIce)
-   drawClimberWallFacing(p.climb.climbBeat);
+  // Character art already contains the coat and helmet. Avoid the old
+  // painted overdraw that used to cover the head and freeze the torso.
   // Avoid ghosted/doubled hats: never alpha-overlay mismatched sprite frames.
   ctx.restore();
  } else {

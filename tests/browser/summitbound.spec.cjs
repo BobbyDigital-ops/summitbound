@@ -49,3 +49,24 @@ test('art style controls and power display remain wired',async({page})=>{
  expect(meter.bar&&meter.needle).toBe(true);
  expect(meter.labels).toMatch(/MAX HEIGHT/);
 });
+
+test('running animation changes actual character frame across stride',async({page})=>{
+ await page.goto(url);
+ const x=await page.evaluate(()=>{
+  p.state='RUNNING';p.standingOn='s0';p.vx=350;
+  const indexes=[0,32,64,96,128].map(d=>{p.runDistance=d;return spritePoseFor(p)});
+  return indexes;
+ });
+ expect(x).toEqual([1,2,3,4,1]);
+});
+test('airborne axe-reach animation extends horizontally toward a real ledge',async({page})=>{
+ await page.goto(url);
+ const x=await page.evaluate(()=>{
+  const edge=platforms.find(q=>q.kind==='ledge'&&q.spire===2);
+  p.state='FALLING';p.vy=130;p.vx=200;p.facingDir=1;
+  p.x=edge.left-34;p.y=edge.top+20;p.standingOn=null;
+  return {approach:axeCatchApproach(true)?.ready,pose:spritePoseFor(p)};
+ });
+ expect(x.approach).toBe(true);
+ expect(x.pose).toBe(8);
+});
