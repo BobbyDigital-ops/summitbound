@@ -165,7 +165,8 @@ test('Original and Challenge have distinct real collision courses; toggle restor
  expect(changed.graph.valid).toBe(true);
  expect(changed.currentState).toBe('GROUNDED');
  await expect(page.locator('#difficultyReadout')).toContainText('Firespine');
- await button.click();
+ await button.click(); // cycle Challenge -> Modular
+ await button.click(); // cycle Modular -> Original
  await expect(page.locator('#routeLabel')).toContainText('ORIGINAL');
  const restored=await page.evaluate(()=>JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))));
  expect(restored).toBe(original);
@@ -240,6 +241,7 @@ test('Modular art remains coherent after switching Original / Challenge geometry
  expect(data.m.pieces.find(p=>p.role==='landing-extension').x)
  .not.toBe(before.pieces.find(p=>p.role==='landing-extension').x);
  await page.screenshot({path:'test-results/peak-forge-challenge.png'});
+ await button.click(); // Challenge -> Modular
  await button.click();await expect(button).toContainText('Original');
  expect(errors).toEqual([]);
 });
