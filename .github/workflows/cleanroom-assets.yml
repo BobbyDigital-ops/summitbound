@@ -1,0 +1,21 @@
+name: Cleanroom modular asset QA
+on:
+  push:
+    branches: ['dev/phase1-cleanroom-map-engine']
+  pull_request:
+    paths:
+      - 'public/game/scripts/clean-parts-phase1.js'
+      - 'tests/clean-parts-phase1.test.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test all modular components and platform mount points
+        run: node --test tests/clean-parts-phase1.test.cjs
