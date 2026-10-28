@@ -9,7 +9,7 @@ const widths=[48,96,168,290,480];
 const finishes=['frost','windpack','granite','rime','broken-snow'];
 const edges=['fractured','sloped','scalloped','sheared','stepped','weathered','chiselled','jagged','overhang','scree'];
 function edge(x,y,size,side){
- const h=S[size];
+ const h=S[size];x=Math.round(x);y=Math.round(y);
  if(!h)throw Error('Unknown socket size '+size);
  return [0,.25,.5,.75,1].map(t=>[Math.round(x+Math.sin(Math.PI*t)*h*.12),Math.round(y+t*h)]);
 }
