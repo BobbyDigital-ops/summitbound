@@ -119,6 +119,16 @@ function makeRoot(peak,index,surface,tag,seed,ledgeIndices,rootNo){
     if(fade<=0)continue;
     edge=Math.min(edge,lerp(edge,iceXOnPath(route.points,y)-72,fade));
    }
+   // Actual occupied ledge lips must remain bedrock-supported even if
+   // another ice route crosses behind them at this height.
+   for(const {ledge} of ledges){
+    const distance=Math.abs(y-(ledge[2]+3));
+    if(distance>=44)continue;
+    const strength=distance<=10?1:(44-distance)/34;
+    const eased=strength*strength*(3-2*strength);
+    const target=ledge[0]+Math.min(42,(ledge[1]-ledge[0])*.24);
+    edge+=Math.max(0,target-edge)*eased;
+   }
    nodes.push([edge,y]);
   }
   left.length=0;left.push(...nodes);
@@ -222,7 +232,10 @@ function meshFor(peak,index,seed){
   peak.ledges.map((_,k)=>k),0));
  parts.push(...roots);
  // An actual additional summit rock component is connected to a foundation.
- const crown=crownExtension(index,roots[0],seed);parts.push(crown);
+ // Climbing faces must remain uninterrupted: only the starting peak
+ // receives a tall scenic crown. Other peaks derive their silhouettes
+ // from the real connected buttresses and flank extensions.
+ if(index===0){const crown=crownExtension(index,roots[0],seed);parts.push(crown);}
  for(let k=0;k<peak.ledges.length;k++){
   const root=roots[0],module=ledgeExtension(peak,index,root,k,seed);
   parts.push(module);
