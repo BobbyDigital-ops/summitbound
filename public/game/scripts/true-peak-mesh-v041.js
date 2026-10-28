@@ -101,10 +101,39 @@ function makeRoot(peak,index,surface,tag,seed,ledgeIndices,rootNo){
  ];
  // One physically connecting socket for every occupied landing shelf,
  // plus an additional right-flank rock attachment where space permits.
+ // The rock backing for every icefall is cut into the actual
+ // foundation outline. This is not a virtual render-only ice buttress.
+ if(ledgeIndices.length&&typeof iceRouteNetwork==='function'){
+  const ice=iceRouteNetwork(index);
+  const original=left.slice();
+  const nodes=[];
+  const levels=new Set(original.map(p=>p[1]));
+  for(let y=t+9;y<=bottom;y+=14)levels.add(y);
+  for(const l of ledges)levels.add(l.ledge[2]+3);
+  for(const y of [...levels].sort((a,b)=>a-b)){
+   let edge=at(original,y);
+   for(const route of ice){
+    const low=route.points[0].y,high=route.points.at(-1).y;
+    if(y<high+3||y>low+8)continue;
+    const fade=Math.min(1,(y-high-3)/35,(low+8-y)/35);
+    if(fade<=0)continue;
+    edge=Math.min(edge,lerp(edge,iceXOnPath(route.points,y)-72,fade));
+   }
+   nodes.push([edge,y]);
+  }
+  left.length=0;left.push(...nodes);
+ }
  const sockets=[];
  for(const {k,ledge} of ledges){
-  const span=connectorOfWidth(ledge[1]-ledge[0]);
-  const center=ledge[2]+95+SIZE[span]*.35;
+  // A connector is only as long as its free face allows. Platform size
+  // (1..5) is independent of jigsaw connection size (S/M/L).
+  let span=connectorOfWidth(ledge[1]-ledge[0]);
+  const next=ledges.filter(z=>z.ledge[2]>ledge[2])
+    .sort((a,b)=>a.ledge[2]-b.ledge[2])[0];
+  const clearance=next?next.ledge[2]-ledge[2]:Infinity;
+  while((SIZE[span]+48)>=clearance&&span!=='S')
+   span=span==='L'?'M':'S';
+  const center=ledge[2]+24+SIZE[span]*.5;
   const id='join-'+index+'-'+tag+'-ledge-'+k;
   sockets.push(segmentSocket(left,center,span,'left',id,'root-'+index+'-'+tag));
  }
@@ -163,7 +192,7 @@ function crownExtension(index,root,seed){
  const top=surface[2],l=surface[0],w=surface[1]-surface[0];
  // The apex sits outside the usable run-up and ice-exit surface.
  // A finite vertical rock socket is engraved in the parent left shoulder.
- const join=segmentSocket(root.guideLeft,top+108,'M','left',
+ const join=segmentSocket(root.guideLeft,top+46,'S','left',
   'join-'+index+'-'+root.id+'-crown',root.id);
  root.sockets.push(join);
  const seam=join.vertices.map(v=>[...v]);
@@ -182,7 +211,7 @@ function crownExtension(index,root,seed){
  root.polygon=changed.polygon;root.left=changed.left;root.right=changed.right;
  return {kind:'crown',role:'summit',id:'crown-'+index+'-'+root.id,
   name:SUMMIT_LIBRARY[(seed+index*3)%SUMMIT_LIBRARY.length],
-  connector:'M',parent:root.id,joinId:join.id,seam,polygon:poly,filled:false};
+  connector:'S',parent:root.id,joinId:join.id,seam,polygon:poly,filled:false};
 }
 function meshFor(peak,index,seed){
  const roots=[],parts=[],sockets=[],slots=[];
