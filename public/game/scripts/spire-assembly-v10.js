@@ -83,7 +83,7 @@ function inspect(assembled){
  }
  return {valid:errors.length===0,errors,pieces:p.length,platforms:assembled.platforms.length};
 }
-function assemble(seed,options={}){
+function assembleOnce(seed,options={}){
  const scrambled=Math.imul((seed^0x9e3779b9)>>>0,0x85ebca6b)>>>0;
  const r=K.rand(scrambled),total=options.pieces??3+Math.floor(r()*5);
  if(total<3||total>7)throw Error('3–7 pieces required');
@@ -166,6 +166,18 @@ function assemble(seed,options={}){
   pieces,joins,platforms,colliders,routes,departure,bounds,height,physicsCertified:false};
  const audit=inspect(result);if(!audit.valid)throw Error('Invalid spire: '+audit.errors.join('; '));
  return result;
+}
+function assemble(seed,options={}){
+ for(let attempt=0;attempt<20;attempt++){
+  try{
+   const assembled=assembleOnce(seed+attempt*2654435761,options);
+   assembled.seed=seed;assembled.generationAttempts=attempt+1;
+   return assembled;
+  }catch(error){
+   if(!/Insufficient reachable platform mounts|No usable departure deck/.test(String(error))||attempt===19)throw error;
+  }
+ }
+ throw Error('No valid vertical spire could be produced');
 }
 const API=Object.freeze({assemble,inspect,edgeAt,strictOverlap});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireAssemblyV10=API;
