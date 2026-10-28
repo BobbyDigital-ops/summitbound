@@ -3,7 +3,7 @@ const vm=require('node:vm'),fs=require('node:fs');
 function make(){
  const document={getElementById(){return null}};
  const ctx=vm.createContext({Image:class Image{},document,performance:{now(){return 0}},navigator:{},innerWidth:1280,innerHeight:800});
- for(const file of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','true-peak-mesh-v041.js','modular-course-v040.js']){
+ for(const file of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','true-peak-mesh-v041.js','modular-course-v040.js','level-engine-v1.js','showcase-validator-v1.js','difficulty-engine-v1.js']){
   vm.runInContext(fs.readFileSync('public/game/scripts/'+file,'utf8'),ctx,{filename:file});
  }
  return ctx;
