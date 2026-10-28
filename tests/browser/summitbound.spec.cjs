@@ -70,3 +70,11 @@ test('airborne axe-reach animation extends horizontally toward a real ledge',asy
  expect(x.approach).toBe(true);
  expect(x.pose).toBe(8);
 });
+
+test('v0.36 approved character rig renders instead of the old sprite and axes stay attached',async({page})=>{
+ await page.goto(url);
+ const result=await page.evaluate(()=>({rig:typeof drawRigMountaineer,tune:SUMMITBOUND_RUN_TUNING,script:!!document.querySelector('script[src$="character-rig-v036.js"]')}));
+ expect(result.rig).toBe('function');expect(result.script).toBe(true);
+ expect(result.tune).toEqual({stride:1.25,clearance:1.25});
+ await page.screenshot({path:'test-results/v036-character-integrated.png'});
+});

@@ -1157,6 +1157,10 @@ function draw(){
  const pose=p.state==='CLIMBING'||p.state==='HANGING' ? 11
   : p.vault?9:(p.state==='AIRBORNE'||p.state==='FALLING')?10
   :running?phase:8;
+ if(typeof drawRigMountaineer==='function'){
+  ctx.save();ctx.translate(p.x,p.y+22);ctx.scale(p.facingDir<0?-1:1,1);
+  drawRigMountaineer(ctx,p);ctx.restore();
+ } else {
  if((typeof drawSpriteMountaineer==='function')||
     (climberSheet.complete && climberSheet.naturalWidth)){
   ctx.save(); ctx.translate(p.x, p.y + 22); ctx.scale(p.facingDir < 0 ? -1 : 1, 1);
@@ -1177,8 +1181,9 @@ function draw(){
  } else {
   ctx.fillStyle = '#bb3947'; ctx.fillRect(p.x - 10, p.y - 30, 20, 50);
  }
- if(p.state === 'CLIMBING' && p.climb?.isIce) drawIcePicks();
- if(p.state==='HANGING'&&p.catchLedge){
+ }
+ if(typeof drawRigMountaineer!=='function' && p.state === 'CLIMBING' && p.climb?.isIce) drawIcePicks();
+ if(typeof drawRigMountaineer!=='function'&&p.state==='HANGING'&&p.catchLedge){
   // Strong rear silhouette and reaching arms convey a real suspended
   // body instead of a floating running pose.
   const reachSide=p.catchLedge.side,extension=p.catchLedge.strokes||0;

@@ -1,7 +1,7 @@
 name: Summitbound Playwright Visual Testing
 on:
   push:
-    branches: [main, 'dev/playwright-browser-ci', 'dev/v034-character-motion']
+    branches: [main, 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration']
   pull_request:
   workflow_dispatch:
 permissions:
