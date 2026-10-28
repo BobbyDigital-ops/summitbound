@@ -97,11 +97,14 @@ function axeCatchStrike(side){
  if(c.strokes>=3){
   const surface=platforms.find(pl=>pl.id===c.id);
   if(!surface){p.state='FALLING';p.catchLedge=null;return false;}
-  p.x=c.side>0?surface.left+12:surface.right-12;
-  p.y=surface.top-22;p.vx=0;p.vy=0;
-  p.standingOn=surface.id;p.state='GROUNDED';p.groundedFor=.35;
-  p.catchLedge=null;getLanding(surface);
-  hint('EDGE RECOVERED — CLIMB ON',1.8);
+  // Commit the catch now, but keep the climber visually attached to the rim
+  // until the mantle has actually reached the platform.
+  p.mantle={surfaceId:surface.id,fromX:p.x,fromY:p.y,
+   toX:c.side>0?surface.left+12:surface.right-12,toY:surface.top-22,
+   side:c.side,elapsed:0,duration:.95};
+  p.state='PULLING_UP';p.standingOn=null;p.vx=0;p.vy=0;
+  p.catchLedge=null;
+  hint('PULLING UP!',1.05);
   haptic([12,32,24]);return true;
  }
  hint('AXE HOLD — '+c.strokes+' / 3 · ALTERNATE A / D',.8);
@@ -118,5 +121,27 @@ function updateHanging(dt){
  }
  p.y=pl.top+18;p.x=c.side>0?pl.left-20:pl.right+20;
  p.vx=0;p.vy=0;
+ return true;
+}
+
+function updatePullUp(dt){
+ if(p.state!=='PULLING_UP'||!p.mantle)return false;
+ const m=p.mantle,pl=platforms.find(q=>q.id===m.surfaceId);
+ if(!pl){p.state='FALLING';p.mantle=null;return true;}
+ m.elapsed=Math.min(m.duration,m.elapsed+dt);
+ const t=m.elapsed/m.duration;
+ // First hoist the shoulders, then shift weight horizontally over the lip.
+ const smooth=t*t*(3-2*t);
+ const up=t<.72?(t/.72)**.85:1;
+ const over=t<.26?0:((t-.26)/.74)**1.35;
+ p.x=m.fromX+(m.toX-m.fromX)*Math.min(1,over);
+ p.y=m.fromY+(m.toY-m.fromY)*up;
+ p.vx=0;p.vy=0;p.standingOn=null;
+ if(t>=1){
+  p.x=m.toX;p.y=m.toY;p.state='GROUNDED';
+  p.mantle=null;p.standingOn=pl.id;p.groundedFor=.35;
+  getLanding(pl);
+  hint('EDGE RECOVERED',1.2);
+ }
  return true;
 }
