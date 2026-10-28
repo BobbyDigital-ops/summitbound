@@ -309,3 +309,28 @@ test('v0.40 restores the exact Original course after a modular regenerate',async
  }))));
  expect(restored).toBe(original);
 });
+
+test('five physically assembled peaks each render a separate inspected scene',async({page})=>{
+ test.setTimeout(90000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);await expect(page.locator('#routeLabel')).toContainText('MODULAR');
+ for(let i=0;i<5;i++){
+  const data=await page.evaluate(index=>{
+   const m=spires[index],upper=m.ridgeArrival||m.summit;
+   const low=m.ledges?.[0]||upper;
+   const zoom=getZoom();
+   camera.x=low[0]-.24*innerWidth/zoom;
+   camera.y=(upper[2]+low[2])*.5-.53*innerHeight/zoom;
+   draw();
+   return {pieces:m.moduleAssembly?.pieces.length,
+    realSurfaces:platforms.filter(pl=>pl.spire===index).length,
+    ice:index===0?[]:iceRouteNetwork(index).map(route=>route.points.length)};
+  },i);
+  expect(data.pieces).toBeGreaterThanOrEqual(3);
+  expect(data.pieces).toBeLessThanOrEqual(7);
+  expect(data.realSurfaces).toBeGreaterThanOrEqual(2);
+  if(i>0)expect(data.ice.length).toBeGreaterThan(0);
+  await page.screenshot({path:'test-results/modular-peak-'+i+'.png'});
+ }
+ expect(errors).toEqual([]);
+});
