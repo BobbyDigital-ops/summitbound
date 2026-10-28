@@ -1033,7 +1033,7 @@ function draw(){
  camera.x += (targetX - camera.x) * .055; camera.y += (targetY - camera.y) * .045;
  ctx.fillStyle = '#131c28'; ctx.fillRect(0,0,w,h);
  
- if(mountainBackdrop.complete && mountainBackdrop.naturalWidth){
+ if((typeof SummitIntegrated==='undefined'||!SummitIntegrated.active)&&mountainBackdrop.complete&&mountainBackdrop.naturalWidth){
   const rect=backdropViewport(mountainBackdrop.naturalWidth,
     mountainBackdrop.naturalHeight,w,h,camera.x,camera.y);
   const reduced=backdropTexture(w,h);
