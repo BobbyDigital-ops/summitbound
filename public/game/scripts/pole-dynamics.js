@@ -55,11 +55,11 @@
   // Early = very steep and short; late = shallow and FARTHER; red = spent.
   // Crucially, do not fade power before the distance window.
   const progress=clamp((u-.24)/.62,0,1);
-  const theta=.16+1.04*progress;
+  const theta=.72*progress;
   const load=clamp((u-.11)/.11,0,1);
   const red=clamp((u-.90)/.26,0,1);
   const fade=1-red*red*(3-2*red);
-  const energy=(155+645*Math.pow(ratio,1.45))*load*fade;
+  const energy=(115+665*Math.pow(ratio,1.45))*load*(1-.10*progress)*fade;
   return {
    vx:state.facingDir*energy*Math.sin(theta)*(config.arcadeRange??1),
    vy:-energy*Math.cos(theta)*(config.arcadeLift??1)+
