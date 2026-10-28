@@ -1138,7 +1138,7 @@ function draw(){
   paintWoodenStaff(shaft,.88);
   ctx.fillStyle='#293b43';ctx.beginPath();
   ctx.arc(p.anchorX,p.anchorY,5.2,0,PI*2);ctx.fill();
- } else if(p.state !== 'CLIMBING'&&p.state!=='HANGING'&&p.state!=='AIRBORNE'&&p.state!=='FALLING'){
+ } else if(p.state !== 'CLIMBING'&&p.state!=='HANGING'&&p.state!=='AIRBORNE'&&p.state!=='FALLING'&&p.state!=='PULLING_UP'){
   // Match the 195-world-unit pole used by the physics engine at rest.
   const ends=restingStaffEnds(p.x,p.y-13,p.facingDir,cfg.poleLength);
   const shaft=[];
