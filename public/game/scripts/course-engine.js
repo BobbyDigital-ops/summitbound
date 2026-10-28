@@ -48,7 +48,7 @@ function installFeaturedCourseGeometry(spires){
  spires[2].summit[2]-=75;
  spires[4].name='Firespine Camp';
  const cave=spires[4].cave,shift=FEATURED_COURSE.peakShifts[4];
- const campLeft=cave.left+shift,campWidth=177;
+ const campLeft=cave.left+shift,campWidth=205;
  spires[4].ledges=[[campLeft,campLeft+campWidth,cave.floor,'snow','Checkpoint']];
  spires[4].cave=null;
  // The final campsite must be reached before its ice ascent. Reforge's
@@ -68,14 +68,35 @@ function installFeaturedCourseGeometry(spires){
   // The cliff contour still follows real ledges and all ice connections.
   peak.rockShoulderLeft=Math.min(peak.summit[0],leftmost-70);
  }
+// Phase 2: authored width profiles using the engine's shared presets.
+ // Widths stay on the real collision surfaces, never decorative overlays.
+ const widthPlan={
+  1:['terrace','shelf','narrow'],
+  2:['shelf'],
+  3:['shelf','shelf','narrow'],
+  4:['shelf']
+ };
+ for(let peakIndex=1;peakIndex<=4;peakIndex++){
+  const mountain=spires[peakIndex],choices=widthPlan[peakIndex];
+  for(let tier=0;tier<mountain.ledges.length;tier++){
+   const ledge=mountain.ledges[tier],type=choices[Math.min(tier,choices.length-1)];
+   const limits=SummitLevelEngine.WIDTHS[type];
+   const original=ledge[1]-ledge[0];
+   // Avoid moving either the arrival edge or the ice-route entry point.
+   // Actual geometry still must pass the full course audit.
+   const width=Math.max(limits.min,Math.min(limits.max,original));
+   ledge[1]=ledge[0]+width;
+   ledge.platformSize=type;
+  }
+ }
  prepareFeaturedRidgeCruxes(spires);
 }
 // Two designed, genuinely uphill summit cruxes. The climber exits the ice
 // onto a lower rock ridge and must *vault again* across a deep exposed
 // fracture before gaining the higher takeoff shelf. Not decorative shapes.
 const FEATURED_RIDGE_CRUXES=Object.freeze([
- {peak:1,gap:320,rise:120,landingWidth:290,name:'The Black Notch'},
- {peak:3,gap:380,rise:120,landingWidth:290,name:'The Broken Crown'}
+ {peak:1,gap:320,rise:120,landingWidth:260,name:'The Black Notch'},
+ {peak:3,gap:380,rise:120,landingWidth:335,name:'The Broken Crown'}
 ]);
 function prepareFeaturedRidgeCruxes(mountains){
  for(const crux of FEATURED_RIDGE_CRUXES){
