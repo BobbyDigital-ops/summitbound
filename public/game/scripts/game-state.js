@@ -25,6 +25,7 @@ function hint(txt, duration=2.4){lastMessage=txt;messageTimeout=duration;notice.
 
 function spawn(stage=0, keepTime=false){
  let pl = platforms.find(x=>x.id==='s'+stage), x = stage===0?150:pl.left+95;
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)x=SummitIntegrated.startX(stage,pl);
  p = {x, y:pl.top-22, vx:0, vy:0, state:'GROUNDED', surface:'snow', facingDir:1, runDistance:0, vault:null, anchorX:0, anchorY:0, bend:0, groundedFor:.5, standingOn:pl.id, climb:null};
  if(!keepTime) elapsed=0;
  if(stage===0) caveActivated=false;
@@ -36,7 +37,9 @@ function spawn(stage=0, keepTime=false){
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
  const zoom = getZoom();
  camera.x = x - .26 * innerWidth / zoom; camera.y = p.y - .60 * innerHeight / zoom;
- hint(stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.', 3);
+ hint((typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)?
+  'MODULAR ASCENT — ORIGINAL CHARACTER AND POLE PHYSICS':
+  (stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.'), 3);
 }
 
 function gameReset(){landingHistory=[];practiceTakeoff=null;spawn(0)}
