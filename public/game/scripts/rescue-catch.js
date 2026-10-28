@@ -26,7 +26,8 @@ function axeCatchApproach(ignoreUsed=false){
   const distance=Math.abs(dx-8)+Math.abs(dy-22);
   near.push({pl,edge,dx,dy,ready,score:distance,forward});
  }
- near.sort((a,b)=>a.score-b.score);
+ // Prioritise a catchable ledge over a nearer but non-catchable rim.
+ near.sort((a,b)=>Number(b.ready)-Number(a.ready)||a.score-b.score);
  return near[0]||null;
 }
 function axeCatchOpportunity(ignoreUsed=false){
@@ -52,16 +53,18 @@ function attemptAxeCatch(){
  const near=hit||axeCatchApproach();
  catchUsed=true;
  if(hit)return axeLatch(hit);
- if(near&&near.dx>AXE_WINDOW.ahead&&
+ if(near&&!near.ready&&near.dx>=-AXE_WINDOW.behind-12&&
     near.dx<=AXE_WINDOW.warningAhead&&
     near.dy>=-AXE_WINDOW.warningAbove&&
     near.dy<=AXE_WINDOW.warningBelow){
-  catchQueuedUntil=elapsed+AXE_WINDOW.bufferSeconds;
+  catchQueuedUntil=elapsed+Math.max(.55,AXE_WINDOW.bufferSeconds);
   hint('AXE THROWN — REACH FOR THE ROCK',.8);
   haptic(9);
   return false;
  }
- // As before, a completely wild swing burns the one airborne attempt.
+ // An out-of-range button press should NOT permanently burn the only
+ // rescue attempt; the deliberate, ledge-proximate swing still is one-shot.
+ catchUsed=false;
  catchQueuedUntil=-1;
  hint(near?'AXE MISSED — WATCH THE LIP':'NO ROCK IN REACH',.85);
  haptic(7);
