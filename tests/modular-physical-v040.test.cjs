@@ -39,3 +39,9 @@ test('Original restores after modular construction without residual modules',()=
  const c=make(),a=vm.runInContext("(()=>{activeSummitCourse='original';applyRoute(0);const original=JSON.stringify(spires.map(s=>({summit:s.summit,ledges:s.ledges})));activeSummitCourse='modular';applyRoute(0);activeSummitCourse='original';applyRoute(0);return {same:original===JSON.stringify(spires.map(s=>({summit:s.summit,ledges:s.ledges}))),remnants:spires.filter(s=>s.moduleAssembly).length};})()",c);
  assert.equal(a.same,true);assert.equal(a.remnants,0);
 });
+
+test('in-game platform objects agree exactly with modular slots and icefall endpoints',()=>{
+ const c=make();
+ const r=vm.runInContext("(()=>{const platforms=spires.map((m,i)=>platform('s'+i,...m.summit,{kind:'summit',spire:i}));function platform(id,l,r,t,s='snow',extra={}){return {id,left:l,right:r,top:t,...extra}}applyRoute(0);return SummitModularEngine.auditInstalled();})()",c);
+ assert.equal(r.valid,true,JSON.stringify(r.issues));
+});
