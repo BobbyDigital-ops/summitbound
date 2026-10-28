@@ -68,28 +68,12 @@ function installFeaturedCourseGeometry(spires){
   // The cliff contour still follows real ledges and all ice connections.
   peak.rockShoulderLeft=Math.min(peak.summit[0],leftmost-70);
  }
-// Phase 2: authored width profiles using the engine's shared presets.
- // Widths stay on the real collision surfaces, never decorative overlays.
- const widthPlan={
-  1:['terrace','shelf','narrow'],
-  2:['shelf'],
-  3:['shelf','shelf','narrow'],
-  4:['shelf']
- };
+// Keep approved flight-contact widths and classify for the next layout pass.
  for(let peakIndex=1;peakIndex<=4;peakIndex++){
-  const mountain=spires[peakIndex],choices=widthPlan[peakIndex];
-  for(let tier=0;tier<mountain.ledges.length;tier++){
-   const ledge=mountain.ledges[tier],type=choices[Math.min(tier,choices.length-1)];
-   const catalogue=typeof SummitLevelEngine!=='undefined'?SummitLevelEngine.WIDTHS:{
-    narrow:{min:65,max:115},shelf:{min:125,max:215},terrace:{min:230,max:370}
-   };
-   const limits=catalogue[type];
-   const original=ledge[1]-ledge[0];
-   // Avoid moving either the arrival edge or the ice-route entry point.
-   // Actual geometry still must pass the full course audit.
-   const width=Math.max(limits.min,Math.min(limits.max,original));
-   ledge[1]=ledge[0]+width;
-   ledge.platformSize=type;
+  for(const ledge of spires[peakIndex].ledges){
+   const width=ledge[1]-ledge[0];
+   ledge.platformSize=width<=52?'foothold':width<=115?'narrow':
+    width<=215?'shelf':width<=370?'terrace':'summit';
   }
  }
  prepareFeaturedRidgeCruxes(spires);
