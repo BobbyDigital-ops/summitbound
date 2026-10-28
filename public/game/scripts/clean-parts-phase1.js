@@ -14,25 +14,24 @@ function edge(x,y,size,side){
  return [0,.25,.5,.75,1].map(t=>[Math.round(x+Math.sin(Math.PI*t)*h*.12),Math.round(y+t*h)]);
 }
 function geometry(w,h,seed,role){
- // Canonical vertical S/M/L seams form part of every rock polygon.
- // A left-side socket and a right-side socket of the same size are identical
- // up to translation, not approximate slopes or decorative guide marks.
- const leftSize=role==='summit'?'M':['S','M','L'][seed%3];
- const rightSize=['S','M','L'][(seed+1)%3];
- const seam=(x,size)=>edge(x,0,size,'right');
- const left=seam(0,leftSize),right=seam(w,rightSize);
- const top=role==='summit'?
-  [[0,0],[Math.round(w*.25),-Math.round(h*.50)],[Math.round(w*.45),-Math.round(h*.78)],[Math.round(w*.68),-Math.round(h*.25)],[w,0]]:
-  [[0,0],[Math.round(w*.23),-15-(seed%4)*12],[Math.round(w*.51),-5-(seed%5)*10],[Math.round(w*.77),-22-(seed%3)*13],[w,0]];
- const height=Math.max(h,S[leftSize]+90,S[rightSize]+90);
- const polygon=[...top,...right.slice(1),
-  [w+20+(seed%5)*9,Math.round(height*.65)],
-  [Math.round(w*.66),height+18],[Math.round(w*.28),height+11],
-  [-35-(seed%4)*9,Math.round(height*.64)],
-  [0,S[leftSize]],...left.slice(1,-1).reverse()];
+ // Each prefab occupies its own strict horizontal footprint [0,w].
+ // Only the THREE canonical S/M/L seam profiles form its left/right walls.
+ // These are literal polygon edges, rather than offset metadata.
+ const leftSize=['S','M','L'][seed%3],rightSize=['S','M','L'][(seed+1)%3];
+ const left=edge(0,0,leftSize,'left'),right=edge(w,0,rightSize,'right');
+ const crest=role==='summit'?Math.round(Math.min(h*.45,120)):role==='base'?28:48;
+ const top=[[0,0],[Math.round(w*.20),-Math.round(crest*(.45+(seed%3)*.18))],
+  [Math.round(w*.43),-Math.round(crest*(.8+(seed%4)*.12))],
+  [Math.round(w*.68),-Math.round(crest*(.35+(seed%5)*.11))],[w,0]];
+ // Five intermediate lower flank vertices remain INSIDE the footprint.
+ const lower=[[Math.round(w*.82),Math.round(S[rightSize]+42+(seed%4)*11)],
+  [Math.round(w*.58),Math.round(Math.max(S[leftSize],S[rightSize])+88+(seed%5)*14)],
+  [Math.round(w*.34),Math.round(Math.max(S[leftSize],S[rightSize])+82+(seed%3)*19)],
+  [Math.round(w*.13),Math.round(S[leftSize]+36+(seed%6)*7)]];
+ const vertices=[...top,...right.slice(1),...lower,[0,S[leftSize]],...left.slice(1,-1).reverse()];
  const sockets=[{id:'left',size:leftSize,side:'left',vertices:left},
   {id:'right',size:rightSize,side:'right',vertices:right}];
- return {vertices:polygon,sockets,height};
+ return {vertices,sockets,height:Math.max(h,...vertices.map(p=>p[1]))};
 }
 const baseNames=['granite-bastion','split-massif','northern-buttress','sheared-ridge','weathered-tower','dark-plateau','storm-wall','scree-foundation','riven-crag','double-spine','frozen-escarpment','western-face','twin-pillar','cloven-plateau','angular-keep','snowbound-column','needle-foundation','south-cliff','layered-bulwark','deep-cut-massif','rubble-keep','hollow-scar','broken-arch','storm-rampart'];
 const extensionNames=['shoulder','overhang','rock-rib','stepped-wall','broken-shelf','granite-fin','gully','hanging-scree','weathered-nose','ice-buttress','slate-wing','fractured-terrace','cliff-hook','sheer-rib','splintered-nose','scree-bridge','ice-carved-collar','granite-scar','rock-hinge','shattered-column','snow-shoulder','broken-spur','high-shelf','shadow-terrace'];
