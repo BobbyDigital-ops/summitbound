@@ -6,7 +6,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
 const FEATURED_COURSE=Object.freeze({
- id:'five-peaks',version:5,levelNumber:1,campaignSize:100,peakCount:5,
+ id:'five-peaks',version:6,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
  checkpoints:Object.freeze([{peak:0,type:'start'},
    {peak:2,type:'campsite',ledge:0},{peak:4,type:'campsite',ledge:0}]),
@@ -51,8 +51,12 @@ function installFeaturedCourseGeometry(spires){
  const campLeft=cave.left+shift,campWidth=177;
  spires[4].ledges=[[campLeft,campLeft+campWidth,cave.floor,'snow','Checkpoint']];
  spires[4].cave=null;
+ // The final campsite must be reached before its ice ascent. Reforge's
+ // higher preceding ridge otherwise allows a direct 24-sample summit bypass.
+ // Raising this inaccessible crest by 100 restores 0/1044 direct contacts
+ // while retaining plenty of first-contact landing windows at the camp.
  spires[4].summit=[campLeft-72,campLeft+550,
-   Math.min(-55,cave.floor-260),'snow'];
+   Math.min(-55,cave.floor-260)-100,'snow'];
  // Widen the entire physical bedrock shoulder around EVERY retained
  // ledge and its ice path. The right-hand takeoff edge is preserved so
  // tested chasm distances do not become accidentally shorter.

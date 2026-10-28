@@ -1,3 +1,9 @@
+# SUMMITBOUND v0.20.1 — REFORGE QUALITY PASS
+
+**Quality pass:** both Windward and Firespine campsite summits have been raised so a full-speed vault from the preceding ridge cannot bypass the intended campsite landing and ice climb. Their real collision and ice routes remain the source of truth; archived procedural tests use their original frozen physics instead of the current player vault. CI now collects all regression failures before failing, rather than stopping at the first test. Trial ghosts use version 10 because the terrain changed. Real player feel and Android profiling still need sign-off.
+
+---
+
 # SUMMITBOUND v0.20.0 — THE REFORGE
 
 **New playable vertical slice:** five peaks, four huge chasm vaults, two physically distinct precision uphill ridge vaults, four climbable ice routes, and two deliberately challenging campsites. **Future campaign: exactly 100 levels**, which are not yet implemented.

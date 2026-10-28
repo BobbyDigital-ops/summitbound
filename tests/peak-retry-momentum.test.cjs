@@ -31,14 +31,15 @@ test('Peak retry: Practice returns to real launch summit without granting false 
   const saved=practiceTakeoff?.platformId;
   fail();
   return {saved,stage:atStage,surface:p.standingOn,
-   velocity:p.vx,safe:lastSafeStage,x:p.x,left:pl.left};
+   velocity:p.vx,safe:lastSafeStage,x:p.x,left:pl.left,right:pl.right};
  })()`);
  assert.equal(result.saved,'s1');
  assert.equal(result.stage,1);
  assert.equal(result.surface,'s1');
  assert.equal(result.velocity,0);
  assert.equal(result.safe,0,'practice mode granted a fake checkpoint');
- assert.ok(result.x>result.left+80,'runner was spawned with no available runway');
+ assert.ok(result.x>=result.left+40&&result.x+135<=result.right,
+  'retry needs a real rear margin and enough runway for a full-speed plant');
 });
 test('Peak retry: narrow campsite launch returns to same real ledge',()=>{
  const {run}=setup();
