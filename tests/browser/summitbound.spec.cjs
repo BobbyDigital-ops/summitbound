@@ -87,3 +87,30 @@ test('v0.36.1 33-percent character downscale and detailed accessories',async({pa
  expect(src).toContain("Helmet crown");
  expect(await page.evaluate(()=>typeof drawRigMountaineer)).toBe('function');
 });
+
+test('grab latches at a real rim and three alternating strikes recover',async({page})=>{
+ await page.goto(url);
+ const r=await page.evaluate(()=>{
+  const pl=platforms.find(x=>x.kind==='ledge'&&x.spire===2);
+  p.state='FALLING';p.standingOn=null;p.vx=150;p.vy=120;
+  p.facingDir=1;p.x=pl.left-34;p.y=pl.top+25;
+  catchUsed=false;catchQueuedUntil=-1;
+  const near=axeCatchOpportunity();
+  const latched=attemptAxeCatch();
+  const state=p.state,edge=p.catchLedge?.edge;
+  let strokes=[];
+  for(const side of [-1,1,-1]){elapsed+=.15;strokes.push(axeCatchStrike(side));}
+  return {ready:!!near,latched,state,edge,strokes,final:p.state,on:p.standingOn,expected:pl.id};
+ });
+ expect(r.ready).toBe(true);expect(r.latched).toBe(true);
+ expect(r.state).toBe('HANGING');expect(r.strokes).toEqual([true,true,true]);
+ expect(r.final).toBe('GROUNDED');expect(r.on).toBe(r.expected);
+});
+test('miss far from ledge does not consume entire grab opportunity',async({page})=>{
+ await page.goto(url);
+ const r=await page.evaluate(()=>{
+  p.state='FALLING';p.standingOn=null;p.vy=120;p.x=-10000;p.y=-10000;
+  catchUsed=false;catchQueuedUntil=-1;const hit=attemptAxeCatch();
+  return {hit,used:catchUsed};
+ });expect(r.hit).toBe(false);expect(r.used).toBe(false);
+});
