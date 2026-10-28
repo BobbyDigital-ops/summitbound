@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 test('five peak reprofile retains certified reachability and varied widths',()=>{
  const document={getElementById(){return {hidden:false,style:{},classList:{add(){},remove(){}},textContent:'',getContext(){return {}},addEventListener(){}}},querySelectorAll(){return []}};
  const ctx=vm.createContext({Image:class Image{},document,innerWidth:1200,innerHeight:780,performance:{now:()=>1},navigator:{vibrate(){}},localStorage:{getItem(){return null},setItem(){}}});
- for(const f of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','level-engine-v1.js'])vm.runInContext(fs.readFileSync('public/game/scripts/'+f,'utf8'),ctx,{filename:f});
+ for(const f of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','level-engine-v1.js']){try{vm.runInContext(fs.readFileSync('public/game/scripts/'+f,'utf8'),ctx,{filename:f});}catch(error){throw Error('Script '+f+': '+error.stack)}}
  const result=vm.runInContext(`(()=>{applyRoute(0);return {
    audit:auditPlayableCourse(),graph:compilePhysicalCourseGraph(),
    ledges:spires.map(p=>p.ledges.map(l=>l[1]-l[0])),
