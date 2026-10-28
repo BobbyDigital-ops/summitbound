@@ -35,7 +35,7 @@ function assemble(seed,opts={}){
   if(!candidates.length)return false;
   const selected=choose(r,candidates),childId=role+'-'+pieces.length;
   const local=selected.socket,fit=L.mate(target,local);
-  if(!fit.compatible||fit.vertices.some((p,i)=>p[0]!==target.vertices[i][0]||p[1]!==target.vertices[i][1]))throw Error('Connector failed alignment');
+  if(!fit.compatible||fit.vertices.some((p,i)=>Math.abs(p[0]-target.vertices[i][0])>1e-7||Math.abs(p[1]-target.vertices[i][1])>1e-7))throw Error('Connector failed alignment');
   const child=place(selected.p,fit.dx,fit.dy,childId,target.owner,{socket:target.id,childSocket:childId+'/'+local.id,size:target.size});
   const childJoin=child.sockets.find(s=>s.id===childId+'/'+local.id);
   childJoin.occupied=true;target.occupied=true;
@@ -76,7 +76,7 @@ function audit(a){
  for(const j of a.joins){
   const p=byId.get(j.parent),c=byId.get(j.child);
   const ps=p?.sockets.find(s=>s.id===j.parentSocket),cs=c?.sockets.find(s=>s.id===j.childSocket);
-  if(!ps||!cs||ps.size!==cs.size||ps.side===cs.side||JSON.stringify(ps.vertices)!==JSON.stringify(cs.vertices))issues.push('misaligned joint '+j.child);
+  if(!ps||!cs||ps.size!==cs.size||ps.side===cs.side||ps.vertices.some((v,i)=>Math.abs(v[0]-cs.vertices[i][0])>1e-7||Math.abs(v[1]-cs.vertices[i][1])>1e-7))issues.push('misaligned joint '+j.child);
  }
  for(const p of a.pieces)if(area(p.vertices)<400)issues.push('degenerate rock '+p.id);
  for(const x of a.platforms){
