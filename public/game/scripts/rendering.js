@@ -1179,13 +1179,13 @@ function draw(){
  if(p.state==='HANGING'&&p.catchLedge){
   // Strong rear silhouette and reaching arms convey a real suspended
   // body instead of a floating running pose.
-  const side=p.catchLedge.side,extension=p.catchLedge.strokes||0;
+  const reachSide=p.catchLedge.side,extension=p.catchLedge.strokes||0;
   ctx.save();ctx.lineCap='round';
   ctx.fillStyle='#802633';ctx.beginPath();
-  ctx.ellipse(p.x,p.y-45,13,20,side*.15,0,Math.PI*2);ctx.fill();
+  ctx.ellipse(p.x,p.y-45,13,20,reachSide*.15,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='#ac4650';ctx.lineWidth=9;ctx.beginPath();
-  ctx.moveTo(p.x-8,p.y-46);ctx.lineTo(p.x+side*10,p.y-38);
-  ctx.lineTo(p.catchLedge.edge-side*4,p.y-23);ctx.stroke();
+  ctx.moveTo(p.x-8,p.y-46);ctx.lineTo(p.x+reachSide*10,p.y-38);
+  ctx.lineTo(p.catchLedge.edge-reachSide*4,p.y-23);ctx.stroke();
   ctx.strokeStyle='#252d34';ctx.lineWidth=6;ctx.beginPath();
   ctx.moveTo(p.x-5,p.y-26);ctx.lineTo(p.x-14,p.y+8+extension*1.5);
   ctx.moveTo(p.x+5,p.y-26);ctx.lineTo(p.x+12,p.y+6-extension*1.5);ctx.stroke();
