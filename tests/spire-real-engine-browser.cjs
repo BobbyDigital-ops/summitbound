@@ -68,6 +68,16 @@ const {spawn}=require('node:child_process');
   await page.waitForFunction(()=>SummitIntegrated.course.gap===210);
   const selection=await page.evaluate(()=>({gap:SummitIntegrated.course.gap,platforms:platforms.filter(pl=>pl.modular).length,player:p.standingOn}));
   if(selection.gap!==210||selection.player!=='s0')throw Error('Gap selector integration failed '+JSON.stringify(selection));
+  const sideWall=await page.evaluate(()=>{
+   const q=SummitIntegrated.course.peaks[1],base=q.pieces[0];
+   const edge=SpireAssemblyV10.edgeAt(base,-1),left=q.worldX+edge.left;
+   p.x=left+1;p.y=q.worldY-23;p.vx=300;p.vy=40;
+   p.state='AIRBORNE';p.standingOn=null;
+   const blocked=SummitIntegrated.solidSideCollision(left-25);
+   return {blocked,x:p.x,expectedX:left-10,impactCount:SummitIntegrated.claim().rockSideHits};
+  });
+  if(!sideWall.blocked||Math.abs(sideWall.x-sideWall.expectedX)>1e-7)
+   throw Error('Rock side wall allowed blind exterior penetration '+JSON.stringify(sideWall));
   if(errors.length)throw Error('Browser script errors: '+errors.join(' | '));
   console.log(JSON.stringify({boot:boot.info,realPhysicsCrossing:result,realOriginalClimb:climb,gapSelection:selection}));
  }finally{if(browser)await browser.close();vite.kill()}
