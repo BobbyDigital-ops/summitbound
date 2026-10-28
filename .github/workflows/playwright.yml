@@ -1,7 +1,7 @@
 name: Summitbound Playwright Visual Testing
 on:
   push:
-    branches: [main, 'dev/modular-peak-playtest', 'dev/phase1-difficulty-challenge', 'dev/peak1-safe-landing-fix', 'dev/phase2-reachability-five-challenges', 'dev/phase2-showcase-widths', 'dev/level-engine-phase1', 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
+    branches: [main, 'dev/modular-physical-v040', 'dev/modular-peak-playtest', 'dev/phase1-difficulty-challenge', 'dev/peak1-safe-landing-fix', 'dev/phase2-reachability-five-challenges', 'dev/phase2-showcase-widths', 'dev/level-engine-phase1', 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
   pull_request:
   workflow_dispatch:
 permissions:
