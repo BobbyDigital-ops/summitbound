@@ -63,6 +63,14 @@ test('alternate course is tougher but all five physical stages remain certified'
   const restored=JSON.stringify(spires.map(p=>({summit:p.summit,ledges:p.ledges,ridgeArrival:p.ridgeArrival})));
   return {original,challenge,audit,graph,check,changed:changedGeometry!==originalGeometry,restored:restored===originalGeometry};
  })()`);
+ const iceDetail=run(`(()=>{activeSummitCourse='challenge';applyRoute(0);
+ const path=iceRouteNetwork(4)[0].points,sp=spires[4],out=[];
+ for(let t=14;t<=16;t++){const y=path.at(-1).y+(path[0].y-path.at(-1).y)*t/16;
+ const xx=iceXOnPath(path,y),rock=mountainContourX(4,y),flank=mountainFlankX(4,y);
+ out.push({t,y,xx,rock,flank,clearLeft:xx-rock,clearRight:flank-xx});}
+ return {summit:sp.summit,ledge:sp.ledges[0],path,detail:out};
+})()`);
+ console.log('FINAL_ICE_DIAGNOSTIC '+JSON.stringify(iceDetail));
  console.log('CHALLENGE_GRADES '+JSON.stringify({original:report.original.sections,challenge:report.challenge.sections,
   compare:report.check,failures:report.audit.failures,graphIssues:report.graph.issues,restored:report.restored}));
  assert.equal(report.changed,true,'challenge did not alter collision terrain');
