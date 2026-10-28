@@ -34,8 +34,8 @@ function drawRigMountaineer(g,p){
  const bounce=running?Math.max(0,Math.sin(k*2))*3.5:0;
  const hip=P(running?3*Math.cos(k):0,running?79+bounce:65+bounce);
  const shoulder=add(hip,P(running?17+2*Math.sin(k):4,71));
- const neck=add(shoulder,P(running?5:2,12));
- const head=add(neck,P(1,13)),helmet=add(head,P(0,8));
+ const neck=add(shoulder,P(running?5:2,9));
+ const head=add(neck,P(1,12)),helmet=add(head,P(0,8));
  // The original tuner uses four continuous stance/recovery phases;
  // foot reach and clearance are independently scaled as approved.
  function runFoot(near){
@@ -57,7 +57,7 @@ function drawRigMountaineer(g,p){
  function leg(near){
   const z=near?9:-9,H=add(hip,P(0,0,z));let knee,ankle;
   if(running){const f=runFoot(near);ankle=P(f.x,f.y,z);knee=solveKnee(H,ankle)}
-  else if(climbing){knee=add(H,P(27+(near?4:-7),-23+(near?6:-8)));ankle=add(knee,P(14,-31))}
+  else if(climbing){const beat=Math.sin(k+(near?0:Math.PI));knee=add(H,P(25+(near?5:-5),-26+beat*7));ankle=add(knee,P(9+beat*3,-28-beat*7))}
   else if(flying||vaulting){knee=add(H,P(-32,-8));ankle=add(knee,P(-31,-12))}
   else if(hanging){knee=add(H,P(near?11:-12,-37));ankle=add(knee,P(near?4:-8,-33))}
   else{knee=add(H,P(0,-33));ankle=add(knee,P(0,-33))}
@@ -93,8 +93,10 @@ function drawRigMountaineer(g,p){
  detail(add(hip,P(8,23)),add(hip,P(15,17)),2,'#eac39b');
  detail(add(hip,P(-14,15)),add(hip,P(11,12)),4,'#423b3a');
  orb(add(hip,P(8,12)),3,4,'#c4a57c');
- capsule(neck,head,8,'#b95f4b');
- orb(head,12,13,'#26363f');orb(helmet,16,8,'#b0bbc0');
+ capsule(shoulder,neck,12,'#722f2c');capsule(neck,head,9,'#ad755d');
+ orb(head,12,13,'#a37c61');orb(add(head,P(-4,1)),8,11,'#273841');orb(helmet,16,8,'#b0bbc0');
+ orb(add(head,P(11,-3)),5,5,'#b38b70');orb(add(head,P(14,-1)),3,2.3,'#c39a7c');
+ line(add(head,P(5,-7)),add(head,P(11,-9)),3,'#3c3635');
  // Helmet crown, visor, goggles, headlamp and chin strap.
  line(add(helmet,P(-13,0)),add(helmet,P(15,1)),2,'#e4e8e6');
  orb(add(head,P(11,4)),8,4,'#182a33');
@@ -106,7 +108,7 @@ function drawRigMountaineer(g,p){
  function arm(near){
   const S=add(shoulder,P(2,0,near?16:-16));let elbow,hand;
   if(running){const swing=(near?1:-1)*Math.cos(k+.25);elbow=add(S,P(-6+13*swing,-30));hand=add(elbow,P(2+7*swing,-21))}
-  else if(climbing){const beat=Math.sin(k+(near?0:PI));elbow=add(S,P(near?22:8,near?23+beat*9:5-beat*9));hand=add(elbow,P(near?6:12,near?28+beat*11:31-beat*11))}
+  else if(climbing){const beat=Math.sin(k+(near?0:PI));elbow=add(S,P(near?18:9,17+beat*8));hand=add(elbow,P(near?11:16,25+beat*10))}
   else if(flying||vaulting){elbow=add(S,P(31,5));hand=add(elbow,P(39,8))}
   else if(hanging){elbow=add(S,P(near?13:-5,22));hand=add(elbow,P(near?7:12,40))}
   else{elbow=add(S,P(14,-20));hand=add(elbow,P(10,-17))}
