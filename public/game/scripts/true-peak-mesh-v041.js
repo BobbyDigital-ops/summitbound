@@ -92,12 +92,24 @@ function makeRoot(peak,index,surface,tag,seed,ledgeIndices,rootNo){
   if(left.length&&point[1]<=left.at(-1)[1])continue;
   left.push(point);
  }
+ // Twelve deliberately distinct geological silhouettes. Base profiles
+ // are hand-designed offsets, not the previous single sloping trapezoid.
+ const profiles=[
+  [55,245,80,400,520], [310,110,445,180,650],
+  [90,380,155,520,300], [200,65,355,155,700],
+  [410,220,125,530,470], [115,320,490,210,670],
+  [250,85,520,305,540], [65,455,260,470,760],
+  [360,145,310,580,410], [90,275,70,650,570],
+  [220,505,155,355,790], [405,95,440,210,650]
+ ];
+ const offsets=profiles[(seed*5+index*7+rootNo*3)%profiles.length];
  const right=[
   [rt+9,t],
-  [rt+75+r()*210,t+150],
-  [rt+115+r()*360,t+390],
-  [rt+130+r()*410,t+790],
-  [rt+180+r()*570,bottom]
+  [rt+offsets[0],t+100],
+  [rt+offsets[1],t+250],
+  [rt+offsets[2],t+465],
+  [rt+offsets[3],t+790],
+  [rt+offsets[4],bottom]
  ];
  // One physically connecting socket for every occupied landing shelf,
  // plus an additional right-flank rock attachment where space permits.
