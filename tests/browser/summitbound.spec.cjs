@@ -275,6 +275,8 @@ test('v0.40 modular peaks change REAL platform geometry and certify every ice/cl
    report:SummitModularEngine.report(),
    audit:SummitModularEngine.auditInstalled(),
    physics:auditPlayableCourse().valid,
+   physicsIssues:auditPlayableCourse().failures,
+   seed:SummitModularEngine.seed(),
    graph:compilePhysicalCourseGraph().valid,
    on:platforms.some(q=>q.id===p.standingOn)
   }));
@@ -282,6 +284,7 @@ test('v0.40 modular peaks change REAL platform geometry and certify every ice/cl
   expect(result.report.certified).toBe(true);
   expect(result.report.changes.changed).toBeGreaterThanOrEqual(2);
   expect(result.audit.valid).toBe(true);
+  console.log('REGEN QA',JSON.stringify({seed:result.seed,issues:result.physicsIssues,report:result.report}));
   expect(result.physics).toBe(true);
   expect(result.graph).toBe(true);
   expect(result.on).toBe(true);
