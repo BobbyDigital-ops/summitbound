@@ -238,6 +238,9 @@ function compilePhysicalCourseGraph(peakSet=spires,spec=FEATURED_COURSE,routeRes
    [peak.cave.left,peak.cave.right,peak.cave.floor]);
   if(peak.cave)addEdge('cave'+i,'s'+i,'tunnel-ladder',1);
   peak.ledges.forEach((ledge,t)=>{
+   // The starting massif has an optional lower rescue shelf, not an
+   // ascent to a different peak. It is not a mandatory ice route.
+   if(i===0&&!routeResolver)return;
    const points=routeResolver?routeResolver(peakSet,i,t):
     peakSet===spires&&i>=1&&i<=4?iceRouteNetwork(i)[t]?.points:null;
    if(!points||points.at(-1).x<(peak.ridgeArrival||peak.summit)[0]+3||
