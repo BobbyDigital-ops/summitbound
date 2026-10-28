@@ -136,3 +136,32 @@ test('mantle is a progressive visible move, not a frame teleport',async({page})=
  expect(r.finish.state).toBe('GROUNDED');
  expect(r.finish.standingOn).toBe(r.surface);
 });
+
+test('Original and Challenge have distinct real collision courses; toggle restores original',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);
+ await page.locator('#tuneToggle').click();
+ const button=page.locator('#courseToggle');
+ await expect(button).toContainText('Original');
+ const original=await page.evaluate(()=>JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))));
+ await button.click();
+ await expect(button).toContainText('Challenge');
+ await expect(page.locator('#routeLabel')).toContainText('CHALLENGE');
+ const changed=await page.evaluate(()=>({
+  geometry:JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))),
+  grades:SummitDifficulty.gradeCourse(spires,shelfTimingProfiles),
+  audit:auditPlayableCourse(),graph:compilePhysicalCourseGraph(),
+  currentState:p.state
+ }));
+ expect(changed.geometry).not.toBe(original);
+ expect(changed.grades.valid).toBe(true);
+ expect(changed.audit.valid).toBe(true);
+ expect(changed.graph.valid).toBe(true);
+ expect(changed.currentState).toBe('GROUNDED');
+ await expect(page.locator('#difficultyReadout')).toContainText('Firespine');
+ await button.click();
+ await expect(page.locator('#routeLabel')).toContainText('ORIGINAL');
+ const restored=await page.evaluate(()=>JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))));
+ expect(restored).toBe(original);
+ expect(errors).toEqual([]);
+});
