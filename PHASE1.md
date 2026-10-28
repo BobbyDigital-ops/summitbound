@@ -21,3 +21,18 @@ Standalone geometry/asset tests passed in GitHub Actions. A Chromium screenshot 
 2. Validate rock and ledge collisions against real player movement and climbing.
 3. Assemble distinct multi-spire courses and certify jump reachability using existing pole physics.
 4. Desktop/mobile gameplay and artwork review, then merge only if all conditions pass.
+
+## Phase 2 — isolated playable modular spire testing
+
+Added `public/game/scripts/spire-phase2-playtest.js` and `public/game/spire-phase2-playtest.html`.
+The browser harness selects among three independent v10 spire seeds, drives actual `PolePhysicsEngine` from `physics.js`, uses `iceClimbDisplacement` from `climb-mechanics.js`, provides desktop/touch controls, and lands on the v10 generator's physical platform rectangles. The orange deck is climbable and works as a genuine pole-plant support when its geometry allows it.
+
+The four **mandatory** placement rules are enforced by `spire-assembly-v10.js` using the assembled *piecewise rock outline* rather than a bounding rectangle:
+- Rock ledge: all vertices, including lip and thickness, must remain within the rock silhouette throughout their vertical footprint.
+- Scaffold: may project beyond the silhouette; its collider remains genuine.
+- Ladder: may project beyond the silhouette; connects source platform to receiving platform/deck.
+- Straight icefall: its full-width continuous vertical rectangle must stay within the rock outline at every profile interval. Ineligible routes use a ladder instead. No sinusoidal ice paths.
+
+`tests/spire-phase2.test.cjs` checks 2,000 different assemblies, rejects deliberately displaced rock ledges and icefalls, exercises generated landing collisions, original ice-climbing steps and pole-plant/release dynamics, and completes three test spires from the bottom to the orange deck. `tests/spire-phase2-browser.cjs` drives keyboard input in Chromium, verifies a climb and captures playtest screenshots. Tests are included in `.github/workflows/cleanroom-assets.yml`.
+
+**Limitations:** This is an **isolated, single-spire playtest**, not the production gameplay runtime. The player is a temporary drawn marker, not the final animation rig. Existing physics routines are reused but the test adapter's collision/state orchestration is not the old main loop. The rock silhouette acts as a climbing-facing background; complete rock mass collision and carve-outs for platforms are not yet implemented. Full multi-spire pole-jump courses, physics reachability certification, performance profiling and production integration are outstanding. No changes have been made to `main`.
