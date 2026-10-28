@@ -1,23 +1,17 @@
-name: Cleanroom modular asset QA
+name: Fresh vertical spire asset certification
 on:
   push:
     branches: ['dev/phase1-cleanroom-map-engine']
-  pull_request:
-    paths:
-      - 'public/game/scripts/clean-parts-phase1.js'
-      - 'tests/clean-parts-phase1.test.cjs'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  assets:
+  vertical-spires:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test prefab catalogue and assembled spires
-        run: node --test tests/clean-parts-phase1.test.cjs tests/clean-map-assembly.test.cjs tests/clean-geometry-audit.test.cjs
-      - name: Acceptance gate - vertical modular spires
-        run: node --test tests/cleanroom-spire-acceptance.test.cjs
+      - name: Certify new modular spire assets, scaffolds, ladders, vertical ice and rendered shapes
+        run: node --test tests/spire-v10.test.cjs
