@@ -5,7 +5,7 @@
  */
 (function(root){
 'use strict';
-const GAP_PRESETS=Object.freeze([40,65,90,115,140,165,190,215,240,265].map((gap,i)=>
+const GAP_PRESETS=Object.freeze([30,50,70,90,110,130,150,170,190,210].map((gap,i)=>
  Object.freeze({id:i+1,gap,label:'Gap '+(i+1)})));
 function landings(physics,cfg,source,rise){
  const dt=1/120,deck=source.departure,platform={x:(deck.left+deck.right)/2,
