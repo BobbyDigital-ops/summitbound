@@ -1,3 +1,7 @@
+# v0.33 Sprite Character Prototype
+
+Actual external SVG sprite atlas with 12 hand-authored poses (idle, 4 running frames, pole plant, launch, flight, forward axe reach, hang, pullup, climb). The game uses sprite rects rather than the Canvas procedural body model. Sprite test on a separate development branch; no Vercel build. Visual acceptance at real game size remains necessary. No changes to physics.
+
 # SUMMITBOUND v0.32 — MECHANICS & CHARACTER REWORK
 
 - Pole-release sweep now makes short holds steep and shorter, deliberate longer holds lower and farther, red overholds weak; initial running speed still matters.

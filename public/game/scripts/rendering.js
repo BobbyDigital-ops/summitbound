@@ -1157,7 +1157,7 @@ function draw(){
  const pose=p.state==='CLIMBING'||p.state==='HANGING' ? 11
   : p.vault?9:(p.state==='AIRBORNE'||p.state==='FALLING')?10
   :running?phase:8;
- if((typeof drawPremiumMountaineer==='function')||
+ if((typeof drawSpriteMountaineer==='function')||
     (climberSheet.complete && climberSheet.naturalWidth)){
   ctx.save(); ctx.translate(p.x, p.y + 22); ctx.scale(p.facingDir < 0 ? -1 : 1, 1);
   const athletic = p.state === 'RUNNING' && Math.abs(p.vx)>90;
@@ -1168,9 +1168,8 @@ function draw(){
    ctx.rotate(Math.sin(phase)*.018);
   }
   if(p.state==='CLIMBING'&&p.climb?.isIce)ctx.scale(.88,1.04);
-  if(typeof drawPremiumMountaineer==='function')
-   drawPremiumMountaineer(ctx,p,phase,running);
-  else ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
+  if(!(typeof drawSpriteMountaineer==='function'&&drawSpriteMountaineer(ctx,p)))
+   ctx.drawImage(climberSheet, pose*200, 0, 200, 256, -39, -93, 78, 100);
   if(p.state==='CLIMBING'&&p.climb?.isIce)
    drawClimberWallFacing(p.climb.climbBeat);
   // Avoid ghosted/doubled hats: never alpha-overlay mismatched sprite frames.
