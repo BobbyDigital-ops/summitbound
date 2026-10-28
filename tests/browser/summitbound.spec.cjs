@@ -259,6 +259,7 @@ test('v0.40 modular peaks change REAL platform geometry and certify every ice/cl
   graph:compilePhysicalCourseGraph().valid,
   seed:SummitModularEngine.seed()
  }));
+ console.log('MODULAR LIVE AUDIT',JSON.stringify({issues:baseline.first.issues,report:baseline.first.report}));
  expect(baseline.first.valid).toBe(true);
  expect(baseline.first.report.certified).toBe(true);
  expect(baseline.first.report.changes.changed).toBeGreaterThanOrEqual(2);
