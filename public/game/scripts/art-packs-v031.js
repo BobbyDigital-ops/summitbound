@@ -74,12 +74,89 @@ function rock(g,L,R,T,leftAt,rightAt,seed){
  }
  g.restore();cap(g,L,R,T,seed);
 }
+
+/* Physical modular course pieces: pre-rendered with the existing cinematic
+ * granite painter, and clipped to the very same world-space rock contours.
+ * Dramatic spurs sit BEHIND actual running surfaces so the player always has
+ * a readable landing / takeoff face, not a fake pointed collider. */
+function paintModuleSilhouettes(g,i){
+ const s=spires[i],assembly=s.moduleAssembly;
+ if(!assembly)return;
+ const tops=s.ridgeArrival?[s.ridgeArrival,s.summit]:[s.summit];
+ let n=0;
+ for(const piece of assembly.pieces){
+  if(piece.role!=='summit'&&!piece.scenic)continue;
+  const surface=tops[Math.min(tops.length-1,(i+n)%tops.length)];
+  n++;
+  const cx=Math.max(surface[0]+55,Math.min(surface[1]-52,piece.anchor.x));
+  const top=surface[2],span=piece.connector==='L'?132:piece.connector==='M'?96:58;
+  const rise=piece.role==='summit'?144+(i%3)*26:76+(n%3)*17;
+  const xs=[cx-span,cx-span*.61,cx-span*.25,cx,cx+span*.18,cx+span*.63,cx+span];
+  const ys=[top+45,top-22,top-rise*.56,top-rise,top-rise*.54,top-18,top+55];
+  const shape=xs.map((x,k)=>[x,ys[k]]);
+  const fade=g.createLinearGradient(cx-span,top-rise,cx+span,top+90);
+  fade.addColorStop(0,'#657883');fade.addColorStop(.5,'#384b5b');
+  fade.addColorStop(1,'#182836');
+  fill(g,shape.concat([[cx+span*.75,top+140],[cx-span*.75,top+140]]),fade);
+  fill(g,[[cx-span*.22,top-rise*.58],[cx,top-rise],
+   [cx+span*.18,top-rise*.54],[cx+span*.1,top-rise*.38],[cx,top-rise*.65]],
+   '#dce3dfad');
+  stroke(g,[[cx,top-rise],[cx+span*.22,top-rise*.52],[cx+span*.3,top-25]],
+   '#111f30aa',2.2);
+ }
+}
+function paintModuleGranite(g,i){
+ const s=spires[i],assembly=s.moduleAssembly;
+ if(!assembly)return;
+ const tops=s.ridgeArrival?[s.ridgeArrival,s.summit]:[s.summit];
+ for(const peak of tops){
+  const T=peak[2],bottom=2050;
+  const leftAt=s.ridgeArrival&&peak===s.summit?
+   (y)=>ridgeUpperWallX(i,y):(y)=>mountainContourX(i,y);
+  const rightAt=s.ridgeArrival&&peak===s.ridgeArrival?
+   (y)=>peak[1]+Math.min(100,Math.max(0,y-T)*.19):
+   (y)=>mountainFlankX(i,y);
+  g.save();g.beginPath();g.moveTo(peak[0],T);g.lineTo(peak[1],T);
+  for(let y=T+18;y<=bottom;y+=27)g.lineTo(rightAt(y),y);
+  g.lineTo(leftAt(bottom),bottom);
+  for(let y=bottom-19;y>T;y-=22)g.lineTo(leftAt(y),y);
+  g.closePath();g.clip();
+  for(const piece of assembly.pieces){
+   if(piece.role==='summit')continue;
+   const x=piece.anchor.x,y=piece.anchor.y;
+   const span=piece.connector==='ROOT'?300:piece.connector==='L'?240:
+    piece.connector==='M'?144:72;
+   const depth=piece.bodyDepth||260;
+   const code=piece.id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+   const tilt=((code%11)-5)*.11;
+   const grad=g.createLinearGradient(x-span*.6,y-depth*.5,x+span*.6,y+depth);
+   grad.addColorStop(0,'#bac9cb13');
+   grad.addColorStop(.43,'#162b384a');
+   grad.addColorStop(1,'#091b2925');
+   fill(g,[[x-span*.65,y-depth*.35],[x+span*.08,y-depth*.6],
+    [x+span*.55,y-depth*.16],[x+span*.43+tilt*30,y+depth*.62],
+    [x-span*.34,y+depth*.85]],grad);
+   const branches=piece.facets||5;
+   for(let j=0;j<branches;j++){
+    const shift=(j/branches-.5)*span*.9;
+    const from=[x+shift,y-depth*.42+(j%3)*17];
+    const to=[x+shift+span*(.11+tilt*.15),y+depth*(.65+j%3*.07)];
+    stroke(g,[from,[from[0]+(to[0]-from[0])*.35,from[1]+depth*.36],to],
+     j%3?'#0c182685':'#b3c6c533',j%3?1.35:2.3);
+   }
+  }
+  g.restore();
+ }
+}
+
 function renderMountain(i,g){
+ if(spires[i].moduleAssembly)paintModuleSilhouettes(g,i);
  const s=spires[i],m=s.summit,arrival=s.ridgeArrival;
  if(arrival){
   rock(g,arrival[0],arrival[1],arrival[2],y=>mountainContourX(i,y),y=>arrival[1]+Math.min(100,Math.max(0,y-arrival[2])*.19)+Math.sin(y*.032+i)*6,i*193+13);
   rock(g,m[0],m[1],m[2],y=>ridgeUpperWallX(i,y),y=>mountainFlankX(i,y),i*193+73);
  }else rock(g,m[0],m[1],m[2],y=>mountainContourX(i,y),y=>mountainFlankX(i,y),i*193+13);
+ if(s.moduleAssembly)paintModuleGranite(g,i);
  for(let k=0;k<s.ledges.length;k++){
   const ledge=s.ledges[k],a=ledge[0],b=ledge[1],t=ledge[2],seed=i*77+k*131,w=b-a;
   const root=mountainContourX(i,t+100);
