@@ -159,7 +159,78 @@ function paintModuleGranite(g,i){
  }
 }
 
+
+/* The mesh is THE world geometry. Draw its sealed, polygonal base and
+ * child pieces with one shared cinematic rock material. No "old mountain"
+ * behind them; exact mating edges avoid gaps. */
+function meshBoundaryX(points,y){
+ if(y<=points[0][1])return points[0][0];
+ for(let i=1;i<points.length;i++)if(y<=points[i][1]){
+  const a=points[i-1],b=points[i],t=(y-a[1])/(b[1]-a[1]||1);
+  return a[0]+(b[0]-a[0])*t;
+ }
+ return points.at(-1)[0];
+}
+function renderTruePeak(g,i){
+ const mesh=spires[i].moduleAssembly.mesh;
+ // Base masses use the EXISTING CINEMATIC rock painter, only with the new
+ // actual polygon boundaries as left/right faces.
+ for(const part of mesh.parts.filter(p=>p.meshRoot)){
+  const [L,R,T]=part.surface;
+  rock(g,L,R,T,y=>meshBoundaryX(part.left,y),y=>meshBoundaryX(part.right,y),
+   seededPeakInk(i,part.id)+mesh.seed*21);
+ }
+ // Child parts physically plug into the exact same boundary profile.
+ // Shared stone pigments and clipped strata hide the jigsaw joins.
+ for(const [k,part] of mesh.parts.filter(p=>!p.meshRoot).entries()){
+  const pts=part.polygon,xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const left=Math.min(...xs),right=Math.max(...xs);
+  const top=Math.min(...ys),bottom=Math.max(...ys);
+  const w=right-left,h=bottom-top,seed=mesh.seed*59+i*307+k*107;
+  g.save();path(g,pts);g.closePath();g.clip();
+  const grad=g.createLinearGradient(left,top,right,bottom);
+  if(currentPack==='painterly'){
+   grad.addColorStop(0,'#a4b8b2');grad.addColorStop(.35,'#718e92');
+   grad.addColorStop(.75,'#385464');grad.addColorStop(1,'#1a3445');
+  }else{
+   grad.addColorStop(0,'#70828b');grad.addColorStop(.27,'#384b56');
+   grad.addColorStop(.68,'#243642');grad.addColorStop(1,'#101f2c');
+  }
+  g.fillStyle=grad;g.fillRect(left-8,top-8,w+16,h+16);
+  const tiles=part.kind==='flank'?76:part.kind==='ledge'?95:115;
+  for(let n=0;n<tiles;n++){
+   const x=left+w*choose(seed+n*13,.04,.96);
+   const y=top+h*choose(seed+n*29,.04,.97);
+   const dx=choose(seed+n*31,-38,50),dy=choose(seed+n*41,18,95);
+   fill(g,[[x-14,y-10],[x+dx*.5,y-dy*.24],
+    [x+dx,y+dy*.22],[x-7,y+dy]],
+    n%3===0?'#bacbca19':n%3===1?'#09152349':'#536d771e');
+   if(n%3===0)stroke(g,[[x,y],[x+dx*.2,y+dy*.48],[x+dx,y+dy]],
+    '#b4c8cb3c',1.25);
+  }
+  for(let n=0;n<Math.min(320,Math.round(w*h/380));n++){
+   const x=left+w*choose(seed+n*43,.03,.94),y=top+h*choose(seed+n*67,.02,.97);
+   g.fillStyle=n%4===0?'#c3d0d23d':'#091a2b67';
+   g.fillRect(x,y,1+(n%3)*.6,.7+(n%2)*1.2);
+  }
+  g.restore();
+ }
+ // The only visible snowy shelves are actual filled size-1..5 sockets.
+ for(const slot of mesh.slots.filter(q=>q.occupied)){
+  const [l,r,t]=slot.geometry,w=r-l,seed=i*89+w*2+slot.size*101;
+  const grad=g.createLinearGradient(l,t,r,t+90);
+  grad.addColorStop(0,'#708b96');grad.addColorStop(.6,'#365060');
+  grad.addColorStop(1,'#142838');
+  fill(g,[[l-5,t+4],[r+4,t+3],[r+4,t+24],
+   [r-w*.20,t+60],[l+w*.28,t+81],[l-17,t+54]],grad);
+  stroke(g,[[l+4,t+23],[l+w*.48,t+54],[r-4,t+28]],'#14283885',2);
+  cap(g,l,r,t,seed);
+ }
+}
+function seededPeakInk(i,id){let sum=0;for(const ch of id)sum+=ch.charCodeAt(0);return i*173+sum}
+
 function renderMountain(i,g){
+ if(spires[i].moduleAssembly?.mesh){renderTruePeak(g,i);return;}
  if(spires[i].moduleAssembly)paintModuleSilhouettes(g,i);
  const s=spires[i],m=s.summit,arrival=s.ridgeArrival;
  if(arrival){

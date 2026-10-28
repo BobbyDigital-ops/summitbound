@@ -123,13 +123,35 @@ function fullAudit(){
  const physics=auditPlayableCourse(),graph=compilePhysicalCourseGraph();
  return {valid:physics.valid&&graph.valid,physics,graph};
 }
+// Build full solid geometry BEFORE certification. The old algorithm audited
+// the legacy cliff and only then replaced it with a different mesh, allowing
+// a generated ice route to pass validation but fail during real gameplay.
+function assembleCandidate(){
+ for(let i=0;i<spires.length;i++){
+  const peak=spires[i];
+  peak.moduleAssembly=generateAssembly(peak,i,currentSeed);
+  if(typeof SummitPeakMesh!=='undefined'){
+   const mesh=SummitPeakMesh.meshFor(peak,i,currentSeed);
+   const check=SummitPeakMesh.audit(mesh,i,peak);
+   if(!check.valid)throw Error('Physical mountain assembly rejected: '+check.errors.join(', '));
+   peak.moduleAssembly.mesh=mesh;
+   // Polygon pieces, not the old "art anchors", are now authoritative.
+   peak.moduleAssembly.pieces=mesh.parts.map(p=>({
+    id:p.id,role:p.role,connector:p.connector,
+    polygon:p.polygon,joinId:p.joinId||null,parent:p.parent||null
+   }));
+   peak.moduleAssembly.slots=mesh.slots;
+  }
+ }
+}
 function install(seed=currentSeed){
  currentSeed=Math.max(1,Math.floor(Number(seed)||1));
+ for(const m of spires)delete m.moduleAssembly;
  const baseline=clonePeaks();let best=null,report=null;
  // Small independent modules are generated and then evaluated against the
  // real 120 Hz vault contact sampler, ice exits, crux, checkpoints and graph.
  // No invalid generation is allowed to become playable.
- for(let attempt=0;attempt<6;attempt++){
+ for(let attempt=0;attempt<12;attempt++){
   restore(baseline);
   // Optional platform slots: alternate module combinations may expose
   // only two out of three landing shelves, with no phantom collision left.
@@ -148,6 +170,7 @@ function install(seed=currentSeed){
   // unambiguously tied to their fixed campsite indices 2 and 4.
   const changes=scoreChanges(baseline);
   if(changes.changed<2)continue;
+  assembleCandidate();
   const a=fullAudit();
   if(a.valid){best=clonePeaks();report={certified:true,seed:currentSeed,changes,
      checked:attempt+1,graphEdges:a.graph.edges.length};break;}
@@ -155,11 +178,10 @@ function install(seed=currentSeed){
  if(best)restore(best);
  else {
   restore(baseline);
+  assembleCandidate();
   report={certified:false,seed:currentSeed,changes:{changed:0,amount:0},
-   reason:'No physically certified variant; preserved original collision layout'};
+   reason:'No fully certified assembled polygon course; retained physical baseline'};
  }
- for(let i=0;i<spires.length;i++)
-  spires[i].moduleAssembly=generateAssembly(spires[i],i,currentSeed);
  // Snapshot the route as well as the piece catalog; the actual platform
  // objects are built by applyRoute immediately after this method returns.
  lastReport=report;return report;
@@ -169,6 +191,8 @@ function auditInstalled(){
  for(let i=0;i<all.length;i++){
   const m=all[i];
   if(!m||m.pieces.length<3||m.pieces.length>7)issues.push('piece count '+i);
+  if(m?.mesh){const checked=SummitPeakMesh.audit(m.mesh,i,spires[i]);
+   if(!checked.valid)issues.push(...checked.errors.map(e=>'mesh '+i+': '+e));}
   for(const piece of m?.pieces||[])if(piece.connector!=='ROOT'&&!CONNECTOR[piece.connector])
    issues.push('connector '+i+'/'+piece.id);
   for(const slot of m?.slots||[]){

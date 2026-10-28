@@ -109,6 +109,9 @@ function mountainShape(g,index){
  g.closePath();
 }
 function render(index,g){
+ // v0.41 physical polygon meshes always take precedence over v0.39's
+ // archived decorative skin, regardless of a saved art-pack preference.
+ if(spires[index]?.moduleAssembly?.mesh){originalPainter(index,g);return;}
  if(window.getSummitboundArtPack?.()!=='modular'){originalPainter(index,g);return;}
  const m=manifest(index),s=spires[index],r=random(index*17317+831),cliff=s.summit;
  g.save();

@@ -3,7 +3,7 @@ const vm=require('node:vm'),fs=require('node:fs');
 function make(){
  const document={getElementById(){return null}};
  const ctx=vm.createContext({Image:class Image{},document,performance:{now(){return 0}},navigator:{},innerWidth:1280,innerHeight:800});
- for(const file of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','modular-course-v040.js']){
+ for(const file of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js','true-peak-mesh-v041.js','modular-course-v040.js','level-engine-v1.js','showcase-validator-v1.js','difficulty-engine-v1.js']){
   vm.runInContext(fs.readFileSync('public/game/scripts/'+file,'utf8'),ctx,{filename:file});
  }
  return ctx;
@@ -44,4 +44,36 @@ test('in-game platform objects agree exactly with modular slots and icefall endp
  const c=make();
  const r=vm.runInContext("var platforms=spires.map((m,i)=>platform('s'+i,...m.summit,{kind:'summit',spire:i}));function platform(id,l,r,t,s='snow',extra={}){return {id,left:l,right:r,top:t,...extra}}applyRoute(0);SummitModularEngine.auditInstalled()",c);
  assert.equal(r.valid,true,JSON.stringify(r.issues));
+});
+
+test('TRUE mesh pieces are polygon solids with exact matching jigsaw seams',()=>{
+ const c=make();
+ const result=vm.runInContext("(()=>{applyRoute(0);return spires.map((p,i)=>({mesh:p.moduleAssembly.mesh,qa:SummitPeakMesh.audit(p.moduleAssembly.mesh,i,p),physics:auditPlayableCourse().valid}))})()",c);
+ assert.equal(result.length,5);
+ for(const {mesh,qa,physics} of result){
+  assert.equal(mesh.geometrySource,'assembled-polygons');
+  assert.equal(qa.valid,true,qa.errors.join(', '));
+  assert.equal(physics,true);
+  assert.ok(mesh.parts.length>=3&&mesh.parts.length<=7);
+  assert.ok(mesh.parts.filter(p=>p.meshRoot).length<=2);
+  assert.equal(mesh.seams.length,mesh.parts.length-mesh.roots.length);
+  const byId=new Map(mesh.parts.map(p=>[p.id,p]));
+  for(const seam of mesh.seams){
+   const child=byId.get(seam.child),parent=byId.get(seam.parent);
+   assert.ok(child&&parent,'every extension needs a real base');
+   assert.equal(JSON.stringify(child.seam),JSON.stringify(seam.vertices),'socket surfaces must be identical');
+   for(const vertex of seam.vertices)
+    assert.ok(parent.polygon.some(point=>Math.abs(point[0]-vertex[0])<.01&&Math.abs(point[1]-vertex[1])<.01),
+      'seam profile must be engraved in parent boundary');
+  }
+ }
+});
+test('twenty seeds change mountain polygons, not merely platform labels',()=>{
+ const c=make();
+ const out=vm.runInContext("var platforms=spires.map((m,i)=>platform('s'+i,...m.summit,{kind:'summit',spire:i}));function platform(id,l,r,t,s='snow',extra={}){return {id,left:l,right:r,top:t,...extra}};(()=>{const all=[];for(let i=0;i<20;i++){applyRoute(0);const report=SummitModularEngine.report();all.push({report,valid:SummitModularEngine.auditInstalled().valid,physics:auditPlayableCourse().valid,graph:compilePhysicalCourseGraph().valid,fingerprints:spires.map(p=>p.moduleAssembly.mesh.fingerprint),roots:spires.map(p=>p.moduleAssembly.mesh.roots.length)});SummitModularEngine.nextSeed();}return all})()",c);
+ assert.ok(out.every(q=>q.report.certified&&q.valid&&q.physics&&q.graph),JSON.stringify(out.filter(q=>!q.report.certified||!q.valid||!q.physics||!q.graph).map(q=>q.report)));
+ for(let peak=0;peak<5;peak++)
+  assert.ok(new Set(out.map(q=>q.fingerprints[peak])).size>=15,
+   'each of five peaks must have genuinely different mesh geometry across seeds');
+ assert.ok(out.some(q=>q.roots.some(n=>n===2)),'some peaks need 2 foundation pieces');
 });
