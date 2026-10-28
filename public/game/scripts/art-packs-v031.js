@@ -135,10 +135,13 @@ function iceCrust(g,i){
  for(let r=0;r<routes.length;r++){
   const points=routes[r].points;
   if(!points||points.length<2)continue;
-  const pl=platforms.find(p=>p.id==='l'+i+'-'+r)||platforms.find(p=>p.spire===i&&p.kind==='ledge');
   const entry=points[0],exit=points[points.length-1];
-  const yTop=pl?Math.max(Math.min(exit.y,entry.y),pl.top+5):Math.min(exit.y,entry.y);
+  // Destination crest, NOT origin ledge. The old code cut away the entire
+  // face between the starting ledge and summit, making the route invisible.
+  const dest=spires[i].ridgeArrival||spires[i].summit;
+  const yTop=Math.max(Math.min(exit.y,entry.y),dest[2]+10);
   const yBottom=Math.max(exit.y,entry.y);
+  // Snow caps drawn in decorate() are allowed to mask just the final 10px.
   if(yBottom<=yTop+3)continue;
   const left=[],right=[];
   for(let k=0;k<=70;k++){

@@ -1,3 +1,14 @@
+# SUMMITBOUND v0.32 — MECHANICS & CHARACTER REWORK
+
+- Pole-release sweep now makes short holds steep and shorter, deliberate longer holds lower and farther, red overholds weak; initial running speed still matters.
+- Ice now spans from physical landing crest to origin ledge, with 10px snow-cap overlap instead of being hidden behind the originating ledge.
+- All five spires have rock ledges, including two rescue terraces on the formerly bare first and final massif.
+- New vector-illustrated technical mountaineer with articulated limbs, equipment, backpack, visor, harness and crampon boots.
+- Base course geometry and collisions retain standard checks. Vercel main-build skip safeguard remains in vercel.json.
+
+**Production/art quality caveat:** the two texture styles and character are code-rendered, not bespoke high-resolution concept assets. Validate AI Studio screenshots and gameplay before deciding whether to retain the pole.
+
+---
 # SUMMITBOUND v0.31 — ART PACK EXPERIMENTS
 
 Select Painterly Alpine or Cinematic Granite in Tune. New development branch for GitHub → Google AI Studio sync. See AI_STUDIO_ART_PACK_V031.md for testing and deployment safeguards.

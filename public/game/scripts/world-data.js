@@ -244,6 +244,14 @@ function applyRoute(seed){
  spires[4].summit=[left+150,left+1070,Math.min(-55,floor-260),'snow'];
  if(typeof installFeaturedCourseGeometry==='function')
   installFeaturedCourseGeometry(spires);
+ // Give the first and last massif their own physically supported rescue
+ // terraces too: no completely featureless spires in the five-peak course.
+ // These sit below the main running skyline and are not free shortcuts.
+ if(typeof FEATURED_COURSE!=='undefined'){
+  const start=spires[0].summit,final=spires[4].summit;
+  spires[0].ledges=[[start[0]+110,start[0]+315,start[2]+165,'snow','Lower shelf']];
+  spires[4].ledges=[[final[0]-210,final[0]-20,final[2]+155,'snow','Frozen buttress']];
+ }
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge'||platforms[k].kind==='arrival')platforms.splice(k,1);
   for(let i=1;i<=4;i++){
@@ -256,7 +264,7 @@ function applyRoute(seed){
    platforms.push(platform('a'+i,a[0],a[1],a[2],a[3],
     {kind:'arrival',spire:i,tier:'Ridge'}));
   }
-  for(let i=1;i<=4;i++)for(let j=0;j<spires[i].ledges.length;j++){
+  for(let i=0;i<=4;i++)for(let j=0;j<spires[i].ledges.length;j++){
    const t=spires[i].ledges[j];
    if(typeof platform==='function')
     platforms.push(platform('l'+i+'-'+j,t[0],t[1],t[2],

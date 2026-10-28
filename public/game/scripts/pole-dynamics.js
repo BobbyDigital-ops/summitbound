@@ -51,22 +51,19 @@
    return classicRelease.call(this,vx,vy,state,config);
   const ratio=clamp(state.facingDir*state.initialVx/Math.max(1,config.maxRunSpeed),0,1);
   const u=state.elapsed/state.rideDuration;
-  // The first part of the loaded swing can be released almost vertically.
-  // Continuing the sweep redirects the SAME stored energy forwards.
-  const theta=1.22*clamp((u-.22)/.56,0,1);
-  // Momentum feeds a spring. An early release throws almost vertically. A middle release turns
-  // spring recoil into distance, and holding too long bleeds power.
-  const charge=clamp((u-.08)/.12,0,1);
-  // Recoil peaks around the middle of the ride. Holding beyond that
-  // burns energy rather than making every late release travel equally far.
-  const collapse=(1-.48*clamp((u-.66)/.27,0,1))*
-    (1-.95*clamp((u-1.02)/.16,0,1));
-  const energy=(100+670*Math.pow(ratio,1.65))*charge*collapse;
-  // Players choose throw angle by releasing during the shaft's sweep.
+  // v0.32: two distinct controllable trajectories at one launch speed.
+  // Early = very steep and short; late = shallow and FARTHER; red = spent.
+  // Crucially, do not fade power before the distance window.
+  const progress=clamp((u-.24)/.62,0,1);
+  const theta=.16+1.04*progress;
+  const load=clamp((u-.11)/.11,0,1);
+  const red=clamp((u-.90)/.26,0,1);
+  const fade=1-red*red*(3-2*red);
+  const energy=(155+645*Math.pow(ratio,1.45))*load*fade;
   return {
    vx:state.facingDir*energy*Math.sin(theta)*(config.arcadeRange??1),
    vy:-energy*Math.cos(theta)*(config.arcadeLift??1)+
-     config.gravity*.25*Math.max(0,state.elapsed-state.rideDuration)
+     config.gravity*.28*Math.max(0,u-1)*state.rideDuration
   };
  };
 })();
