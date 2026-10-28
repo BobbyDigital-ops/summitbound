@@ -84,7 +84,8 @@ function inspect(assembled){
  return {valid:errors.length===0,errors,pieces:p.length,platforms:assembled.platforms.length};
 }
 function assemble(seed,options={}){
- const r=K.rand(seed+11),total=options.pieces??3+Math.floor(r()*5);
+ const scrambled=Math.imul((seed^0x9e3779b9)>>>0,0x85ebca6b)>>>0;
+ const r=K.rand(scrambled),total=options.pieces??3+Math.floor(r()*5);
  if(total<3||total>7)throw Error('3–7 pieces required');
  const pieces=[],joins=[];
  const base=options.baseId?K.BASES.find(x=>x.id===options.baseId):pick(r,K.BASES);
