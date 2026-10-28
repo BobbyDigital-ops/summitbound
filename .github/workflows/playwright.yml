@@ -20,7 +20,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Audit featured course after platform-size redesign
-        run: node --test tests/five-peak-course.test.cjs
+        run: node --test tests/phase2-showcase-widths.test.cjs
       - name: Validate level generator templates
         run: node --test tests/level-engine-v1.test.cjs
       - name: Check real vault release curve
