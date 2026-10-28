@@ -55,7 +55,11 @@ function paint(){
 }
 function frame(now){
  const d=Math.min(.05,(now-last)/1000);last=now;acc+=d;
- for(let i=0;i<6&&acc>=1/120;i++,acc-=1/120)game.tick(1/120);
+ if(window.__phase3ManualDrive){
+  // Browser QA drives exactly the same tick() and native key handlers,
+  // without requestAnimationFrame racing the test's keyboard operations.
+  acc=0;
+ }else for(let i=0;i<6&&acc>=1/120;i++,acc-=1/120)game.tick(1/120);
  paint();
  if(now-report>140){report=now;const state=game.inspect(),p=state.player;
   $('message').textContent=state.won?'SECOND SPIRE REACHED — ASCENT SUCCESSFUL':state.message;
