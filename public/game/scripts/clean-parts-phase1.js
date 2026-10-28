@@ -9,9 +9,9 @@ const widths=[48,96,168,290,480];
 const finishes=['frost','windpack','granite','rime','broken-snow'];
 const edges=['fractured','sloped','scalloped','sheared','stepped','weathered','chiselled','jagged','overhang','scree'];
 function edge(x,y,size,side){
- const h=S[size],sign=side==='left'?-1:1;
+ const h=S[size];
  if(!h)throw Error('Unknown socket size '+size);
- return [0,.25,.5,.75,1].map(t=>[Math.round(x+sign*Math.sin(Math.PI*t)*h*.12),Math.round(y+t*h)]);
+ return [0,.25,.5,.75,1].map(t=>[Math.round(x+Math.sin(Math.PI*t)*h*.12),Math.round(y+t*h)]);
 }
 function polygon(w,h,shape,seed){
  const a=seed%7,b=(seed*3)%9;
