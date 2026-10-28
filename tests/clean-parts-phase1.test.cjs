@@ -1,6 +1,9 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const L=require('../public/game/scripts/clean-parts-phase1.js');
+const vm=require('node:vm'),fs=require('node:fs');
+const ctx={module:{exports:{}}};
+vm.runInNewContext(fs.readFileSync('public/game/scripts/clean-parts-phase1.js','utf8'),ctx);
+const L=ctx.module.exports;
 test('complete catalogue and distinct geometric assets',()=>{
  assert.equal(L.BASES.length,12);assert.equal(L.EXTENSIONS.length,12);
  assert.equal(L.SUMMITS.length,8);assert.equal(L.PLATFORMS.length,50);
@@ -15,7 +18,7 @@ test('all small medium large connectors join perfectly in world coordinates',()=
   const a={size,side:'right',vertices:L.edge(i*17,50+i*3,size,'right')};
   const b={size,side:'left',vertices:L.edge(i*11,30,size,'left')};
   const result=L.mate(a,b);assert.equal(result.compatible,true);
-  assert.deepEqual(result.vertices,a.vertices);
+  assert.equal(JSON.stringify(result.vertices),JSON.stringify(a.vertices));
  }
 });
 test('size mismatch and same-facing connectors cannot be installed',()=>{
