@@ -81,3 +81,13 @@ test('diagnose first low shelf: swept position and width candidates',()=>{
  console.log('PEAK1_SAFE_CANDIDATES '+JSON.stringify(results));
  assert.ok(results.length>0,'no geometry proposals could fix the ledge');
 });
+
+test('Peak 1 low landing now has multiple brakeable release windows',()=>{
+ const c=world();
+ const data=vm.runInContext(`(()=>{applyRoute(0);const p=shelfTimingProfiles(spires[1].ledges,spires[0].summit)[0];return {p,audit:auditPlayableCourse(),graph:compilePhysicalCourseGraph()}})()`,c);
+ console.log('PEAK1_REPAIR '+JSON.stringify({profile:data.p,failures:data.audit.failures,graphIssues:data.graph.issues}));
+ assert.ok(data.p.safe>=2,'low shelf still has too few safe landing samples');
+ assert.ok(data.p.releaseWindows>=2,'low shelf has no useful timing choice');
+ assert.ok(data.audit.valid,data.audit.failures.join('; '));
+ assert.ok(data.graph.valid,data.graph.issues.join('; '));
+});
