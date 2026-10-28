@@ -945,8 +945,13 @@ function mountainCache(i){
  }
  const s=spires[i], xs=[s.summit[0]-260,...s.ledges.map(t=>t[0]-150)];
  if(s.cave)xs.push(s.cave.left-230);
- const left=Math.min(...xs),right=s.summit[1]+210;
- const top=s.summit[2]-(i===4&&s.cave?760:420),bottom=2125;
+ // New jigsaw pieces can extend hundreds of units beyond the original
+ // skyline. Include EVERY physical polygon vertex in the pre-render bounds.
+ const polygonPoints=s.moduleAssembly?.mesh?.parts.flatMap(p=>p.polygon)||[];
+ const left=Math.min(...xs,...polygonPoints.map(p=>p[0]-70));
+ const right=Math.max(s.summit[1]+210,...polygonPoints.map(p=>p[0]+70));
+ const top=Math.min(s.summit[2]-(i===4&&s.cave?760:420),
+  ...polygonPoints.map(p=>p[1]-70)),bottom=2150;
  const width=right-left,height=bottom-top;
  // Mobile auto gets a sharper foreground raster, not a sharper/upscaled
  // distant background. Larger mountain sheets remain capped per dimension.
