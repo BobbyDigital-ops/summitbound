@@ -309,6 +309,8 @@ function tick(dt){
  // platform rim. Run this after motion, before ordinary landing collision.
  if(typeof updatePendingAxeCatch==='function'&&updatePendingAxeCatch())return;
 
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)
+  SummitIntegrated.solidSideCollision(prevX);
  // Actual collision against the upper crux wall shares the precise same
  // geometric function as the rendered granite. A low miss hits solid rock
  // and drops into the fracture; it cannot phase through the mountain.
