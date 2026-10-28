@@ -60,5 +60,26 @@ function drawPremiumMountaineer(g,p,phase,running){
  // High visibility harness, carabiner, crampon tether.
  g.strokeStyle='#c9a774';g.lineWidth=2.4;g.beginPath();g.moveTo(-11,-43);g.lineTo(8,-32);g.lineTo(12,-42);g.stroke();
  g.fillStyle='#d2dbd2';g.beginPath();g.ellipse(10,-37,2.8,5,.4,0,Math.PI*2);g.fill();
+ // Weathering, fabric seam and technical safety details make this read
+ // as a mountaineer at normal camera scale rather than a red rectangle.
+ g.strokeStyle='#f2d2b3a8';g.lineWidth=1.6;g.beginPath();
+ g.moveTo(-12,-67);g.lineTo(-9,-56);g.lineTo(-11,-43);
+ g.moveTo(13,-67);g.lineTo(10,-54);g.lineTo(13,-44);g.stroke();
+ g.fillStyle='#d5b889';g.beginPath();g.roundRect(-10,-66,7,6,2);g.fill();
+ g.fillStyle='#202e35';g.beginPath();g.roundRect(4,-66,8,9,2);g.fill();
+ g.strokeStyle='#c8d8d5';g.lineWidth=1.1;g.strokeRect(5,-65,6,4);
+ // Gear clipping to the harness and a distinct rope across the jacket.
+ g.strokeStyle='#dcc799';g.lineWidth=2;g.beginPath();
+ g.moveTo(-14,-59);g.quadraticCurveTo(-1,-64,13,-58);g.stroke();
+ g.strokeStyle='#506a6b';g.lineWidth=4;g.beginPath();
+ g.moveTo(-14,-78);g.lineTo(13,-77);g.stroke();
+ g.fillStyle='#b4c3c3';g.beginPath();g.ellipse(-12,-52,3,5,.25,0,Math.PI*2);g.fill();
+ // Helmet visor and rear hood shadow, plus reflective sleeve markings.
+ g.fillStyle='#202c35';g.fillRect(-7,-101,12,3);
+ g.fillStyle='#d2e3dc';g.fillRect(6,-98,8,2);
+ for(const side of [-1,1]){
+  g.strokeStyle='#e2cbab';g.lineWidth=2.1;g.beginPath();
+  g.moveTo(side*20,-63);g.lineTo(side*24,-60);g.stroke();
+ }
  g.restore();
 }
