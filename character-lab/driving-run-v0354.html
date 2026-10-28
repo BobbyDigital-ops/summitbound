@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Summitbound — Driving Run Test</title><style>body{margin:0;background:#0d1720;color:#d9e4e8;font:15px system-ui}header{padding:16px 24px;border-bottom:1px solid #304650}h2{font-size:18px;margin:0 0 6px}p{margin:4px 0;color:#aebec7}.wrap{max-width:1000px;margin:22px auto;padding:0 16px}canvas{display:block;background:#233947;width:100%;border:1px solid #44606d;border-radius:12px}button{background:#a84b3b;color:white;border:0;padding:11px 18px;border-radius:7px;cursor:pointer}label{display:inline-flex;gap:10px;align-items:center;margin:14px}small{color:#9db2bd}</style></head><body><header><h2>SUMMITBOUND · Driving Run Lab</h2><p>Standalone animation test · main game unchanged</p></header><div class="wrap"><canvas id="scene" width="960" height="465"></canvas><p><button id="toggle">Pause</button><label>Speed <input id="speed" type="range" min=".35" max="1.8" step=".05" value="1"></label><label><input type="checkbox" id="joints">Show joints</label></p><small>Run cycle with forward drive, ground contact, knee recovery and arms low at the sides.</small></div><script>
+const c=document.getElementById('scene'),g=c.getContext('2d');let run=true,time=0,last=0;
+const lerp=(a,b,t)=>a+(b-a)*t,TAU=Math.PI*2;
+const norm=t=>((t%1)+1)%1;
+function shapeLine(a,b,w,col){g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(...a);g.lineTo(...b);g.stroke()}
+function circle(p,r,col){g.fillStyle=col;g.beginPath();g.arc(...p,r,0,TAU);g.fill()}
+function limb(a,b,c,w,coat){shapeLine(a,b,w+4,'#101b22');shapeLine(b,c,w+4,'#101b22');shapeLine(a,b,w,coat);shapeLine(b,c,w,coat);circle(b,w*.53,'#293b48')}
+function solveKnee(hip,foot,len1,len2,forward){let dx=foot[0]-hip[0],dy=foot[1]-hip[1],d=Math.min(len1+len2-1,Math.hypot(dx,dy)),base=Math.atan2(dy,dx),ang=Math.acos(Math.max(-1,Math.min(1,(len1*len1+d*d-len2*len2)/(2*len1*d))));return [hip[0]+len1*Math.cos(base+forward*ang),hip[1]+len1*Math.sin(base+forward*ang)]}
+function footPath(t,front){let u=norm(t+(front?.5:0)); if(u<.5){let q=u/.5;return {x:lerp(54,-48,q),y:0,stance:true}}let q=(u-.5)/.5;return{x:lerp(-48,54,q),y:-54*Math.pow(Math.sin(Math.PI*q),.9),stance:false}}
+function draw(t){const w=c.width,h=c.height;g.clearRect(0,0,w,h);let sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#142a39');sky.addColorStop(1,'#49606d');g.fillStyle=sky;g.fillRect(0,0,w,h);for(let i=0;i<9;i++){g.fillStyle=i%2?'#2b4352':'#324a59';g.beginPath();let x=i*130-50;g.moveTo(x,363);g.lineTo(x+72,200+i%3*23);g.lineTo(x+150,363);g.fill()}g.fillStyle='#91acb8';g.fillRect(0,370,w,95);g.fillStyle='#e9f1f0';g.fillRect(0,365,w,8);
+const f=norm(t),phase=f*TAU,bob=9*Math.pow(Math.max(0,Math.sin(phase*2)),1.4);
+const root=[445,331-bob];const hip=[root[0],root[1]-70];const shoulder=[hip[0]+18,hip[1]-77],head=[shoulder[0]+15,shoulder[1]-24]; 
+const far=footPath(f,true),near=footPath(f,false);
+function leg(path,back){const H=[hip[0]+(back?-3:4),hip[1]],F=[hip[0]+path.x,365+path.y],K=solveKnee(H,F,60,64,path.stance?-.55:.75);limb(H,K,F,15,back?'#2b4355':'#435768');g.save();g.translate(F[0],F[1]);g.rotate(path.stance?0:-.15);g.fillStyle='#1a2932';g.fillRect(-11,-5,31,12);g.fillStyle='#d1b188';g.fillRect(6,2,12,4);g.restore();return [H,K,F]}
+const backLeg=leg(far,true);
+let bag=[hip[0]-26,shoulder[1]+5];g.fillStyle='#172933';g.beginPath();g.roundRect(bag[0]-7,bag[1]-9,40,63,11);g.fill();g.strokeStyle='#c0a17d';g.lineWidth=2;g.strokeRect(bag[0]+2,bag[1],23,45);
+g.save();g.translate(hip[0]+7,hip[1]-42);g.rotate(.13);g.fillStyle='#b64b39';g.beginPath();g.roundRect(-20,-46,43,87,14);g.fill();g.fillStyle='#d16a4b';g.fillRect(-15,-37,12,40);g.restore();
+const backArmPhase=Math.sin(phase+Math.PI),frontArmPhase=Math.sin(phase);function arm(s,nearArm){const sh=[shoulder[0]+(nearArm?5:-9),shoulder[1]+11],el=[sh[0]+s*19+1,sh[1]+31],hand=[el[0]+s*12+4,el[1]+24];limb(sh,el,hand,12,nearArm?'#d3674b':'#8c332e');circle(hand,7,'#1d3039');return [sh,el,hand]}
+let a=arm(backArmPhase*.95,false);
+let b=leg(near,false);let d=arm(frontArmPhase*.95,true);
+shapeLine([shoulder[0]-3,shoulder[1]-6],head,17,'#a94c37');circle(head,18,'#20313a');g.fillStyle='#a5b4b8';g.beginPath();g.ellipse(head[0],head[1]-8,20,10,0,Math.PI,TAU);g.fill();g.fillStyle='#161f27';g.fillRect(head[0]+10,head[1]-4,10,6);
+if(document.getElementById('joints').checked){for(const q of [hip,shoulder,head,...backLeg,...b,...a,...d])circle(q,4,'#ffeaa5')}
+g.fillStyle='#dce7e9';g.font='15px system-ui';g.fillText('DRIVING RUN · 2D ANATOMY TEST',24,33)}
+function tick(ts){if(last&&run)time+=Math.min(.05,(ts-last)/1000)*Number(document.getElementById('speed').value)*1.6;last=ts;draw(time);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+document.getElementById('toggle').onclick=()=>{run=!run;document.getElementById('toggle').textContent=run?'Pause':'Play'};
+</script></body></html>
