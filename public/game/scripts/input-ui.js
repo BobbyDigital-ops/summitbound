@@ -163,3 +163,14 @@ for(const evt of ['pointerup','pointercancel','lostpointercapture']) canvas.addE
 window.addEventListener('resize', resize);
 resize(); spawn(0); requestAnimationFrame(loop);
 
+
+/* v0.31: switching packs preserves camera, position, pole and timer.
+ * Only static cached terrain images are invalidated. */
+const artPackToggle=document.getElementById('artPackToggle');
+if(artPackToggle&&typeof window.getSummitboundArtPack==='function'){
+ artPackToggle.textContent='Art: '+(window.getSummitboundArtPack()==='painterly'?'Painterly':'Cinematic');
+ artPackToggle.addEventListener('click',()=>{
+  const next=window.getSummitboundArtPack()==='painterly'?'cinematic':'painterly';
+  window.setSummitboundArtPack(next);
+ });
+}

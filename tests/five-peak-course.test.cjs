@@ -145,7 +145,7 @@ test('All five peaks share the same rock material and both checkpoints display c
  assert.match(art,/drawIceClimb\(i,off\);drawIceShelfJoins\(i,off\);drawIceCrestSnow\(i,off\)/);
  const html=fs.readFileSync('public/game/summit-leap-v081.html','utf8');
  assert.doesNotMatch(html,/id="shuffle"|data-skip=|id="campfireActions"/);
- assert.match(html,/v0\.30\.0/);
+ assert.match(html,/v0\.31\.0/);
  const bleak=script('bleak-art.js');
  assert.match(bleak,/drawSpire=function bleakSpire/);
  assert.match(bleak,/Black void between the broken crowns/);

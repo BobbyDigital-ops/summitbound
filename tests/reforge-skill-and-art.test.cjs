@@ -145,7 +145,7 @@ test('Dark art and renderer are one pipeline, not unrelated bright decoration',(
   alpine=source('alpine-art-v030.js');
  assert.match(alpine,/drawSpire=function alpineSpire/);
  assert.match(alpine,/decorate=function alpineVegetation/);
- assert.match(html,/v0\.30\.0/);
+ assert.match(html,/v0\.31\.0/);
  assert.match(html,/game\/scripts\/alpine-art-v030\.js/);
  assert.match(html,/game\/scripts\/bleak-art\.js/);
  assert.match(html,/game\/scripts\/rescue-catch\.js/);

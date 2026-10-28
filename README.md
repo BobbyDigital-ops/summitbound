@@ -1,3 +1,9 @@
+# SUMMITBOUND v0.31 — ART PACK EXPERIMENTS
+
+Select Painterly Alpine or Cinematic Granite in Tune. New development branch for GitHub → Google AI Studio sync. See AI_STUDIO_ART_PACK_V031.md for testing and deployment safeguards.
+
+---
+
 # SUMMITBOUND v0.30 — ALPINE REBIRTH (DEVELOPMENT PREVIEW)
 
 **Art and axe pass, not a physics rewrite.** The independent v0.30 branch replaces the featured terrain painter with cached world-space alpine granite, irregular broken snow crests and ledges, wind-bent conifers, dead timber, scree, embedded non-tubular ice, and a detailed expedition campsite. Every drawn summit/ledge and ice path uses the same world-space coordinates as the actual physical course. Painter source: `public/game/scripts/alpine-art-v030.js`. The legacy v0.20 painter remains loaded first for archive/tests and is overridden by v0.30 before gameplay.
