@@ -71,6 +71,33 @@ function firstContact(sample,source,target,worldX,worldY,cfg){
  }
  return null;
 }
+// A candidate must survive the speed overshoot caused by discrete keyboard
+// acceleration and a one-frame variation in release timing. This is not
+// assistance in flight: it rejects fragile level layouts at generation time.
+function robustContact(sample,physics,cfg,source,target,dx,dy,landingId){
+ const dt=1/120,platform={x:(source.departure.left+source.departure.right)/2,
+  y:source.departure.y+60,width:source.departure.width,height:120};
+ const wanted='target:'+landingId;
+ for(const deltaSpeed of [0,13,-8]){
+  for(const frameOffset of [0,-1,1]){
+   const speed=sample.speed+deltaSpeed;
+   const px=sample.launchX,py=source.departure.y-22;
+   const plant=physics.validatePlantPoint(px,py,1,[platform],cfg);
+   if(!plant.isValid)return false;
+   let state=physics.initVault(px,py,speed,0,plant.anchorX,plant.anchorY,cfg),ride;
+   const steps=Math.floor(state.rideDuration*sample.releaseFraction*120)+frameOffset;
+   for(let frame=0;frame<steps;frame++){
+    ride=physics.stepVault(state,dt,cfg);state=ride.state;
+   }
+   if(!ride)return false;
+   const kick=physics.calculateReleaseVelocity(ride.nextVx,ride.nextVy,state,cfg);
+   const trial={releaseX:ride.nextPx,releaseY:ride.nextPy,
+    releaseVx:kick.vx,releaseVy:kick.vy};
+   if(firstContact(trial,source,target,dx,dy,cfg)!==wanted)return false;
+  }
+ }
+ return true;
+}
 function buildOnce(seed,settings,api){
  const n=settings.count??5,preset=settings.preset??1;
  if(!Number.isInteger(n)||n<2||n>8)throw Error('Course needs 2–8 spires');
@@ -98,7 +125,7 @@ function buildOnce(seed,settings,api){
     const offsetX=worldX-from.worldX,offsetY=worldY-from.worldY;
     const match=samples.find(q=>from.worldX+q.landingX>=left+5&&from.worldX+q.landingX<=right-5
       &&from.worldX+q.releaseX<left+1
-      &&firstContact(q,from,target,offsetX,offsetY,api.config)==='target:'+landing.id);
+      &&robustContact(q,api.physics,api.config,from,target,offsetX,offsetY,landing.id));
     if(match){
      choice={peak:{...target,worldX,worldY},
       crossing:{index:i-1,from:i-1,to:i,gapPreset:option.id,gap:option.gap,rise,
