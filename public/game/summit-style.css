@@ -83,3 +83,16 @@ button.sel{background:#78847f;color:#10191c;border-color:#b1bab4}
 #catch{display:block;position:fixed;z-index:8;bottom:max(96px,calc(env(safe-area-inset-bottom) + 92px));right:max(16px,env(safe-area-inset-right));min-width:105px;min-height:55px;border:1px solid #bec6bb89;background:#243440e0;letter-spacing:.08em;font-size:12px;font-weight:900}
 #catch[hidden]{display:none}
 @media(max-width:760px){#catch{bottom:max(85px,calc(env(safe-area-inset-bottom) + 78px));min-height:57px;right:11px}}
+
+/* v0.32.1: gameplay-timed meter, not a decorative gradient. */
+#meter{width:min(425px,65vw);padding:7px 10px}
+#meter .label{font-size:10px;letter-spacing:.025em;font-weight:850}
+#meter .label span:first-child{color:#a0d5f4}
+#meter .label span:nth-child(2){color:#d4e6ba}
+#meter .label span:last-child{color:#f2a5a0}
+#bar{height:17px;border-radius:4px;background:linear-gradient(90deg,#87bbd9 0%,#5e9dc2 26%,#99aa9b 52%,#a7be7d 77%,#d8ac6d 88%,#ad4f53 93%,#5d283a 100%);overflow:visible}
+#bar:before{content:'';position:absolute;left:88%;top:-4px;height:21px;border-left:2px dashed #f5aab3}
+#needle{height:23px;top:-5px;width:4px;background:#fff5cc;box-shadow:0 0 7px #ffebae}
+#meterFeedback{margin-top:6px;font-size:10px;min-height:14px;text-align:center;letter-spacing:.05em;color:#d9e4df;font-weight:800}
+#meterFeedback.dead{color:#f5a1a1}
+@media(max-width:760px){#meter{width:55vw;right:5px;padding:5px 6px}#meter .label{font-size:7px}#meterFeedback{font-size:8px;letter-spacing:0}}

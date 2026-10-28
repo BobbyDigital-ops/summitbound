@@ -1241,7 +1241,18 @@ function draw(){
  if(downControl.hidden===canDown)downControl.hidden=!canDown;
  const meterDisplay=p.vault?'block':'none';
  if(meter.style.display!==meterDisplay)meter.style.display=meterDisplay;
- if(p.vault)needle.style.left=Math.min(100,p.vault.elapsed/p.vault.rideDuration*100)+'%';
+ if(p.vault){
+  const phase=p.vault.elapsed/p.vault.rideDuration;
+  needle.style.left=Math.min(100,phase/1.16*100)+'%';
+  const feedback=document.getElementById('meterFeedback');
+  if(feedback){
+   const label=phase<.11?'LOADING · HOLD':phase<.35?'MAX HEIGHT · RELEASE NOW':
+    phase<.70?'TRADE HEIGHT FOR DISTANCE':phase<.90?'MAX DISTANCE · RELEASE NOW':
+    phase<1.16?'DEAD ZONE · POWER DROPPING':'NO POWER · AUTO RELEASE';
+   if(feedback.textContent!==label)feedback.textContent=label;
+   feedback.classList.toggle('dead',phase>=.90);
+  }
+ }
  const inCrux=p.standingOn==='a1'?'THE BLACK NOTCH':
   p.standingOn==='a3'?'THE BROKEN CROWN':null;
  const stageText=completed?'ASCENT COMPLETE':
@@ -1249,7 +1260,7 @@ function draw(){
   `FIVE PEAKS · PEAK ${Math.min(atStage+1,5)} / 5 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
  const status=completed?'Course complete.':p.state==='HANGING'?
-  'AXE CATCH — ALTERNATE A / D FOUR TIMES OR FALL':p.state==='CLIMBING'?
+  'AXE HOLD — ALTERNATE A / D THREE TIMES TO CLIMB':p.state==='CLIMBING'?
   (p.climb?.isIce?'ALTERNATE A / D OR ◀ ▶ TO SCRAMBLE · W STEADY · S DOWN':
    'Hold ↑ through rock tunnel · Release to rest'):
   p.vault?`POLE ${p.vault.elapsed/p.vault.rideDuration<.15?'LOADING':p.vault.elapsed/p.vault.rideDuration<.30?'VERTICAL':p.vault.elapsed/p.vault.rideDuration<.47?'HIGH ARC':p.vault.elapsed/p.vault.rideDuration<.72?'DISTANCE':p.vault.elapsed/p.vault.rideDuration<.94?'FADING':'OVERHELD'} · ${Math.round(Math.abs(p.vault.initialVx)/cfg.maxRunSpeed*100)}% RUN-UP`:

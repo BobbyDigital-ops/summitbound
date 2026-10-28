@@ -5,11 +5,11 @@
 // but still requires physical contact with the actual ledge edge.
 let catchUsed=false;
 let catchQueuedUntil=-1;
-const AXE_WINDOW=Object.freeze({behind:13,ahead:43,above:3,below:47,
- warningAhead:110,warningAbove:35,warningBelow:69,bufferSeconds:.22});
+const AXE_WINDOW=Object.freeze({behind:25,ahead:70,above:-12,below:72,
+ warningAhead:150,warningAbove:53,warningBelow:98,bufferSeconds:.4});
 function axeCatchApproach(ignoreUsed=false){
  if((p.state!=='AIRBORNE'&&p.state!=='FALLING')||
-   p.vy<8||(!ignoreUsed&&catchUsed))return null;
+   p.vy<0||(!ignoreUsed&&catchUsed))return null;
  const forward=p.facingDir>=0?1:-1;
  const tipX=p.x+forward*21;
  const near=[];
@@ -41,7 +41,7 @@ function axeLatch(found){
  p.y=pl.top+18;p.standingOn=null;
  p.catchLedge={id:pl.id,side:face,strokes:0,lastSide:0,
   caughtAt:elapsed,lastStrikeAt:-100,edge:found.edge};
- hint('AXE SET! ALTERNATE A / D FOUR TIMES',2.4);
+ hint('AXE SET! ALTERNATE A / D THREE TIMES',2.4);
  haptic([22,28,18]);
  return true;
 }
@@ -88,10 +88,10 @@ function axeCatchStrike(side){
  const gap=elapsed-c.lastStrikeAt;
  // Four genuine alternating key edges, not sub-frame macro spam.
  if(gap<.085)return false;
- if(gap>.85&&c.strokes>0)c.strokes=0;
+ if(gap>1.5&&c.strokes>0)c.strokes=0;
  c.lastSide=side;c.strokes++;c.lastStrikeAt=elapsed;
  haptic(5);
- if(c.strokes>=4){
+ if(c.strokes>=3){
   const surface=platforms.find(pl=>pl.id===c.id);
   if(!surface){p.state='FALLING';p.catchLedge=null;return false;}
   p.x=c.side>0?surface.left+12:surface.right-12;
@@ -101,13 +101,13 @@ function axeCatchStrike(side){
   hint('EDGE RECOVERED — CLIMB ON',1.8);
   haptic([12,32,24]);return true;
  }
- hint('AXE HOLD — '+c.strokes+' / 4 · ALTERNATE A / D',.8);
+ hint('AXE HOLD — '+c.strokes+' / 3 · ALTERNATE A / D',.8);
  return true;
 }
 function updateHanging(dt){
  if(p.state!=='HANGING'||!p.catchLedge)return false;
  const c=p.catchLedge,pl=platforms.find(x=>x.id===c.id);
- if(!pl||elapsed-c.caughtAt>2.8){
+ if(!pl||elapsed-c.caughtAt>4.5){
   p.state='FALLING';p.vy=45;p.vx=c.side*-55;
   p.standingOn=null;p.catchLedge=null;
   hint('GRIP LOST',.9);
