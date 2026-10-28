@@ -26,16 +26,13 @@ test('ice footing is anchored to each *actual* landing shelf',()=>{
   }
  }
 });
-test('final cave peak has no long white needle waterfall graphics',()=>{
- const start=src.indexOf('if(i===4){'),end=src.indexOf('// Snow tongues descend',start);
- assert.ok(start>0&&end>start);
- const rock=src.slice(start,end);
- assert.doesNotMatch(rock,/\[L\+307,T-566,105\]/);
- assert.doesNotMatch(rock,/#[eE][cC][fF]7[fF]5[a-fA-F\d]{2}/);
- assert.match(rock,/Diffuse rock cracks instead of large/);
- assert.doesNotMatch(src,/if\(i===1\|\|i===3\)\{/);
- assert.match(src,/All ice-coloured features here are climbable routes/);
- assert.doesNotMatch(src,/x:L\+585,y:T-175,length:650/);
+test('featured bleak rock painter adds no decorative waterfall or unsupported icy needle',()=>{
+ const bleak=fs.readFileSync('public/game/scripts/bleak-art.js','utf8');
+ assert.match(bleak,/drawSpire=function bleakSpire/);
+ assert.match(bleak,/bleakRockMass\(g,i,summit\[0\],summit\[1\]/);
+ assert.match(bleak,/const routes=iceRouteNetwork\(i\)/);
+ assert.match(bleak,/const ledge=m.ledges\[j\]/);
+ assert.doesNotMatch(bleak,/waterfall|x:L\+585,y:T-175,length:650/i);
 });
 test('integrated outcrops use live mountain contours instead of detached triangular roots',()=>{
  assert.match(src,/function terraceButtressProfile\(/);

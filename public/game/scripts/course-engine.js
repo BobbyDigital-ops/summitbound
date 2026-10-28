@@ -6,7 +6,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
 const FEATURED_COURSE=Object.freeze({
- id:'five-peaks',version:4,levelNumber:1,campaignSize:100,peakCount:5,
+ id:'five-peaks',version:5,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
  checkpoints:Object.freeze([{peak:0,type:'start'},
    {peak:2,type:'campsite',ledge:0},{peak:4,type:'campsite',ledge:0}]),
@@ -41,6 +41,11 @@ function installFeaturedCourseGeometry(spires){
  spires[2].ledges=[spires[2].ledges.at(-1)];
  spires[2].ledges[0][4]='Checkpoint';
  spires[2].name='Windward Camp';
+ // Reforge's elevated previous takeoff made the camp summit directly
+ // reachable, bypassing the checkpoint climb. Raising its crest restores
+ // the intended first-contact landing on the lower campsite instead.
+ // Full 120Hz release/steering sweeps verify the summit cannot be bypassed.
+ spires[2].summit[2]-=75;
  spires[4].name='Firespine Camp';
  const cave=spires[4].cave,shift=FEATURED_COURSE.peakShifts[4];
  const campLeft=cave.left+shift,campWidth=177;

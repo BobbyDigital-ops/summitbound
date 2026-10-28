@@ -53,7 +53,8 @@ test('Every receiving summit requires a real platform/ice approach, not a direct
   const result=[];
   for(let stage=1;stage<spires.length;stage++){
    const takeoff=spires[stage-1].summit,target=spires[stage];
-   const surfaces=[...target.ledges,target.summit];
+   // Include the lower arrival rock: first-contact terrain cannot be skipped.
+   const surfaces=[...target.ledges,...(target.ridgeArrival?[target.ridgeArrival]:[]),target.summit];
    let direct=0,ledgeHits=0;
    for(const offset of [120,140,170,200])
     for(const speed of [300,375,450])

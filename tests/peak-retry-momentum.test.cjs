@@ -23,7 +23,8 @@ test('Peak retry: Practice returns to real launch summit without granting false 
  const result=run(`(()=>{
   mode='practice';gameReset();lastSafeStage=0;atStage=1;
   const pl=platforms.find(q=>q.id==='s1');
-  p={x:pl.left+200,y:pl.top-22,vx:425,vy:0,
+  // The new higher ridge is 290 units wide: allow 120 units to plant.
+  p={x:pl.left+150,y:pl.top-22,vx:425,vy:0,
    state:'RUNNING',surface:'snow',standingOn:pl.id,
    groundedFor:.5,facingDir:1};
   plant();

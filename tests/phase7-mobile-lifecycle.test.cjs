@@ -18,7 +18,7 @@ test('Phase 7: focus, pagehide, visibility and parent iframe blur share one inpu
  const window={addEventListener(name,cb){callbacks.window[name]=cb;},focus(){}};
  const fingers={left:new Set(),right:new Set(),up:new Set(),down:new Set(),vault:null};
  const context=vm.createContext({document,window,fingers,keys:new Set(),canvas:{addEventListener(){}},
-  mode:'practice',routeSeed:0,graphicsQuality:'auto',autoPortraitCap:1.2,slowAutoWindows:0,
+  mode:'practice',routeSeed:0,p:{state:'GROUNDED',climb:null},graphicsQuality:'auto',autoPortraitCap:1.2,slowAutoWindows:0,
   prev:0,acc:123,lastRenderedAt:1000,performance:{now(){return 4321}},
   resize(){},spawn(){},requestAnimationFrame(){},loop(){},gameReset(){},
   applyRoute(){},gameReset(){},retry(){},plant(){},release(){context.released=true},

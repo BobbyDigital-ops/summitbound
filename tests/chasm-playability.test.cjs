@@ -6,24 +6,27 @@ vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),ctx)
 vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),ctx);
 const Engine=vm.runInContext('PolePhysicsEngine',ctx);
 const cfg=vm.runInContext('cfg',ctx),spires=vm.runInContext('spires',ctx);
-const dt=1/120,flight=dt*cfg.arcadeFlightTempo;
+// Sample legacy terrain against the exact frozen physics that generated it.
+// The modern featured Five Peaks course is validated by separate tests.
+const archivedCfg={...cfg,maxRunSpeed:360,runAcceleration:850,archivedArcadePhysics:true};
+const dt=1/120,flight=dt*archivedCfg.arcadeFlightTempo;
 // First surface struck, not a hypothetical isolated target. Count only safe
 // touchdowns with enough runway to brake at the current 2000-unit decel.
 function simulate(launch,destinations,offset,speed,tick){
  const px=launch[1]-offset,py=launch[2]-22;
- const vault=Engine.initVault(px,py,speed,0,px+120,launch[2],cfg);
- const ride=Engine.stepVault(vault,tick*dt,cfg);
- const kick=Engine.calculateReleaseVelocity(ride.nextVx,ride.nextVy,ride.state,cfg);
+ const vault=Engine.initVault(px,py,speed,0,px+120,launch[2],archivedCfg);
+ const ride=Engine.stepVault(vault,tick*dt,archivedCfg);
+ const kick=Engine.calculateReleaseVelocity(ride.nextVx,ride.nextVy,ride.state,archivedCfg);
  let x=ride.nextPx,y=ride.nextPy,vy=kick.vy;
  for(let step=0;step<325;step++){
   const prev=y+22;
-  vy+=cfg.gravity*flight;x+=kick.vx*flight;y+=vy*flight;
+  vy+=archivedCfg.gravity*flight;x+=kick.vx*flight;y+=vy*flight;
   if(vy>=0){
    const hit=destinations
     .filter(t=>x>=t[0]+3&&x<=t[1]-3&&prev<=t[2]+3&&y+22>=t[2]-4)
     .sort((a,b)=>a[2]-b[2])[0];
    if(hit){
-    const braking=kick.vx*kick.vx/(2*cfg.brakingDecel);
+    const braking=kick.vx*kick.vx/(2*archivedCfg.brakingDecel);
     return {tier:hit[4],safe:hit[1]-x>=braking+12,x,braking};
    }
   }
