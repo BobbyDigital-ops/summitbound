@@ -9,6 +9,10 @@ const L=typeof module==='object'&&module.exports
  ?(function(){const fs=require('node:fs'),vm=require('node:vm'),ctx={module:{exports:{}}};vm.runInNewContext(fs.readFileSync('public/game/scripts/clean-parts-phase1.js','utf8'),ctx);return ctx.module.exports})()
  :root.SummitParts;
 if(!L)throw Error('SummitParts must be loaded first');
+const Geometry=typeof module==='object'&&module.exports
+ ?(function(){const fs=require('node:fs'),vm=require('node:vm'),ctx={module:{exports:{}}};vm.runInNewContext(fs.readFileSync('public/game/scripts/clean-geometry-audit.js','utf8'),ctx);return ctx.module.exports})()
+ :root.CleanGeometryAudit;
+if(!Geometry)throw Error('CleanGeometryAudit must be loaded before assembly');
 const types=[...L.BASES,...L.EXTENSIONS,...L.SUMMITS];
 const choose=(r,list)=>list[Math.floor(r()*list.length)];
 function move(points,x,y){return points.map(p=>[p[0]+x,p[1]+y])}
@@ -84,6 +88,8 @@ function audit(a){
   if(!byId.has(x.mount.split('/')[0]))issues.push('invalid mount owner '+x.id);
  }
  for(const s of a.emptySlots)if(a.platforms.some(p=>p.mount===s.id))issues.push('phantom empty mount');
+ const solid=Geometry.audit(a);
+ if(!solid.valid)issues.push(...solid.errors);
  if(issues.length)throw Error('Assembly invalid: '+issues.join('; '));
  return {valid:true,pieces:a.pieces.length,joins:a.joins.length,platforms:a.platforms.length};
 }
