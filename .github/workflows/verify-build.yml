@@ -14,38 +14,17 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - run: npm run test:ice
-      - run: npm run test:cliff
-      - run: npm run test:staff
-      - run: npm run test:leaps
-      - run: npm run test:art
-      - run: npm run test:ascent
-      - run: npm run test:vault
-      - run: npm run test:mobile
-      - run: npm run test:renderer
-      - run: npm run test:browser
-      - run: npm run test:visual
-      - run: npm run test:terrain
-      - run: npm run test:climb
-      - run: npm run test:chasm
-      - run: npm run test:procedural
-      - run: npm run test:allroutes
-      - run: npm run test:ice-art
-      - run: npm run test:cache
-      - run: npm run test:resolution
-      - run: npm run test:template
-      - run: npm run test:ice-network
-      - run: npm run test:ice-snow
-      - run: npm run test:terrain-art
-      - run: npm run test:phase4b
-      - run: npm run test:phase4c
-      - run: npm run test:phase5
-      - run: npm run test:phase6
-      - run: npm run test:phase7
-      - run: npm run test:phase8
-      - run: npm run test:five-peaks
-      - run: npm run test:peak-retry
-      - run: npm run test:vault-dynamics
-      - run: npm run test:precision-vault
-      - run: npm run test:reforge
-      - run: npm run build
+      # Run every regression even when one fails; gate stays red until ALL pass.
+      - name: Full regression suite and production build
+        shell: bash
+        run: |
+          failed=0
+          for suite in ice cliff staff leaps art ascent vault mobile renderer browser visual terrain climb chasm procedural allroutes ice-art cache resolution template ice-network ice-snow terrain-art phase4b phase4c phase5 phase6 phase7 phase8 five-peaks peak-retry vault-dynamics precision-vault reforge; do
+            echo "::group::test:$suite"
+            npm run "test:$suite" || { echo "::error title=Regression failure::test:$suite failed"; failed=1; }
+            echo "::endgroup::"
+          done
+          echo "::group::Production build"
+          npm run build || { echo "::error title=Build failure::Vite build failed"; failed=1; }
+          echo "::endgroup::"
+          exit "$failed"
