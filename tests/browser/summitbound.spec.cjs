@@ -169,3 +169,72 @@ test('Original and Challenge have distinct real collision courses; toggle restor
  expect(restored).toBe(original);
  expect(errors).toEqual([]);
 });
+
+
+test('Peak Forge is default and its pieces attach only to real collision surfaces',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);await expect(page.locator('#stage')).toContainText('FIVE PEAKS');
+ const data=await page.evaluate(()=>({
+  pack:window.getSummitboundArtPack(),
+  grip:window.SUMMITBOUND_LEDGE_GRIP_ENABLED,
+  audits:window.SummitPeakForge.allAudits(),
+  manifests:spires.map((_,i)=>window.SummitPeakForge.manifest(i)),
+  ground:platforms.filter(pl=>pl.kind==='ledge').map(pl=>pl.id),
+  canvas:[canvas.width,canvas.height]
+ }));
+ expect(data.pack).toBe('modular');
+ expect(data.grip).toBe(false);
+ expect(data.manifests).toHaveLength(5);
+ expect(data.audits.every(a=>a.valid)).toBe(true);
+ for(const m of data.manifests){
+  expect(m.pieces.length).toBeGreaterThanOrEqual(3);
+  expect(m.pieces.length).toBeLessThanOrEqual(7);
+  expect(m.slots.every(s=>data.ground.includes(s.collisionId))).toBe(true);
+  expect(m.sockets.every(s=>[72,132,190].includes(s.length))).toBe(true);
+ }
+ await page.screenshot({path:'test-results/peak-forge-full-course.png'});
+ expect(errors).toEqual([]);
+});
+test('Peak Forge painter switches back to originals and restores modular view',async({page})=>{
+ await page.goto(url);await page.locator('#tuneToggle').click();
+ const button=page.locator('#artPackToggle');
+ await expect(button).toContainText('Modular');
+ const before=await page.evaluate(()=>({x:p.x,time:elapsed,mode:window.getSummitboundArtPack()}));
+ await button.click();await expect(button).toContainText('Painterly');
+ await button.click();await expect(button).toContainText('Cinematic');
+ await button.click();await expect(button).toContainText('Modular');
+ const after=await page.evaluate(()=>({x:p.x,time:elapsed,mode:window.getSummitboundArtPack()}));
+ expect(after.x).toBeCloseTo(before.x,1);
+ expect(after.time).toBeGreaterThanOrEqual(before.time);
+ await page.screenshot({path:'test-results/peak-forge-modular-return.png'});
+});
+test('Real Five Peaks movement and the retired catch mechanic remain safe',async({page})=>{
+ await page.goto(url);
+ const before=await page.evaluate(()=>p.x);
+ await page.keyboard.down('KeyD');await page.waitForTimeout(340);await page.keyboard.up('KeyD');
+ const moved=await page.evaluate(()=>({x:p.x,ground:platforms.some(pl=>pl.id===p.standingOn)}));
+ expect(moved.x).toBeGreaterThan(before);
+ expect(moved.ground).toBe(true);
+ const grip=await page.evaluate(()=>{
+  const ledge=platforms.find(pl=>pl.kind==='ledge');
+  p.x=ledge.left-34;p.y=ledge.top+18;p.vy=100;p.state='FALLING';p.facingDir=1;
+  return {near:axeCatchApproach(),grab:attemptAxeCatch()};
+ });
+ expect(grip.near).toBeNull();expect(grip.grab).toBe(false);
+ await expect(page.locator('#catch')).toBeHidden();
+});
+test('Modular art remains coherent after switching Original / Challenge geometry',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);await page.locator('#tuneToggle').click();
+ const button=page.locator('#courseToggle');
+ const before=await page.evaluate(()=>window.SummitPeakForge.manifest(4));
+ await button.click();await expect(button).toContainText('Challenge');
+ const data=await page.evaluate(()=>({m:window.SummitPeakForge.manifest(4),a:window.SummitPeakForge.allAudits()}));
+ expect(data.m.pieces.length).toBeGreaterThanOrEqual(3);
+ expect(data.a.every(x=>x.valid)).toBe(true);
+ expect(data.m.pieces.find(p=>p.role==='landing-extension').x)
+ .not.toBe(before.pieces.find(p=>p.role==='landing-extension').x);
+ await page.screenshot({path:'test-results/peak-forge-challenge.png'});
+ await button.click();await expect(button).toContainText('Original');
+ expect(errors).toEqual([]);
+});
