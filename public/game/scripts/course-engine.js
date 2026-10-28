@@ -36,6 +36,10 @@ function installFeaturedCourseGeometry(spires){
    ledge[0]+prevShift+offset[tier],ledge[1]+prevShift+offset[tier],
    ...ledge.slice(2)]);
  }
+ // Peak 1 low shelf: move its real rock landing towards the previously
+ // measured safe first-contact window without changing pole physics.
+ spires[1].ledges[0][0]-=70;
+ spires[1].ledges[0][1]-=70;
  // The intermediate camp is ONE narrow, high-precision landing. Players
  // cannot bypass the checkpoint via a broad, easy lower platform.
  spires[2].ledges=[spires[2].ledges.at(-1)];
