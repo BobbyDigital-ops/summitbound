@@ -29,6 +29,7 @@ test('reaching pose aims forward at a real ledge, without DOM errors',async({pag
  const data=await page.evaluate(()=>{
   const ledge=platforms.find(a=>a.kind==='ledge'&&a.spire===2);
   p.x=ledge.left-36;p.y=ledge.top+18;p.vx=120;p.vy=110;
+  window.SUMMITBOUND_LEDGE_GRIP_ENABLED=true;
   p.facingDir=1;p.state='FALLING';p.standingOn=null;catchUsed=false;
   const approach=axeCatchApproach();
   return {approach:!!approach,pose:spritePoseFor(p),expected:CLIMBER_POSES.reach};
@@ -62,6 +63,7 @@ test('running animation changes actual character frame across stride',async({pag
 test('airborne axe-reach animation extends horizontally toward a real ledge',async({page})=>{
  await page.goto(url);
  const x=await page.evaluate(()=>{
+  window.SUMMITBOUND_LEDGE_GRIP_ENABLED=true;
   const edge=platforms.find(q=>q.kind==='ledge'&&q.spire===2);
   p.state='FALLING';p.vy=130;p.vx=200;p.facingDir=1;
   p.x=edge.left-34;p.y=edge.top+20;p.standingOn=null;
@@ -91,6 +93,7 @@ test('v0.36.1 33-percent character downscale and detailed accessories',async({pa
 test('grab latches at a real rim and three alternating strikes recover',async({page})=>{
  await page.goto(url);
  const r=await page.evaluate(()=>{
+  window.SUMMITBOUND_LEDGE_GRIP_ENABLED=true;
   const pl=platforms.find(x=>x.kind==='ledge'&&x.spire===2);
   p.state='FALLING';p.standingOn=null;p.vx=150;p.vy=120;
   p.facingDir=1;p.x=pl.left-34;p.y=pl.top+25;
@@ -112,6 +115,7 @@ test('grab latches at a real rim and three alternating strikes recover',async({p
 test('miss far from ledge does not consume entire grab opportunity',async({page})=>{
  await page.goto(url);
  const r=await page.evaluate(()=>{
+  window.SUMMITBOUND_LEDGE_GRIP_ENABLED=true;
   p.state='FALLING';p.standingOn=null;p.vy=120;p.x=-10000;p.y=-10000;
   catchUsed=false;catchQueuedUntil=-1;const hit=attemptAxeCatch();
   return {hit,used:catchUsed};
