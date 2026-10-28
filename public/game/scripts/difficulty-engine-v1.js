@@ -36,7 +36,7 @@
   const span=clamp((gap-310)/570,0,1);
   const climb=clamp(Math.max(0,rise)/380,0,1);
   const speed=slowOnly.safe>=2?0:fastOnly.safe>=2?.5:1;
-  const chain=def.ridge?.13:0;
+  const chain=def.ridge ? .13 : 0;
   const score=Math.round(clamp(100*(.31*tight+.21*windows+.17*narrow+
    .14*span+.10*climb+.07*speed+chain),0,100));
   const tier=TIERS.find(t=>score<=t.max)||TIERS.at(-1);
