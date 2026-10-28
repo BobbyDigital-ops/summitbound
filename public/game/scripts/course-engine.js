@@ -77,6 +77,32 @@ function installFeaturedCourseGeometry(spires){
   }
  }
  prepareFeaturedRidgeCruxes(spires);
+ // Curated playable surface variation, checked against the *current* physics
+ // and first-contact graph. Failed proposals never enter the live course.
+ if(typeof SummitShowcase!=='undefined')applyCertifiedShowcaseWidthPass(spires);
+}
+function applyCertifiedShowcaseWidthPass(mountains){
+ const inspect=()=>SummitShowcase.report(mountains,shelfTimingProfiles,
+   compilePhysicalCourseGraph,auditPlayableCourse);
+ let accepted=inspect();
+ const proposals=[
+  {peak:1,tier:0,extra:24,reason:'give weak lowest approach a safer stopping zone'},
+  {peak:1,tier:2,extra:12,reason:'slightly widen elevated recovery shelf'},
+  {peak:2,tier:0,extra:12,reason:'make windward campsite more readable'},
+  {peak:3,tier:0,extra:-24,reason:'tighten generous low technical shelf'},
+  {peak:3,tier:1,extra:12,reason:'contrast middle snow shelf with narrow upper option'},
+  {peak:4,tier:0,extra:12,reason:'give final campsite a deliberate reward landing'}
+ ];
+ for(const item of proposals){
+  const ledge=mountains[item.peak].ledges[item.tier];
+  if(!ledge)continue;
+  const old=ledge[1],current=ledge[1]-ledge[0];
+  if(current+item.extra<65)continue;
+  ledge[1]=old+item.extra;
+  const next=inspect(),check=SummitShowcase.noRegression(accepted,next);
+  if(!check.valid){ledge[1]=old;continue;}
+  accepted=next;ledge.showcaseReason=item.reason;
+ }
 }
 // Two designed, genuinely uphill summit cruxes. The climber exits the ice
 // onto a lower rock ridge and must *vault again* across a deep exposed
