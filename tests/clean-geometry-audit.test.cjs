@@ -16,3 +16,17 @@ test('new universal sockets lie on actual rock boundaries',()=>{
   assert.equal(generated.valid,true,'seed '+seed+': '+generated.errors.join('; '));
  }
 });
+
+test('200 independently assembled spires have non-overlapping, non-self-crossing rock solids',()=>{
+ for(let seed=1;seed<=200;seed++){
+  const a=M.assemble(seed),result=G.audit(a);
+  assert.equal(result.valid,true,'seed '+seed+': '+result.errors.join('; '));
+ }
+});
+test('reject penetrating and self-crossing polygons',()=>{
+ const square=[[0,0],[100,0],[100,100],[0,100]];
+ const penetrating=[[50,50],[150,50],[150,150],[50,150]];
+ assert.equal(G.polygonOverlap(square,penetrating),true);
+ assert.equal(G.polygonOverlap(square,[[100,0],[200,0],[200,100],[100,100]]),false);
+ assert.equal(G.selfCrosses([[0,0],[100,100],[0,100],[100,0]]),true);
+});
