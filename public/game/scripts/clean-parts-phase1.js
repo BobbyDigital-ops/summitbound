@@ -42,10 +42,10 @@ function define(names,role){
   const h=role==='base'?690+((i*109)%370):role==='summit'?180+((i*47)%170):250+((i*59)%210);
   const geom=geometry(w,h,i,role);
   const vertices=geom.vertices,sockets=geom.sockets;
-  const mounts=role==='summit'?[{id:'crest',size:3,x:Math.round(w*.38),y:Math.round(h*.75)}]:
-   [{id:'mount-1',size:1+(i%5),x:Math.round(w*.16),y:Math.round(h*.28)},
-    {id:'mount-2',size:1+((i+2)%5),x:Math.round(w*.48),y:Math.round(h*.52)},
-    {id:'mount-3',size:1+((i+4)%5),x:Math.round(w*.27),y:Math.round(h*.76)}];
+  const mounts=role==='summit'?[{id:'crest',size:3,x:Math.round(w*.38),y:20}]:
+   [{id:'mount-1',size:1+(i%5),x:Math.round(w*.30),y:25},
+    {id:'mount-2',size:1+((i+2)%5),x:Math.round(w*.52),y:43},
+    {id:'mount-3',size:1+((i+4)%5),x:Math.round(w*.70),y:60}];
   return Object.freeze({id:role+'-'+name,role,name,width:w,height:geom.height,vertices,textureSeed:i*7919+(role==='base'?101:role==='summit'?303:202),material:['dark-granite','slate','frosted-granite','weathered-rock'][i%4],
    sockets,mounts,iceMounts:role==='base'?[{id:'ice-face',x:Math.round(w*.17),y:Math.round(h*.45),height:200+(i%3)*80}]:[]});
  });
