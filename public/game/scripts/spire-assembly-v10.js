@@ -152,7 +152,27 @@ function assembleOnce(seed,options={}){
   if(m.y<=departure.y+25||m.y>=-25)continue;
   const variants=K.PLATFORMS.filter(p=>p.size===m.size);
   for(const pref of variants){
-   const centre=m.side==='left'?m.x+pref.width*.38:m.side==='right'?m.x-pref.width*.38:m.x;
+   let centre=m.side==='left'?m.x+pref.width*.38:m.side==='right'?m.x-pref.width*.38:m.x;
+   if(pref.kind==='rock'){
+    // Account for the entire actual rock-ledge polygon, including its lip
+    // and thickness, not just its walkable collider.
+    const lipLeft=Math.min(...pref.vertices.map(v=>v[0]));
+    const lipRight=Math.max(...pref.vertices.map(v=>v[0]));
+    const depth=Math.max(...pref.vertices.map(v=>v[1]));
+    const levels=[m.y,m.y+depth],allowed=[];
+    for(const part of pieces)for(const v of part.vertices)
+     if(v[1]>m.y&&v[1]<m.y+depth)levels.push(v[1]);
+    for(const yy of levels){
+     const sec=rockSection(pieces,yy);
+     if(!sec){allowed.length=0;break}
+     allowed.push(sec);
+    }
+    if(!allowed.length)continue;
+    const minCentre=Math.max(...allowed.map(a=>a.left))+2-lipLeft;
+    const maxCentre=Math.min(...allowed.map(a=>a.right))-2-lipRight;
+    if(maxCentre<minCentre)continue;
+    centre=Math.max(minCentre,Math.min(maxCentre,centre));
+   }
    const left=centre-pref.width/2,right=centre+pref.width/2;
    const overlap=Math.min(right,departure.right-3)-Math.max(left,departure.left+3);
    if(overlap<7)continue;
@@ -187,10 +207,15 @@ function assembleOnce(seed,options={}){
   for(let j=i-1;j>=0;j--){const higher=platforms[j];
    if(x>=higher.left+2&&x<=higher.right-2){next=higher.id;endY=higher.y;break}
   }
-  const kind=(r()<.52?'ice':'ladder'),asset=pick(r,kind==='ice'?K.ICE:K.LADDERS);
+  const iceAsset=pick(r,K.ICE);
+  const iceX=Math.max(lo,Math.min(hi,0));
+  const useIce=r()<.60&&insideRockRect(pieces,iceX-iceAsset.width/2,iceX+iceAsset.width/2,endY,p.y,1);
+  const kind=useIce?'ice':'ladder';
+  const asset=useIce?iceAsset:pick(r,K.LADDERS);
+  const climbX=useIce?iceX:x;
   routes.push({id:'climb-'+i,kind,asset:asset.id,source:p.id,target:next,
-   x,finishX:x,fromY:p.y,toY:endY,width:asset.width,straight:true,
-   collider:{left:x-asset.width/2,right:x+asset.width/2,top:endY,bottom:p.y,climbable:true}});
+   x:climbX,finishX:climbX,fromY:p.y,toY:endY,width:asset.width,straight:true,
+   collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,top:endY,bottom:p.y,climbable:true}});
  }
  const all=pieces.flatMap(p=>p.vertices);
  const bounds={left:Math.min(...all.map(p=>p[0])),right:Math.max(...all.map(p=>p[0])),
