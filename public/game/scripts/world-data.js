@@ -282,7 +282,7 @@ function applyRoute(seed){
  const label=document.getElementById('routeLabel');
  if(label)label.textContent=
   typeof FEATURED_COURSE!=='undefined'?
-  'FIVE PEAKS · '+(typeof activeSummitCourse!=='undefined'&&activeSummitCourse==='modular'?'MODULAR · '+(SummitModularEngine?.seed?.()||1):activeSummitCourse==='challenge'?'CHALLENGE':'ORIGINAL'):
+  'FIVE PEAKS · '+(typeof activeSummitCourse!=='undefined'&&activeSummitCourse==='modular'?'MODULAR · '+(typeof SummitModularEngine!=='undefined'?SummitModularEngine.seed():1):activeSummitCourse==='challenge'?'CHALLENGE':'ORIGINAL'):
   'Route '+(routeSeed+1);
 }
 
