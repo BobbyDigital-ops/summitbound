@@ -100,10 +100,13 @@ test('grab latches at a real rim and three alternating strikes recover',async({p
   const state=p.state,edge=p.catchLedge?.edge;
   let strokes=[];
   for(const side of [-1,1,-1]){elapsed+=.15;strokes.push(axeCatchStrike(side));}
-  return {ready:!!near,latched,state,edge,strokes,final:p.state,on:p.standingOn,expected:pl.id};
+  const afterStrikes=p.state,afterStrokes=p.mantle?.elapsed;
+  for(let i=0;i<70;i++){elapsed+=1/60;updatePullUp(1/60);}
+  return {ready:!!near,latched,state,edge,strokes,afterStrikes,afterStrokes,final:p.state,on:p.standingOn,expected:pl.id};
  });
  expect(r.ready).toBe(true);expect(r.latched).toBe(true);
  expect(r.state).toBe('HANGING');expect(r.strokes).toEqual([true,true,true]);
+ expect(r.afterStrikes).toBe('PULLING_UP');expect(r.afterStrokes).toBe(0);
  expect(r.final).toBe('GROUNDED');expect(r.on).toBe(r.expected);
 });
 test('miss far from ledge does not consume entire grab opportunity',async({page})=>{
@@ -113,4 +116,23 @@ test('miss far from ledge does not consume entire grab opportunity',async({page}
   catchUsed=false;catchQueuedUntil=-1;const hit=attemptAxeCatch();
   return {hit,used:catchUsed};
  });expect(r.hit).toBe(false);expect(r.used).toBe(false);
+});
+
+test('mantle is a progressive visible move, not a frame teleport',async({page})=>{
+ await page.goto(url);
+ const r=await page.evaluate(()=>{
+  const pl=platforms.find(x=>x.kind==='ledge'&&x.spire===2);
+  p.state='PULLING_UP';p.x=pl.left-20;p.y=pl.top+18;
+  p.vx=0;p.vy=0;p.standingOn=null;
+  p.mantle={surfaceId:pl.id,fromX:p.x,fromY:p.y,toX:pl.left+12,toY:pl.top-22,side:1,elapsed:0,duration:.95};
+  const start={x:p.x,y:p.y};updatePullUp(.35);
+  const middle={x:p.x,y:p.y,state:p.state};
+  updatePullUp(.7);
+  return {start,middle,finish:{x:p.x,y:p.y,state:p.state,standingOn:p.standingOn},surface:pl.id};
+ });
+ expect(r.middle.state).toBe('PULLING_UP');
+ expect(r.middle.x).toBeGreaterThan(r.start.x);
+ expect(r.middle.y).toBeLessThan(r.start.y);
+ expect(r.finish.state).toBe('GROUNDED');
+ expect(r.finish.standingOn).toBe(r.surface);
 });
