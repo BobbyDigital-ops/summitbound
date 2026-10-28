@@ -6,7 +6,9 @@ test('trees have upright natural taper not inverted SVG asset',()=>{
  assert.ok(!render.includes('drawImage(alpineFirSprite'));
 });
 test('character cannot be drawn twice with overlaid hat frames',()=>{
- assert.equal((render.match(/drawImage\(climberSheet/g)||[]).length,1);
+ assert.equal((render.match(/drawImage\(climberSheet,\s*pose\*200/g)||[]).length,1);
+ // The second sprite draw, guarded by ghostPositionAt(), is an intentional
+ // translucent personal-best ghost, not a second overlay on the player.
 });
 test('cliff uses sparse native vegetation rather than pasted-on SVG decals',()=>{
  assert.ok(!render.includes('drawImage(alpineScrubSprite'));
