@@ -110,9 +110,9 @@ function candidateEdit(i,k,seed,attempt){
  const oldWidth=l[1]-l[0];
  // Authored platform socket widths are retained within their 1-5 family.
  // Move a complete rock-backed ledge, not just an overlaid white stripe.
- const xMove=Math.round((r()-.5)*(attempt===0?56:attempt===1?38:26));
- const widthDelta=Math.round((r()-.28)*(attempt===0?34:attempt===1?25:16));
- const rise=Math.round((r()-.5)*(attempt===0?20:12));
+ const xMove=Math.round((r()-.5)*[180,125,90,56,38,26][attempt]);
+ const widthDelta=Math.round((r()-.28)*[105,75,53,34,25,16][attempt]);
+ const rise=Math.round((r()-.5)*[72,52,36,20,12,8][attempt]);
  const width=Math.max(oldWidth>125?126:66,oldWidth+widthDelta);
  l[0]+=xMove;l[1]=l[0]+width;l[2]+=rise;
  l.platformSize=width<=52?'foothold':width<=115?'narrow':
@@ -131,6 +131,12 @@ function install(seed=currentSeed){
  // No invalid generation is allowed to become playable.
  for(let attempt=0;attempt<6;attempt++){
   restore(baseline);
+  // Optional platform slots: alternate module combinations may expose
+  // only two out of three landing shelves, with no phantom collision left.
+  if(attempt<3)for(const index of [1,3]){
+   if((currentSeed+index+attempt)%4===0&&spires[index].ledges.length>2)
+    spires[index].ledges.splice(1,1);
+  }
   for(let i=1;i<=4;i++){
    for(let k=0;k<spires[i].ledges.length;k++){
     // A small subset are left unmodified; the rest are real variant slots.
