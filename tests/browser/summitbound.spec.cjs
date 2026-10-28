@@ -267,6 +267,7 @@ test('v0.40 modular peaks change REAL platform geometry and certify every ice/cl
  await page.locator('#tuneToggle').click();
  const variants=new Set([baseline.initial]);
  for(let i=0;i<3;i++){
+  if(i>0)await page.locator('#tuneToggle').click();
   await page.locator('#regenModular').click();
   const result=await page.evaluate(()=>({
    state:activeSummitCourse,
@@ -301,6 +302,7 @@ test('v0.40 restores the exact Original course after a modular regenerate',async
  await toggle.click();await expect(toggle).toContainText('Challenge');
  await toggle.click();await expect(toggle).toContainText('Modular');
  await page.locator('#regenModular').click();
+ await page.locator('#tuneToggle').click();
  await toggle.click();await expect(toggle).toContainText('Original');
  const restored=await page.evaluate(()=>JSON.stringify(spires.map(m=>({
   summit:m.summit,ledges:m.ledges,ridge:m.ridgeArrival
