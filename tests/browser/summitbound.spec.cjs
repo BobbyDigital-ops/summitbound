@@ -334,3 +334,34 @@ test('five physically assembled peaks each render a separate inspected scene',as
  }
  expect(errors).toEqual([]);
 });
+
+test('TRUE modular generator renders joined rock, not the previous cliff silhouette',async({page})=>{
+ test.setTimeout(110000);
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(url);
+ await expect(page.locator('#routeLabel')).toContainText('MODULAR');
+ const first=await page.evaluate(()=>{
+  const peaks=spires.map((s,i)=>({mesh:s.moduleAssembly?.mesh,
+   slots:s.moduleAssembly?.mesh?.slots?.filter(slot=>slot.occupied).length,
+   ice:i>0?iceRouteNetwork(i).length:0}));
+  const audits=spires.map((s,i)=>SummitPeakMesh.audit(s.moduleAssembly.mesh,i,s));
+  return {peaks,audits,physical:auditPlayableCourse().valid,graph:compilePhysicalCourseGraph().valid};
+ });
+ expect(first.peaks).toHaveLength(5);
+ expect(first.audits.every(a=>a.valid)).toBe(true);
+ expect(first.physical).toBe(true);expect(first.graph).toBe(true);
+ for(const peak of first.peaks){
+  expect(peak.mesh.geometrySource).toBe('assembled-polygons');
+  expect(peak.mesh.parts.length).toBeGreaterThanOrEqual(3);
+  expect(peak.mesh.parts.length).toBeLessThanOrEqual(7);
+  expect(peak.mesh.seams.length).toBe(peak.mesh.parts.length-peak.mesh.roots.length);
+  expect(peak.mesh.parts.every(part=>part.polygon.length>=6)).toBe(true);
+ }
+ await page.screenshot({path:'test-results/true-mesh-seed-11.png'});
+ await page.locator('#tuneToggle').click();
+ await page.locator('#regenModular').click();
+ const other=await page.evaluate(()=>spires.map(p=>p.moduleAssembly.mesh.fingerprint));
+ expect(other.filter((signature,i)=>signature!==first.peaks[i].mesh.fingerprint).length).toBe(5);
+ await page.screenshot({path:'test-results/true-mesh-seed-12.png'});
+ expect(errors).toEqual([]);
+});
