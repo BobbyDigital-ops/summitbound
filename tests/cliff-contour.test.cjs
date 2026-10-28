@@ -61,8 +61,8 @@ test('procedural ledge rock anchors remain inside the cliff without changing sur
     'outcrop root is not embedded in continuous mountain rock');
    assert.ok(p[0][0]<ledge[0]&&p[4][0]>ledge[1],
     'outcrop does not support the full real landing span');
-   assert.ok(p[8][1]>ledge[2]+80&&p[8][1]<ledge[2]+155,
-    'detached deep rock fin rather than a local joined buttress');
+   assert.ok(p[8][1]>ledge[2]+135&&p[8][1]<=ledge[2]+180,
+    'rock buttress extends too shallow or deep to join the local cliff');
   }
  }
 });
