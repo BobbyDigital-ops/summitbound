@@ -33,7 +33,7 @@ function define(names,role){
   const w=role==='base'?510+((i*83)%280):role==='summit'?180+((i*37)%130):190+((i*67)%190);
   const h=role==='base'?690+((i*109)%370):role==='summit'?180+((i*47)%170):250+((i*59)%210);
   const sockets=socketsFor(w,h,i,role);
-  const mounts=role==='summit'?[{id:'crest',size:3,x:Math.round(w*.38),y:Math.round(h*.15)}]:
+  const mounts=role==='summit'?[{id:'crest',size:3,x:Math.round(w*.38),y:Math.round(h*.75)}]:
    [{id:'mount-1',size:1+(i%5),x:Math.round(w*.16),y:Math.round(h*.28)},
     {id:'mount-2',size:1+((i+2)%5),x:Math.round(w*.48),y:Math.round(h*.52)},
     {id:'mount-3',size:1+((i+4)%5),x:Math.round(w*.27),y:Math.round(h*.76)}];
