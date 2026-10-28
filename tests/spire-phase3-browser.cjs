@@ -13,6 +13,7 @@ const {chromium}=require('@playwright/test'),{spawn}=require('node:child_process
   }
   if(!ready)throw Error('Phase 3 preview server did not start');
   await page.waitForFunction(()=>window.__phase3&&window.__phase3Foundation,{timeout:30000});
+  await page.evaluate(()=>{window.__phase3ManualDrive=true;});
   for(const gap of [1,10]){
    await page.selectOption('#gap',String(gap));
    await page.waitForFunction(id=>window.__phase3?.preset===id,gap);
