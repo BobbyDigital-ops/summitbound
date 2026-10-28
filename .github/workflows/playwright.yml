@@ -21,6 +21,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Audit featured course after platform-size redesign
         run: node --test tests/phase2-showcase-widths.test.cjs
+      - name: Check mobile HUD and document versions match
+        run: npm run test:mobile
       - name: Grade all five difficulty sections
         run: node --test tests/difficulty-engine-phase1.test.cjs
       - name: Audit and compare five showcase trajectories
