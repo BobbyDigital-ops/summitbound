@@ -56,3 +56,18 @@ test('catalogue cannot reference deleted legacy course geometry',()=>{
  for(const key of ['FEATURED_BASE_LAYOUTS','caveLayouts','MOUNTAIN_DESIGNS','installFeaturedCourseGeometry','spires['])
   assert.equal(src.includes(key),false,'unexpected legacy geometry dependency '+key);
 });
+
+function pointInside(point,polygon){
+ let inside=false;
+ for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+  const a=polygon[i],b=polygon[j];
+  if((a[1]>point[1])!==(b[1]>point[1]) &&
+   point[0]<(b[0]-a[0])*(point[1]-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+ }
+ return inside;
+}
+test('every platform mounting point is physically inside its rock component',()=>{
+ for(const p of [...L.BASES,...L.EXTENSIONS,...L.SUMMITS])
+  for(const m of p.mounts)
+   assert.ok(pointInside([m.x,m.y],p.vertices),p.id+'/'+m.id+' outside rock');
+});
