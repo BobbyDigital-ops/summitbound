@@ -1070,7 +1070,8 @@ function draw(){
  }
  
  ctx.save(); ctx.scale(zoom, zoom); ctx.translate(-camera.x, -camera.y);
- for(let i=0;i<spires.length;i++){
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)SummitIntegrated.drawTerrain(ctx);
+ else for(let i=0;i<spires.length;i++){
   const s=spires[i].summit;
   const nearLeft=spires[i].cave?
   Math.min(s[0],spires[i].cave.left-230):
@@ -1109,7 +1110,7 @@ function draw(){
    (spires[4].cave.left-camera.x)*zoom<w+200){
   drawCave();drawCaveLadder();
  }
- if(typeof featuredCampPosition==='function'){
+ if((typeof SummitIntegrated==='undefined'||!SummitIntegrated.active)&&typeof featuredCampPosition==='function'){
   for(const peak of [2,4]){
    const campsite=featuredCampPosition(peak);
    if(campsite&&(campsite.x-camera.x)*zoom>-140&&
@@ -1263,7 +1264,9 @@ function draw(){
  }
  const inCrux=p.standingOn==='a1'?'THE BLACK NOTCH':
   p.standingOn==='a3'?'THE BROKEN CROWN':null;
- const stageText=completed?'ASCENT COMPLETE':
+ const stageText=typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active?
+  (completed?'TWO-SPIRE ASCENT COMPLETE':'MODULAR · REAL ENGINE · SPIRE '+Math.min(atStage+1,2)+' / 2'):
+  completed?'ASCENT COMPLETE':
   inCrux?'FIVE PEAKS · '+inCrux+' · UPHILL RIDGE VAULT':
   `FIVE PEAKS · PEAK ${Math.min(atStage+1,5)} / 5 · ${leapTitles[Math.min(atStage,3)]}`;
  if(stageEl.textContent!==stageText)stageEl.textContent=stageText;
