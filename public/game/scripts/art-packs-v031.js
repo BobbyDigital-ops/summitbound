@@ -5,7 +5,7 @@
 'use strict';
 const rnd=n=>{const x=Math.sin(n*91.117+32.71)*43758.5453;return x-Math.floor(x)};
 const choose=(n,a,b)=>a+(b-a)*rnd(n),mix=(a,b,t)=>a+(b-a)*t;
-let currentPack=localStorage.getItem('summitbound-art-pack')||'modular';
+let currentPack=localStorage.getItem('summitbound-art-pack')||'cinematic';
 if(!['painterly','cinematic','modular'].includes(currentPack))currentPack='painterly';
 window.getSummitboundArtPack=()=>currentPack;
 window.setSummitboundArtPack=name=>{
