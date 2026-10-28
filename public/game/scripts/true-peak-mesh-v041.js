@@ -258,6 +258,6 @@ function audit(mesh,index,peak){
  return {valid:errors.length===0,errors,pieces:mesh.parts.length,
   silhouettes:mesh.parts.map(p=>p.id)};
 }
-window.SummitPeakMesh=Object.freeze({version:'0.41',size:SIZE,BASE_LIBRARY,EXT_LIBRARY,
+globalThis.SummitPeakMesh=Object.freeze({version:'0.41',size:SIZE,BASE_LIBRARY,EXT_LIBRARY,
  SUMMIT_LIBRARY,meshFor,audit,meshContour,meshFlank,polygonArea});
 })();
