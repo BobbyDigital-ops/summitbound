@@ -5,6 +5,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // This is ONE playable course, not five separate levels. The full campaign
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
+let activeSummitCourse='original'; // user-approved course always loads by default
 const FEATURED_COURSE=Object.freeze({
  id:'five-peaks',version:6,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',
@@ -81,10 +82,21 @@ function installFeaturedCourseGeometry(spires){
   }
  }
  prepareFeaturedRidgeCruxes(spires);
+ // Preserve the complete reviewed reference. Challenge adjustments are
+ // additive and use the exact same real collision ledges.
  // Curated playable surface variation, checked against the *current* physics
  // and first-contact graph. Failed proposals never enter the live course.
  if(typeof SummitShowcase!=='undefined')applyCertifiedShowcaseWidthPass(spires);
+ if(activeSummitCourse==='challenge')applyChallengeLandingGeometry(spires);
 }
+function applyChallengeLandingGeometry(mountains){
+ // Deliberately expose more demanding contact choices on later peaks.
+ // The first opening remains readable; the harder landings are earned.
+ for(const [peak,tier,delta] of [[2,0,-20],[3,0,-24],[4,0,-32]]){
+  const ledge=mountains[peak]?.ledges[tier];if(ledge)ledge[1]+=delta;
+ }
+}
+
 function applyCertifiedShowcaseWidthPass(mountains){
  const inspect=()=>SummitShowcase.report(mountains,shelfTimingProfiles,
    compilePhysicalCourseGraph,auditPlayableCourse);
@@ -116,7 +128,11 @@ const FEATURED_RIDGE_CRUXES=Object.freeze([
  {peak:3,gap:380,rise:120,landingWidth:290,name:'The Broken Crown'}
 ]);
 function prepareFeaturedRidgeCruxes(mountains){
- for(const crux of FEATURED_RIDGE_CRUXES){
+ for(const template of FEATURED_RIDGE_CRUXES){
+  const overrides=activeSummitCourse==='challenge'?
+   (template.peak===1?{gap:410,rise:170,landingWidth:205}:
+    {gap:500,rise:205,landingWidth:155}):{};
+  const crux={...template,...overrides};
   const s=mountains[crux.peak],old=s.summit;
   // The ice endpoints are contained on the real, lower arrival rock.
   const currentIceEnd=old[0]+(crux.peak===1?224:270);
