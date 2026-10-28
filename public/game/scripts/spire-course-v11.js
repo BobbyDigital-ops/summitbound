@@ -36,7 +36,7 @@ function landings(physics,cfg,source,rise){
      vy+=cfg.gravity*fd;x+=release.vx*fd;oldY=y;y+=vy*fd;
      if(vy>=0&&oldY+22<=targetFeet&&y+22>=targetFeet){
       samples.push({launchX:px,landingX:x,speed,releaseFraction:fraction,
-       releaseX:ride.nextPx,releaseY:ride.nextPy,landingHeightRise:rise});
+       releaseX:ride.nextPx,releaseY:ride.nextPy,releaseVx:release.vx,releaseVy:release.vy,landingHeightRise:rise});
       break;
      }
     }
@@ -44,6 +44,32 @@ function landings(physics,cfg,source,rise){
   }
  }
  return samples;
+}
+// Check the FIRST contact with *all* actual platform/deck colliders, not just
+// whether a hypothetical trajectory passes across the intended ledge.
+// This prevents passing the geometry sampler but landing on an earlier surface.
+function firstContact(sample,source,target,worldX,worldY,cfg){
+ const surfaces=[
+  ...source.platforms.map(p=>({id:'source:'+p.id,left:p.left,right:p.right,top:p.y})),
+  {id:'source:departure',left:source.departure.left,right:source.departure.right,top:source.departure.y},
+  ...target.platforms.map(p=>({id:'target:'+p.id,left:worldX+p.left,right:worldX+p.right,top:worldY+p.y})),
+  {id:'target:departure',left:worldX+target.departure.left,right:worldX+target.departure.right,
+   top:worldY+target.departure.y}
+ ];
+ const fd=(1/120)*cfg.arcadeFlightTempo;
+ let x=sample.releaseX,y=sample.releaseY,vy=sample.releaseVy;
+ const vx=Math.min(cfg.maxAirborneSpeed,sample.releaseVx);
+ for(let step=0;step<800;step++){
+  const oldX=x,oldFeet=y+22;
+  vy+=cfg.gravity*fd;x+=vx*fd;y+=vy*fd;
+  const hits=surfaces.filter(p=>vy>=0&&oldFeet<=p.top&&y+22>=p.top&&
+   (()=>{const t=(p.top-oldFeet)/Math.max(1e-9,y+22-oldFeet);
+    const atX=oldX+(x-oldX)*t;
+    return atX>=p.left+3&&atX<=p.right-3})())
+   .sort((a,b)=>a.top-b.top);
+  if(hits.length)return hits[0].id;
+ }
+ return null;
 }
 function buildOnce(seed,settings,api){
  const n=settings.count??5,preset=settings.preset??1;
@@ -67,10 +93,14 @@ function buildOnce(seed,settings,api){
    const options=target.platforms.slice().sort((a,b)=>b.width-a.width);
    for(const landing of options){
     const left=worldX+landing.left,right=worldX+landing.right;
-    const match=samples.find(q=>from.worldX+q.landingX>=left+4&&from.worldX+q.landingX<=right-4
-      &&from.worldX+q.releaseX<left+1);
+    const worldY=from.worldY+from.departure.y-rise-landing.y;
+    // firstContact operates in the source spire's local world coordinates.
+    const offsetX=worldX-from.worldX,offsetY=worldY-from.worldY;
+    const match=samples.find(q=>from.worldX+q.landingX>=left+5&&from.worldX+q.landingX<=right-5
+      &&from.worldX+q.releaseX<left+1
+      &&firstContact(q,from,target,offsetX,offsetY,api.config)==='target:'+landing.id);
     if(match){
-     choice={peak:{...target,worldX,worldY:from.worldY+from.departure.y-rise-landing.y},
+     choice={peak:{...target,worldX,worldY},
       crossing:{index:i-1,from:i-1,to:i,gapPreset:option.id,gap:option.gap,rise,
        targetPlatform:landing.id,flight:match,flightSampleVerified:true}};
      break;
