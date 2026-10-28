@@ -29,6 +29,7 @@ function drawRigMountaineer(g,p){
  const state=p.state;
  const grounded=state==='GROUNDED'||state==='RUNNING'||(p.standingOn!=null&&state!=='CLIMBING');
  const running=grounded&&Math.abs(p.vx)>25;
+ const pulling=state==='PULLING_UP',mt=p.mantle,progress=pulling?Math.min(1,(mt?.elapsed||0)/(mt?.duration||1)):0;
  const climbing=state==='CLIMBING',hanging=state==='HANGING',flying=state==='AIRBORNE'||state==='FALLING',vaulting=state==='RIDING_VAULT';
  const k=running?(p.runDistance||0)/34:climbing?(p.climb?.climbBeat||0)*PI*2:0;
  const bounce=running?Math.max(0,Math.sin(k*2))*3.5:0;
@@ -59,6 +60,7 @@ function drawRigMountaineer(g,p){
   if(running){const f=runFoot(near);ankle=P(f.x,f.y,z);knee=solveKnee(H,ankle)}
   else if(climbing){const beat=Math.sin(k+(near?0:Math.PI));knee=add(H,P(25+(near?5:-5),-26+beat*7));ankle=add(knee,P(9+beat*3,-28-beat*7))}
   else if(flying||vaulting){knee=add(H,P(-32,-8));ankle=add(knee,P(-31,-12))}
+  else if(pulling){const hook=Math.min(1,Math.max(0,(progress-.28)/.45));knee=add(H,P((near?10:-8)+hook*23,-24+hook*16));ankle=add(knee,P(near?8:-10,-29+hook*22))}
   else if(hanging){knee=add(H,P(near?11:-12,-37));ankle=add(knee,P(near?4:-8,-33))}
   else{knee=add(H,P(0,-33));ankle=add(knee,P(0,-33))}
   capsule(H,knee,10,'#273947');capsule(knee,ankle,8,'#354958');orb(knee,8,8,'#394b58');
@@ -72,6 +74,7 @@ function drawRigMountaineer(g,p){
  g.save();
  // An axe-reach is forward with the torso, not a second disembodied tool.
  if(flying){g.translate(8,-16);g.rotate(-.16)}
+ if(pulling){g.translate(progress<.4?-3:progress*7,-4*Math.sin(progress*Math.PI));g.rotate(-.18*(1-progress))}
  if(vaulting){g.rotate(-Math.min(.20,(p.vault?.elapsed||0)/(p.vault?.rideDuration||1)*.20))}
  leg(false);
  const packCenter=add(hip,P(running?-4:-14,40,-8));
@@ -110,6 +113,7 @@ function drawRigMountaineer(g,p){
   if(running){const swing=(near?1:-1)*Math.cos(k+.25);elbow=add(S,P(-6+13*swing,-30));hand=add(elbow,P(2+7*swing,-21))}
   else if(climbing){const beat=Math.sin(k+(near?0:PI));elbow=add(S,P(near?18:9,17+beat*8));hand=add(elbow,P(near?11:16,25+beat*10))}
   else if(flying||vaulting){elbow=add(S,P(31,5));hand=add(elbow,P(39,8))}
+  else if(pulling){elbow=add(S,P(near?13:-4,24-progress*23));hand=add(elbow,P(near?9:12,36-progress*28))}
   else if(hanging){elbow=add(S,P(near?13:-5,22));hand=add(elbow,P(near?7:12,40))}
   else{elbow=add(S,P(14,-20));hand=add(elbow,P(10,-17))}
   capsule(S,elbow,10,near?'#b84835':'#973e33','#632d2b');
@@ -122,7 +126,7 @@ function drawRigMountaineer(g,p){
   return hand;
  }
  const far=arm(false),near=arm(true);
- if(climbing||hanging){axe(far,1,-.5);axe(near,1,.6)}
+ if(climbing||hanging||pulling&&progress<.66){axe(far,1,-.5);axe(near,1,.6)}
  if(flying&&typeof axeCatchApproach==='function'&&axeCatchApproach(true))axe(near,.75,-.25);
  g.restore();return true;
 }
