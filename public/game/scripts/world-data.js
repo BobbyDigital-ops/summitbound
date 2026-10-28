@@ -244,10 +244,6 @@ function applyRoute(seed){
  spires[4].summit=[left+150,left+1070,Math.min(-55,floor-260),'snow'];
  if(typeof installFeaturedCourseGeometry==='function')
   installFeaturedCourseGeometry(spires);
- // Peak Forge is an actual collision-course generator, not a visual skin.
- if(activeSummitCourse==='modular'&&typeof SummitModularEngine!=='undefined')
-  SummitModularEngine.install(SummitModularEngine.seed());
- else for(const peak of spires)delete peak.moduleAssembly;
  // Give the first and last massif their own physically supported rescue
  // terraces too: no completely featureless spires in the five-peak course.
  // These sit below the main running skyline and are not free shortcuts.
@@ -255,6 +251,10 @@ function applyRoute(seed){
   const start=spires[0].summit;
   spires[0].ledges=[[start[0]+110,start[0]+315,start[2]+165,'snow','Lower shelf']];
  }
+ // Peak Forge is an actual collision-course generator, not a visual skin.
+ if(activeSummitCourse==='modular'&&typeof SummitModularEngine!=='undefined')
+  SummitModularEngine.install(SummitModularEngine.seed());
+ else for(const peak of spires)delete peak.moduleAssembly;
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge'||platforms[k].kind==='arrival')platforms.splice(k,1);
   for(let i=1;i<=4;i++){
