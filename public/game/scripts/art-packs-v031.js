@@ -159,7 +159,73 @@ function paintModuleGranite(g,i){
  }
 }
 
+
+/* The mesh is THE world geometry. Draw its sealed, polygonal base and
+ * child pieces with one shared cinematic rock material. No "old mountain"
+ * behind them; exact mating edges avoid gaps. */
+function renderTruePeak(g,i){
+ const peak=spires[i],mesh=peak.moduleAssembly.mesh;
+ const shadow=['#152635','#1c2d3c','#233847','#304655'];
+ for(let k=0;k<mesh.parts.length;k++){
+  const part=mesh.parts[k],pts=part.polygon;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  if(!Number.isFinite(minX+maxX+minY+maxY))continue;
+  g.save();path(g,pts);g.closePath();g.clip();
+  const grad=g.createLinearGradient(minX,minY,maxX,maxY);
+  if(currentPack==='painterly'){
+   grad.addColorStop(0,'#8ca3a1');grad.addColorStop(.45,'#506c77');
+   grad.addColorStop(1,'#223c4d');
+  }else{
+   grad.addColorStop(0,part.role==='summit'?'#657780':'#697f88');
+   grad.addColorStop(.30,part.kind==='ledge'?'#344a55':'#3d5361');
+   grad.addColorStop(.68,'#273b4b');grad.addColorStop(1,'#122637');
+  }
+  g.fillStyle=grad;g.fillRect(minX-6,minY-6,maxX-minX+12,maxY-minY+12);
+  // Screen-aligned geological fractures, clipped against actual solid pieces.
+  // Deliberately deterministic: offscreen caches can be safely reused.
+  const seed=(i+2)*131+k*467+mesh.seed*37;
+  const h=maxY-minY,w=maxX-minX;
+  for(let j=0;j<(part.meshRoot?75:19);j++){
+   const px=minX+w*choose(seed+j*43,.06,.96);
+   const py=minY+h*choose(seed+j*53,.04,.93);
+   const dx=choose(seed+j*79,-60,65),dy=choose(seed+j*97,28,170);
+   fill(g,[[px-24,py-18],[px+dx*.25,py-dy*.3],
+    [px+dx,py+dy*.72],[px-13,py+dy]],
+     j%3===0?'#0a1b2f2f':j%3===1?'#cfdee018':'#07152642');
+   if(j%3!==0)
+    stroke(g,[[px,py],[px+dx*.17,py+dy*.33],[px+dx,py+dy]],
+      j%4===0?'#c7d8da4b':'#0c1c2c8f',j%4===0?1.3:2.2);
+  }
+  for(let j=0;j<Math.min(140,Math.round(w*h/6000));j++){
+   const x=minX+w*choose(seed+j*41,.02,.96),y=minY+h*choose(seed+j*89,.02,.98);
+   g.fillStyle=j%5===0?'#a6bdc255':'#07172755';g.fillRect(x,y,1.2+(j%3)*.7,1.4);
+  }
+  g.restore();
+ }
+ // Filled slots alone have a visible, walkable 1–5 sized cap. No platform
+ // is painted for an empty slot, and no white bar crosses unwalkable rock.
+ for(const slot of mesh.slots.filter(s=>s.occupied)){
+  const [l,r,t]=slot.geometry,w=r-l,seed=i*89+w*2+slot.size*101;
+  const chip=[[l-5,t+4],[r+3,t+3],[r+5,t+23],
+   [r-w*.22,t+58],[l+w*.26,t+81],[l-16,t+57]];
+  const grad=g.createLinearGradient(l,t,r,t+85);
+  grad.addColorStop(0,'#6d8590');grad.addColorStop(.5,'#385261');
+  grad.addColorStop(1,'#182c3b');
+  fill(g,chip,grad);
+  stroke(g,[[l,t+20],[l+w*.45,t+51],[r-4,t+24]],'#0d22367d',2);
+  cap(g,l,r,t,seed);
+ }
+ // Crest collision is strictly a real horizontal takeoff terrace.
+ for(const root of mesh.parts.filter(p=>p.meshRoot)){
+  const [l,r,t]=root.surface;cap(g,l,r,t,seededPeakInk(i,root.id));
+ }
+}
+function seededPeakInk(i,id){let sum=0;for(const ch of id)sum+=ch.charCodeAt(0);return i*173+sum}
+
 function renderMountain(i,g){
+ if(spires[i].moduleAssembly?.mesh){renderTruePeak(g,i);return;}
  if(spires[i].moduleAssembly)paintModuleSilhouettes(g,i);
  const s=spires[i],m=s.summit,arrival=s.ridgeArrival;
  if(arrival){
