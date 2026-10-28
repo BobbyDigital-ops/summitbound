@@ -50,6 +50,7 @@ function practiceRespawnFromTakeoff(){
  hint('PRACTICE — RETRY FROM SAME PEAK',2.5);
 }
 function fail(){
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)return SummitIntegrated.onFail();
  if(mode === 'trial'){
   gameReset();hint('TIME TRIAL FAILED — RACE RESTARTED',2);return;
  }
@@ -110,6 +111,7 @@ function getLanding(plat){
   hint(`${plat.tier.toUpperCase()} OUTCROP — WALK TO THE ICE WALL`, 2);
  }
  if(typeof FEATURED_COURSE==='undefined'&&plat.kind === 'summit' && plat.spire === 2)activateCampsiteCheckpoint(2);
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)SummitIntegrated.onLanding(plat);
  if(plat.kind === 'summit' && plat.spire === 4) win();
 }
 
@@ -122,6 +124,7 @@ function win(){
 }
 
 function climbStart(plat){
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)return SummitIntegrated.beginClimb(plat);
  const goal = platforms.find(v => v.id === (spires[plat.spire].ridgeArrival?'a':'s') + plat.spire);
  if(!goal) return;
  const rungX = climbEntryX(plat);
@@ -145,6 +148,7 @@ function climbStart(plat){
 // physical ice route: summit -> highest connected shelf, then (where the
 // real ice branches meet) shelf -> next lower shelf. No arbitrary teleport.
 function climbStartDown(){
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)return SummitIntegrated.down();
  const standing=currentPlatform(),index=standing?.spire;
  if(index<1||index>(typeof FEATURED_COURSE!=='undefined'?4:3)||!['summit','ledge','arrival'].includes(standing.kind))return false;
  const routes=iceRouteNetwork(index);
@@ -214,6 +218,7 @@ function tick(dt){
  const k = input(), ground = isGround(), prevFeet = p.y + 22, prevX=p.x;
  
  if(p.state === 'CLIMBING'){
+  if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)return SummitIntegrated.tickClimb(dt,k);
   const c = p.climb;
   const oldY=p.y;
   if(c.isIce){
@@ -379,7 +384,10 @@ function tick(dt){
  const next=spires[Math.min(atStage+1,spires.length-1)];
  const fallbackFloor=next.ledges.length?
   Math.max(...next.ledges.map(l=>l[2])):next.cave?.floor??1450;
- if(p.y>Math.max(1650,fallbackFloor+500)||p.x>8100||p.x<-90)fail();
+ const dropLimit=(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)?
+  Math.max(...SummitIntegrated.course.peaks.map(s=>s.worldY+s.bounds.bottom))+320:
+  Math.max(1650,fallbackFloor+500);
+ if(p.y>dropLimit||p.x>8100||p.x<-90)fail();
  updateCaveCampfire();
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
@@ -458,6 +466,7 @@ function loop(now){
 }
 
 function retry(){
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)return SummitIntegrated.onFail();
  if(mode==='trial'){gameReset();hint('TIME TRIAL RESTARTED',2);return;}
  if(mode==='hardcore'){gameReset();hint('HARDCORE RUN RESTARTED',2);return;}
  if(typeof FEATURED_COURSE!=='undefined'){
