@@ -1,7 +1,7 @@
 name: Summitbound Playwright Visual Testing
 on:
   push:
-    branches: [main, 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
+    branches: [main, 'dev/level-engine-phase1', 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -19,6 +19,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Validate level generator templates
+        run: node --test tests/level-engine-v1.test.cjs
       - name: Check real vault release curve
         run: node --test tests/release-curve-v0364.test.cjs
       - name: Test desktop and mobile gameplay
