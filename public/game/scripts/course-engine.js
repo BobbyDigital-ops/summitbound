@@ -90,11 +90,18 @@ function installFeaturedCourseGeometry(spires){
  if(activeSummitCourse==='challenge')applyChallengeLandingGeometry(spires);
 }
 function applyChallengeLandingGeometry(mountains){
- // Deliberately expose more demanding contact choices on later peaks.
- // The first opening remains readable; the harder landings are earned.
- for(const [peak,tier,delta] of [[2,0,-20],[3,0,-24],[4,0,-32]]){
-  const ledge=mountains[peak]?.ledges[tier];if(ledge)ledge[1]+=delta;
- }
+ // Five authored skill beats: opening sprint, Black Notch recoil,
+ // Windward campsite precision, Broken Crown transfer, final long leap.
+ // Recovered from the physical 120Hz contact-envelope survey. Changes are
+ // to the SAME drawn/solid mountain surfaces; no invisible platforms.
+ mountains[2].ledges[0][1]-=20;
+ mountains[3].ledges[0][1]-=24;
+ // The final camp sits farther into the chasm. Shift its complete mountain
+ // mass and ice summit together so the collision contour still backs it.
+ const final=mountains[4],shift=140,lift=40;
+ final.ledges.forEach(l=>{l[0]+=shift;l[1]=l[0]+125;l[2]-=lift});
+ final.summit[0]+=shift;final.summit[1]+=shift;final.summit[2]-=lift;
+ if(Number.isFinite(final.rockShoulderLeft))final.rockShoulderLeft+=shift;
 }
 
 function applyCertifiedShowcaseWidthPass(mountains){
@@ -130,8 +137,8 @@ const FEATURED_RIDGE_CRUXES=Object.freeze([
 function prepareFeaturedRidgeCruxes(mountains){
  for(const template of FEATURED_RIDGE_CRUXES){
   const overrides=activeSummitCourse==='challenge'?
-   (template.peak===1?{gap:410,rise:170,landingWidth:205}:
-    {gap:500,rise:205,landingWidth:155}):{};
+   (template.peak===1?{gap:380,rise:130,landingWidth:170}:
+    {gap:380,rise:140,landingWidth:150}):{};
   const crux={...template,...overrides};
   const s=mountains[crux.peak],old=s.summit;
   // The ice endpoints are contained on the real, lower arrival rock.
