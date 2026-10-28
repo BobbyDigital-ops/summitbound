@@ -4,7 +4,8 @@
 // owns BOTH ice axes: legacy ice-pick overlays must not render alongside it.
 const SUMMITBOUND_RUN_TUNING=Object.freeze({stride:1.25,clearance:1.25});
 function drawRigMountaineer(g,p){
- const unit=.64,PI=Math.PI;
+ // Scale the complete figure (including axes and accessories) by 33%. No physics change.
+ const unit=.64*.67,PI=Math.PI;
  const P=(x,y,z=0)=>({x,y,z}),add=(a,b)=>P(a.x+b.x,a.y+b.y,a.z+b.z);
  const xy=v=>({x:v.x*unit+v.z*unit*.24,y:-v.y*unit+v.z*unit*.1});
  const capsule=(a,b,r,col,shadow='#13212c')=>{
@@ -16,6 +17,8 @@ function drawRigMountaineer(g,p){
  };
  const orb=(v,rx,ry,col)=>{const s=xy(v);g.fillStyle=col;g.beginPath();g.ellipse(s.x,s.y,rx*unit,ry*unit,0,0,PI*2);g.fill()};
  const line=(a,b,w,col)=>{const A=xy(a),B=xy(b);g.strokeStyle=col;g.lineWidth=w*unit;g.lineCap='round';g.beginPath();g.moveTo(A.x,A.y);g.lineTo(B.x,B.y);g.stroke()};
+ const detail=(a,b,w,col)=>line(a,b,w,col);
+ const stitch=(a,b)=>detail(a,b,1.1,'#e7ad8b');
  const axe=(hand,up=1,angle=0)=>{
   // Grip = computed wrist position, never torso origin.
   const head=add(hand,P(14+Math.sin(angle)*3,30*up,0));
@@ -61,6 +64,10 @@ function drawRigMountaineer(g,p){
   capsule(H,knee,10,'#273947');capsule(knee,ankle,8,'#354958');orb(knee,8,8,'#394b58');
   capsule(ankle,add(ankle,P(18,-1.5)),7.5,'#665541','#262a31');
   line(add(ankle,P(4,-6)),add(ankle,P(17,-6)),2,'#cab18a');
+  // Gaiters, leather toe guard, and crampon cleats follow the animated foot.
+  line(add(ankle,P(-5,8)),add(ankle,P(7,8)),3,'#6a7881');
+  line(add(ankle,P(6,2)),add(ankle,P(18,2)),1.5,'#c9ae8e');
+  for(const x of [1,9,17])detail(add(ankle,P(x,-7)),add(ankle,P(x+2,-11)),1.8,'#d7dce0');
  }
  g.save();
  // An axe-reach is forward with the torso, not a second disembodied tool.
@@ -68,11 +75,32 @@ function drawRigMountaineer(g,p){
  if(vaulting){g.rotate(-Math.min(.20,(p.vault?.elapsed||0)/(p.vault?.rideDuration||1)*.20))}
  leg(false);
  const packCenter=add(hip,P(running?-4:-14,40,-8));
- orb(packCenter,22,36,'#26343d');line(add(shoulder,P(-10,-8)),add(hip,P(-13,24)),4,'#a18b6f');
+ orb(packCenter,22,36,'#26343d');
+ // Roll-top pack, straps, buckles, carabiners and snow-dusted flap.
+ orb(add(packCenter,P(-3,20)),19,10,'#4c6065');
+ detail(add(packCenter,P(-15,23)),add(packCenter,P(10,23)),2.4,'#bdc8c3');
+ detail(add(packCenter,P(-13,-18)),add(packCenter,P(10,-18)),2.2,'#718489');
+ detail(add(packCenter,P(-8,-28)),add(packCenter,P(-8,29)),2.3,'#b6a17d');
+ orb(add(packCenter,P(13,-17)),3.4,6,'#b7bdb9');
+ line(add(shoulder,P(-10,-8)),add(hip,P(-13,24)),4,'#a18b6f');
+ line(add(shoulder,P(9,-4)),add(hip,P(10,19)),2.8,'#d2ac80');
  capsule(hip,shoulder,18,'#a84433','#552b2c');
- orb(add(hip,P(0,45)),19,30,'#b64d39');capsule(neck,head,8,'#b95f4b');
+ orb(add(hip,P(0,45)),19,30,'#b64d39');
+ // Diagonal fabric panels, jacket zipper, cuffs, pocket and harness.
+ stitch(add(shoulder,P(7,-2)),add(hip,P(8,5)));
+ detail(add(shoulder,P(-13,-12)),add(hip,P(-8,18)),2,'#8d302d');
+ detail(add(hip,P(-8,41)),add(hip,P(9,39)),2,'#e2a17c');
+ detail(add(hip,P(8,23)),add(hip,P(15,17)),2,'#eac39b');
+ detail(add(hip,P(-14,15)),add(hip,P(11,12)),4,'#423b3a');
+ orb(add(hip,P(8,12)),3,4,'#c4a57c');
+ capsule(neck,head,8,'#b95f4b');
  orb(head,12,13,'#26363f');orb(helmet,16,8,'#b0bbc0');
+ // Helmet crown, visor, goggles, headlamp and chin strap.
+ line(add(helmet,P(-13,0)),add(helmet,P(15,1)),2,'#e4e8e6');
+ orb(add(head,P(11,4)),8,4,'#182a33');
  line(add(head,P(5,1)),add(head,P(15,2)),3,'#c8d4d5');
+ orb(add(helmet,P(12,0)),4,4,'#e5d9a6');
+ detail(add(head,P(-8,5)),add(head,P(8,-7)),2,'#a3a69f');
  line(add(hip,P(-12,26)),add(hip,P(16,24)),3,'#b49a78');
  leg(true);
  function arm(near){
@@ -83,7 +111,12 @@ function drawRigMountaineer(g,p){
   else if(hanging){elbow=add(S,P(near?13:-5,22));hand=add(elbow,P(near?7:12,40))}
   else{elbow=add(S,P(14,-20));hand=add(elbow,P(10,-17))}
   capsule(S,elbow,10,near?'#b84835':'#973e33','#632d2b');
-  capsule(elbow,hand,8,'#a43e31','#572a2b');orb(elbow,8,8,'#a44332');orb(hand,7,7,'#222f34');
+  capsule(elbow,hand,8,'#a43e31','#572a2b');orb(elbow,8,8,'#a44332');
+  // Contrasting reinforced cuff, reflective piping and insulated gloves.
+  detail(add(elbow,P(2,-4)),add(elbow,P(6,-8)),2,'#df9177');
+  orb(add(hand,P(-3,3)),8,6,'#434b4c');
+  orb(hand,7,7,'#222f34');
+  detail(add(hand,P(-4,-4)),add(hand,P(4,-5)),1.4,'#9ba8a7');
   return hand;
  }
  const far=arm(false),near=arm(true);

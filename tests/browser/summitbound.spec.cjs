@@ -78,3 +78,12 @@ test('v0.36 approved character rig renders instead of the old sprite and axes st
  expect(result.tune).toEqual({stride:1.25,clearance:1.25});
  await page.screenshot({path:'test-results/v036-character-integrated.png'});
 });
+
+test('v0.36.1 33-percent character downscale and detailed accessories',async({page})=>{
+ await page.goto(url);
+ const src=await page.evaluate(async()=>await (await fetch('/game/scripts/character-rig-v036.js')).text());
+ expect(src).toContain("const unit=.64*.67");
+ expect(src).toContain("crampon cleats");
+ expect(src).toContain("Helmet crown");
+ expect(typeof await page.evaluate(()=>drawRigMountaineer)).toBe('string');
+});

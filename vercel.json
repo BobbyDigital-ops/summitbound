@@ -1,3 +1,3 @@
 {
-  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v036-character-integration\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v033-sprite-prototype\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v031-art-pack-experiments\" ]; then exit 0; else exit 1; fi"
+  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v0361-character-detail\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v036-character-integration\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v033-sprite-prototype\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"dev/v031-art-pack-experiments\" ]; then exit 0; else exit 1; fi"
 }
