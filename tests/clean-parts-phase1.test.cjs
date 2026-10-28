@@ -5,9 +5,9 @@ const ctx={module:{exports:{}}};
 vm.runInNewContext(fs.readFileSync('public/game/scripts/clean-parts-phase1.js','utf8'),ctx);
 const L=ctx.module.exports;
 test('complete catalogue and distinct geometric assets',()=>{
- assert.equal(L.BASES.length,12);assert.equal(L.EXTENSIONS.length,12);
- assert.equal(L.SUMMITS.length,8);assert.equal(L.PLATFORMS.length,50);
- assert.equal(new Set([...L.BASES,...L.EXTENSIONS,...L.SUMMITS].map(p=>p.id)).size,32);
+ assert.equal(L.BASES.length,24);assert.equal(L.EXTENSIONS.length,24);
+ assert.equal(L.SUMMITS.length,16);assert.equal(L.PLATFORMS.length,50);
+ assert.equal(new Set([...L.BASES,...L.EXTENSIONS,...L.SUMMITS].map(p=>p.id)).size,64);
  for(const p of [...L.BASES,...L.EXTENSIONS,...L.SUMMITS]){
   assert.ok(p.vertices.length>=9);assert.ok(p.mounts.length>0);
   assert.ok(p.sockets.every(s=>L.S[s.size]>0&&s.vertices.length===5));
@@ -70,4 +70,23 @@ test('every platform mounting point is physically inside its rock component',()=
  for(const p of [...L.BASES,...L.EXTENSIONS,...L.SUMMITS])
   for(const m of p.mounts)
    assert.ok(pointInside([m.x,m.y],p.vertices),p.id+'/'+m.id+' outside rock');
+});
+
+test('all 64 textured components have distinct deterministic material seeds',()=>{
+ const list=[...L.BASES,...L.EXTENSIONS,...L.SUMMITS];
+ assert.equal(list.length,64);
+ assert.equal(new Set(list.map(p=>p.id)).size,64);
+ assert.equal(new Set(list.map(p=>p.role+':'+p.textureSeed)).size,64);
+ for(const p of list)assert.ok(['dark-granite','slate','frosted-granite','weathered-rock'].includes(p.material));
+});
+test('Cinematic texture renderer draws every rock and platform without throwing',()=>{
+ const textureContext={save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},clip(){},fillRect(){},fill(){},stroke(){},createLinearGradient(){return {addColorStop(){}}}};
+ const context={module:{exports:{}}};
+ vm.runInNewContext(fs.readFileSync('public/game/scripts/clean-cinematic-textures.js','utf8'),context);
+ const painter=context.module.exports;
+ for(const p of [...L.BASES,...L.EXTENSIONS,...L.SUMMITS,...L.PLATFORMS]){
+  const stats=painter.render(textureContext,p);
+  assert.ok(stats.facets>=18);
+  assert.ok(stats.bounds.every(Number.isFinite));
+ }
 });
