@@ -28,12 +28,12 @@ test('real candidate course is physically certified and returns all required ice
 });
 test('different modular seeds generate distinct, certified physical platform geometry',()=>{
  const c=make(),a=[];
- for(const seed of [11,12,13,14]){
+ for(let seed=11;seed<31;seed++){
   const result=vm.runInContext('(()=>{SummitModularEngine.nextSeed();applyRoute(0);return {report:SummitModularEngine.report(),geometry:JSON.stringify(spires.map(q=>q.ledges.map(l=>[l[0],l[1],l[2]])))}})()',c);
   a.push(result);
  }
  assert.ok(a.every(v=>v.report.certified),JSON.stringify(a.map(v=>v.report)));
- assert.ok(new Set(a.map(v=>v.geometry)).size>=3);
+ assert.ok(new Set(a.map(v=>v.geometry)).size>=12,'too many visually identical physical layouts');
 });
 test('Original restores after modular construction without residual modules',()=>{
  const c=make(),a=vm.runInContext("(()=>{activeSummitCourse='original';applyRoute(0);const original=JSON.stringify(spires.map(s=>({summit:s.summit,ledges:s.ledges})));activeSummitCourse='modular';applyRoute(0);activeSummitCourse='original';applyRoute(0);return {same:original===JSON.stringify(spires.map(s=>({summit:s.summit,ledges:s.ledges}))),remnants:spires.filter(s=>s.moduleAssembly).length};})()",c);
