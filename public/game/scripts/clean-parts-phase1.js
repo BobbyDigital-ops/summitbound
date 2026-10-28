@@ -14,10 +14,10 @@ function edge(x,y,size,side){
  return [0,.25,.5,.75,1].map(t=>[Math.round(x+Math.sin(Math.PI*t)*h*.12),Math.round(y+t*h)]);
 }
 function polygon(w,h,shape,seed){
- const a=seed%7,b=(seed*3)%9;
- if(shape==='base')return [[0,0],[w*.28,-b*4],[w*.61,15-a*3],[w,0],[w+45+a*5,h*.33],[w+95-b*7,h*.74],[w+50,h],[w*.57+18,h+25],[w*.26-60,h],[0-75-a*6,h*.61],[-25-b*5,h*.28]].map(p=>p.map(Math.round));
- if(shape==='summit')return [[0,h],[w*.09,h*.55],[w*.23,h*.42],[w*.33,0],[w*.41,h*.25],[w*.53,h*.13],[w*.63,h*.57],[w*.79,h*.34],[w,h]].map(p=>p.map(Math.round));
- return [[0,h*.1],[w*.23,0],[w*.47,h*.1],[w*.72,h*.02],[w,h*.19],[w*.88,h*.51],[w*.98,h*.79],[w*.58,h],[w*.24,h*.84],[0,h*.69]].map(p=>p.map(Math.round));
+ const a=seed%7,b=(seed*3)%9,shift=seed>=12?(seed%4-1.5)*.19:0;
+ if(shape==='base')return [[0,0],[w*.28,-b*4],[w*.61,15-a*3],[w,0],[w+45+a*5+w*shift,h*.33],[w+95-b*7-w*shift*.7,h*.74],[w+50,h],[w*(.57+shift*.7)+18,h+25],[w*.26-60,h],[0-75-a*6,h*.61],[-25-b*5,h*.28]].map(p=>p.map(Math.round));
+ if(shape==='summit')return [[0,h],[w*.09,h*.55],[w*.23,h*.42],[w*(.33+shift),0],[w*.41,h*.25],[w*.53,h*.13],[w*(.63-shift),h*.57],[w*.79,h*.34],[w,h]].map(p=>p.map(Math.round));
+ return [[0,h*.1],[w*.23,0],[w*.47,h*.1],[w*(.72+shift),h*.02],[w,h*.19],[w*(.88-shift),h*.51],[w*.98,h*.79],[w*.58,h],[w*.24,h*.84],[0,h*.69]].map(p=>p.map(Math.round));
 }
 function socketsFor(w,h,seed,role){
  if(role==='summit')return [{id:'bottom',size:'M',side:'left',vertices:edge(w*.15,h*.62,'M','left')}];
@@ -25,9 +25,9 @@ function socketsFor(w,h,seed,role){
   {id:'right',size:['S','M','L'][(seed+1)%3],side:'right',vertices:edge(w,h*.28,['S','M','L'][(seed+1)%3],'right')},
   {id:'upper',size:'M',side:'right',vertices:edge(w*.58,h*.08,'M','right')}];
 }
-const baseNames=['granite-bastion','split-massif','northern-buttress','sheared-ridge','weathered-tower','dark-plateau','storm-wall','scree-foundation','riven-crag','double-spine','frozen-escarpment','western-face'];
-const extensionNames=['shoulder','overhang','rock-rib','stepped-wall','broken-shelf','granite-fin','gully','hanging-scree','weathered-nose','ice-buttress','slate-wing','fractured-terrace'];
-const summitNames=['horn','split-crown','knife-edge','flat-crown','broken-needle','saddle','black-tooth','wind-ridge'];
+const baseNames=['granite-bastion','split-massif','northern-buttress','sheared-ridge','weathered-tower','dark-plateau','storm-wall','scree-foundation','riven-crag','double-spine','frozen-escarpment','western-face','twin-pillar','cloven-plateau','angular-keep','snowbound-column','needle-foundation','south-cliff','layered-bulwark','deep-cut-massif','rubble-keep','hollow-scar','broken-arch','storm-rampart'];
+const extensionNames=['shoulder','overhang','rock-rib','stepped-wall','broken-shelf','granite-fin','gully','hanging-scree','weathered-nose','ice-buttress','slate-wing','fractured-terrace','cliff-hook','sheer-rib','splintered-nose','scree-bridge','ice-carved-collar','granite-scar','rock-hinge','shattered-column','snow-shoulder','broken-spur','high-shelf','shadow-terrace'];
+const summitNames=['horn','split-crown','knife-edge','flat-crown','broken-needle','saddle','black-tooth','wind-ridge','hanging-horn','sawtooth-crown','flat-saddle','razor-back','storm-needle','split-horn','sugarloaf','sharp-crest'];
 function define(names,role){
  return names.map((name,i)=>{
   const w=role==='base'?510+((i*83)%280):role==='summit'?180+((i*37)%130):190+((i*67)%190);
@@ -37,7 +37,7 @@ function define(names,role){
    [{id:'mount-1',size:1+(i%5),x:Math.round(w*.16),y:Math.round(h*.28)},
     {id:'mount-2',size:1+((i+2)%5),x:Math.round(w*.48),y:Math.round(h*.52)},
     {id:'mount-3',size:1+((i+4)%5),x:Math.round(w*.27),y:Math.round(h*.76)}];
-  return Object.freeze({id:role+'-'+name,role,name,width:w,height:h,vertices:polygon(w,h,role,i),
+  return Object.freeze({id:role+'-'+name,role,name,width:w,height:h,vertices:polygon(w,h,role,i),textureSeed:i*7919+(role==='base'?101:role==='summit'?303:202),material:['dark-granite','slate','frosted-granite','weathered-rock'][i%4],
    sockets,mounts,iceMounts:role==='base'?[{id:'ice-face',x:Math.round(w*.17),y:Math.round(h*.45),height:200+(i%3)*80}]:[]});
  });
 }
@@ -70,6 +70,6 @@ function mountPlatform(piece,mountId,platformId){
   collision:{left:mount.x,right:mount.x+platform.width,top:mount.y},
   position:[mount.x,mount.y]};
 }
-const lib=Object.freeze({version:'1.0',S,BASES,EXTENSIONS,SUMMITS,PLATFORMS,ICE,random,edge,mate,mountPlatform});
+const lib=Object.freeze({version:'1.1',S,BASES,EXTENSIONS,SUMMITS,PLATFORMS,ICE,random,edge,mate,mountPlatform});
 if(typeof module==='object'&&module.exports)module.exports=lib;else root.SummitParts=lib;
 })(typeof globalThis!=='undefined'?globalThis:this);
