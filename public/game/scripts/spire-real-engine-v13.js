@@ -125,6 +125,41 @@ const SummitIntegrated=(()=>{
   }
   spawn(0,true);hint('MISSED MOUNTAIN — RETRY',2);return true;
  }
+ // Exterior side-wall contact only. The internal rock is NOT solid yet:
+ // each generated ledge is intentionally embedded in the outline. The narrow
+ // surface approach corridors must remain passable until carved-face geometry
+ // is fully authored. Collisions never modify a valid platform landing.
+ let sideHits=0;
+ function solidSideCollision(previousX){
+  if(!['AIRBORNE','FALLING'].includes(p.state))return false;
+  const feet=p.y+22;
+  for(let i=0;i<course.peaks.length;i++){
+   const q=course.peaks[i],localY=feet-q.worldY;
+   const sections=q.pieces.map(piece=>{
+    const min=piece.offsetY-piece.height,max=piece.offsetY;
+    return localY>=min&&localY<=max?SpireAssemblyV10.edgeAt(piece,localY):null;
+   }).filter(Boolean);
+   if(!sections.length)continue;
+   const left=q.worldX+Math.min(...sections.map(z=>z.left));
+   const right=q.worldX+Math.max(...sections.map(z=>z.right));
+   const entersFromLeft=previousX+10<=left&&p.x+10>left&&p.x<right;
+   const entersFromRight=previousX-10>=right&&p.x-10<right&&p.x>left;
+   if(!entersFromLeft&&!entersFromRight)continue;
+   // A climbable ledge is a genuine entrance/alcove in gameplay terms.
+   // Exempt the approach corridor around an actual landing; do not use a
+   // blanket no-collision hole for the entire mountain silhouette.
+   const alcove=platforms.some(pl=>pl.spire===i&&
+    Math.abs(feet-pl.top)<65&&
+    p.x>=pl.left-45&&p.x<=pl.right+45);
+   if(alcove)continue;
+   p.x=entersFromLeft?left-10:right+10;
+   p.vx=entersFromLeft?-Math.abs(p.vx)*.18:Math.abs(p.vx)*.18;
+   p.vy=Math.max(p.vy,60);sideHits++;
+   if(messageTimeout<.6)hint('ROCK FACE — FIND A REAL LANDING',1.4);
+   return true;
+  }
+  return false;
+ }
  function drawTerrain(g){
   SpireFoundationsV12.draw(g,foundations,SpireRenderV10);
   for(const q of course.peaks){
@@ -136,8 +171,8 @@ const SummitIntegrated=(()=>{
  function claim(){return {active,seed:course?.seed,gap:course?.gap,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
   physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
-  foundationCollision:'background-only',certified:false}}
+  foundationCollision:'background-only',rockSideHits:sideHits,rockMassCollision:'partial exterior walls only',certified:false}}
  install(42,1);
  return {active,install,claim,drawTerrain,climbEntry,beginClimb,down,tickClimb,
-  startX,finish,onLanding,onFail,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
+  startX,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
 })();
