@@ -70,8 +70,16 @@ const {spawn}=require('node:child_process');
   if(selection.gap!==210||selection.player!=='s0')throw Error('Gap selector integration failed '+JSON.stringify(selection));
   const sideWall=await page.evaluate(()=>{
    const q=SummitIntegrated.course.peaks[1],base=q.pieces[0];
-   const edge=SpireAssemblyV10.edgeAt(base,-1),left=q.worldX+edge.left;
-   p.x=left+1;p.y=q.worldY-23;p.vx=300;p.vy=40;
+   let choice=null;
+   for(let y=-6;y>-(base.height-6);y-=9){
+    const edge=SpireAssemblyV10.edgeAt(base,y);if(!edge)continue;
+    const left=q.worldX+edge.left,feet=q.worldY+y,x=left+1;
+    const alcove=platforms.some(pl=>pl.spire===1&&Math.abs(feet-pl.top)<65&&x>=pl.left-45&&x<=pl.right+45);
+    if(!alcove){choice={left,feet};break}
+   }
+   if(!choice)return {blocked:false,reason:'No non-alcove rock face available'};
+   const {left,feet}=choice;
+   p.x=left+1;p.y=feet-22;p.vx=300;p.vy=40;
    p.state='AIRBORNE';p.standingOn=null;
    const blocked=SummitIntegrated.solidSideCollision(left-25);
    return {blocked,x:p.x,expectedX:left-10,impactCount:SummitIntegrated.claim().rockSideHits};
