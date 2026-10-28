@@ -1138,7 +1138,7 @@ function draw(){
   paintWoodenStaff(shaft,.88);
   ctx.fillStyle='#293b43';ctx.beginPath();
   ctx.arc(p.anchorX,p.anchorY,5.2,0,PI*2);ctx.fill();
- } else if(p.state !== 'CLIMBING'&&p.state!=='HANGING'){
+ } else if(p.state !== 'CLIMBING'&&p.state!=='HANGING'&&p.state!=='AIRBORNE'&&p.state!=='FALLING'){
   // Match the 195-world-unit pole used by the physics engine at rest.
   const ends=restingStaffEnds(p.x,p.y-13,p.facingDir,cfg.poleLength);
   const shaft=[];
@@ -1250,11 +1250,10 @@ function draw(){
   needle.style.left=Math.min(100,phase/1.16*100)+'%';
   const feedback=document.getElementById('meterFeedback');
   if(feedback){
-   const label=phase<.11?'LOADING · HOLD':phase<.35?'MAX HEIGHT · RELEASE NOW':
-    phase<.70?'TRADE HEIGHT FOR DISTANCE':phase<.90?'MAX DISTANCE · RELEASE NOW':
-    phase<1.16?'DEAD ZONE · POWER DROPPING':'NO POWER · AUTO RELEASE';
+   const label=typeof vaultReleaseHudText==='function'?vaultReleaseHudText(p.vault,cfg,phase):
+    phase<.11?'BUILDING POWER':phase<.45?'HEIGHT':phase<.70?'BALANCED':phase<.93?'DISTANCE':'POWER DRAINING';
    if(feedback.textContent!==label)feedback.textContent=label;
-   feedback.classList.toggle('dead',phase>=.90);
+   feedback.classList.toggle('dead',phase>=.93);
   }
  }
  const inCrux=p.standingOn==='a1'?'THE BLACK NOTCH':
