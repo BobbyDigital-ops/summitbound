@@ -1,7 +1,7 @@
 name: Summitbound Playwright Visual Testing
 on:
   push:
-    branches: [main, 'dev/true-modular-peak-geometry-v041', 'dev/modular-physical-v040', 'dev/modular-peak-playtest', 'dev/phase1-difficulty-challenge', 'dev/peak1-safe-landing-fix', 'dev/phase2-reachability-five-challenges', 'dev/phase2-showcase-widths', 'dev/level-engine-phase1', 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
+    branches: [main, 'dev/phase1-cleanroom-map-engine', 'dev/true-modular-peak-geometry-v041', 'dev/modular-physical-v040', 'dev/modular-peak-playtest', 'dev/phase1-difficulty-challenge', 'dev/peak1-safe-landing-fix', 'dev/phase2-reachability-five-challenges', 'dev/phase2-showcase-widths', 'dev/level-engine-phase1', 'dev/v0364-mantle-physics', 'dev/v0363-grab-fix', 'dev/v0362-polish', 'dev/playwright-browser-ci', 'dev/v034-character-motion', 'dev/v036-character-integration', 'dev/v0361-character-detail']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -17,6 +17,8 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Verify cleanroom piece library and all 50 platforms
+        run: node --test tests/clean-parts-phase1.test.cjs
       - name: Certify real modular course across seeds
         run: node --test tests/modular-physical-v040.test.cjs
       - name: Install Chromium
