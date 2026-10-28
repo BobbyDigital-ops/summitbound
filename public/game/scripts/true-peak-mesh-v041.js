@@ -114,8 +114,10 @@ function makeRoot(peak,index,surface,tag,seed,ledgeIndices,rootNo){
    let edge=at(original,y);
    for(const route of ice){
     const low=route.points[0].y,high=route.points.at(-1).y;
-    if(y<high+3||y>low+8)continue;
-    const fade=Math.min(1,(y-high-3)/35,(low+8-y)/35);
+    // Keep full-depth backing through the actual ice entry and exit;
+    // taper only outside the climb's physical end points.
+    if(y<high-36||y>low+45)continue;
+    const fade=Math.min(1,(y-(high-36))/36,(low+45-y)/45);
     if(fade<=0)continue;
     edge=Math.min(edge,lerp(edge,iceXOnPath(route.points,y)-72,fade));
    }
