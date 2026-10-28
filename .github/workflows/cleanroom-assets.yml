@@ -19,3 +19,5 @@ jobs:
           node-version: '22'
       - name: Test prefab catalogue and assembled spires
         run: node --test tests/clean-parts-phase1.test.cjs tests/clean-map-assembly.test.cjs tests/clean-geometry-audit.test.cjs
+      - name: Acceptance gate - vertical modular spires
+        run: node --test tests/cleanroom-spire-acceptance.test.cjs
