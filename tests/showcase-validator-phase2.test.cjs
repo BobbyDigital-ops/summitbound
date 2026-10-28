@@ -46,3 +46,20 @@ test('Measure candidate width adjustments without changing approved map',()=>{
  console.log('CANDIDATE_WIDTHS '+JSON.stringify(v));
  assert.ok(v.some(x=>x.valid),'No safe width alterations found');
 });
+
+test('Live course applies certified width changes without losing viable routes',()=>{
+ const c=world();
+ const value=vm.runInContext(`(()=>{const saved=SummitShowcase;
+  SummitShowcase=undefined;applyRoute(0);
+  const before=saved.report(spires,shelfTimingProfiles,compilePhysicalCourseGraph,auditPlayableCourse);
+  SummitShowcase=saved;applyRoute(0);
+  const after=saved.report(spires,shelfTimingProfiles,compilePhysicalCourseGraph,auditPlayableCourse);
+  return {check:saved.noRegression(before,after),changes:
+   spires.flatMap((s,i)=>s.ledges.filter(l=>l.showcaseReason).map(l=>({peak:i,width:l[1]-l[0],reason:l.showcaseReason}))),
+   weak:after.unreachable,graph:after.graphValid};
+ })()`,c);
+ console.log('LIVE_CURATED_CHANGES '+JSON.stringify(value));
+ assert.ok(value.check.valid,value.check.issues.join('; '));
+ assert.ok(value.graph);
+ assert.ok(value.changes.length>=3,'Showcase did not create sufficient actual playable surface variation');
+});
