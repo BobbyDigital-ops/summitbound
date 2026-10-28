@@ -1,0 +1,72 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Summitbound | Phase 3A/3B playable two-spire crossing</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0b1620;color:#e5eef4;font:14px system-ui}header{padding:13px 20px;border-bottom:1px solid #344b62}h1{margin:0;font-size:20px}p{margin:7px 0;color:#bacbd5;line-height:1.5}.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center}button,select{font:inherit;border-radius:6px;border:1px solid #67879d;background:#23445b;color:#edf6fa;padding:9px;cursor:pointer}.panels{max-width:1600px;margin:auto;padding:12px;display:grid;grid-template-columns:3fr 1fr;gap:12px}.game{overflow:hidden;background:#182b3c;border:1px solid #415b70;border-radius:8px}.game canvas{width:100%;height:min(74vh,780px);min-height:430px;display:block}.status{padding:14px;background:#193045;border:1px solid #415c73;border-radius:8px}small{color:#b5ccd8}.test{margin-top:15px;white-space:pre-wrap;font:12px ui-monospace;color:#b5ceda}.mobile{display:flex;justify-content:space-between;gap:10px;padding:10px}.mobile button{min-width:64px;min-height:48px;font-weight:bold;touch-action:none}.mobile div{display:flex;gap:7px}.warn{border-left:3px solid #b98f59;padding:8px 12px;background:#253442;color:#e4d8ba}@media(max-width:950px){.panels{grid-template-columns:1fr}.game canvas{min-height:420px;height:55vh}}@media(max-width:520px){.mobile button{min-width:45px}}
+</style></head><body><header><h1>SUMMITBOUND · PHASE 3A + 3B</h1><p>Two independent modular mountains. Original pole-vault dynamics, physical swept platform landing, real climbing routes and seamless decorative foundation blocks beneath the rising spire. No old mountain textures or world maps. Not the finished five-spire game.</p><div class="controls"><label>Spire gap: <select id="gap"></select></label><button id="regen">New mountains</button><button id="reset">Retry crossing</button><button id="lower">Start on first lower platform</button><small id="seed">Seed 42</small></div></header>
+<div class="panels"><div class="game"><canvas id="view" width="1350" height="830"></canvas><div class="mobile"><div><button data-key="left">◀</button><button data-key="right">▶</button></div><div><button data-key="down">▼</button><button data-key="up">▲</button><button data-key="vault">PLANT</button></div></div></div>
+<aside class="status"><b id="message">Loading…</b><p><strong>Move:</strong> A / D or ← / →.<br/><strong>Plant and release:</strong> Space.<br/><strong>Climb:</strong> W / ↑ on a ladder or icefall. Alternate A / D for quicker ice climbing.<br/><strong>Retry:</strong> R.</p><p class="warn">No automatic flight correction, platform rescue or hidden physics boost. A miss is a miss. Scenic foundation blocks are intentionally non-colliding; full exposed-rock collision needs a separate pass.</p><div id="telemetry" class="test"></div></aside></div>
+<script src="/game/scripts/physics.js"></script><script src="/game/scripts/climb-mechanics.js"></script><script src="/game/scripts/mountaineer-v032.js"></script><script src="/game/scripts/spire-kit-v10.js"></script><script src="/game/scripts/spire-assembly-v10.js"></script><script src="/game/scripts/spire-render-v10.js"></script><script src="/game/scripts/spire-phase2-playtest.js"></script><script src="/game/scripts/spire-course-v11.js"></script><script src="/game/scripts/spire-phase3-two-spire.js"></script><script src="/game/scripts/spire-foundations-v12.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let seed=42;const game=new SpirePhase3.TwoSpirePlaytest({course:SpireCourseV11,assemble:SpireAssemblyV10.assemble,
+ physics:PolePhysicsEngine,iceStep:iceClimbDisplacement,config:SpirePhase2.CONFIG});
+window.__phase3=game;
+const gaps=$('gap');for(const g of SpireCourseV11.GAP_PRESETS){const option=document.createElement('option');option.value=g.id;option.textContent=g.id+' · '+g.gap+' units';gaps.append(option)}
+gaps.value='1';
+let foundation=SpireFoundationsV12.build(game.course);
+function reload(){game.load(seed,Number(gaps.value));foundation=SpireFoundationsV12.build(game.course);$('seed').textContent='Seed '+seed;window.__phase3Foundation=foundation}
+reload();
+gaps.onchange=reload;$('regen').onclick=()=>{seed++;reload()};$('reset').onclick=()=>game.reset();
+$('lower').onclick=()=>game.reset('first-landing');
+const keyMap={a:'left',d:'right',arrowleft:'left',arrowright:'right',w:'up',arrowup:'up',s:'down',arrowdown:'down',' ':'vault'};
+function keyAct(k,pressed){const action=keyMap[k];if(!action)return;
+ game.action(action,pressed);
+ if(pressed&&(action==='left'||action==='right'))game.action('axe-'+action,true);
+}
+document.addEventListener('keydown',e=>{const key=e.key.toLowerCase();if(!keyMap[key]){if(key==='r')game.reset();return}
+ e.preventDefault();if(!e.repeat)keyAct(key,true)});
+document.addEventListener('keyup',e=>{const key=e.key.toLowerCase();if(!keyMap[key])return;e.preventDefault();keyAct(key,false)});
+document.querySelectorAll('[data-key]').forEach(button=>{const k=button.dataset.key;
+ button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);game.action(k,true);
+  if(k==='left'||k==='right')game.action('axe-'+k,true)});
+ for(const ev of ['pointerup','pointercancel','lostpointercapture'])
+  button.addEventListener(ev,e=>{e.preventDefault();game.action(k,false)})});
+window.addEventListener('blur',()=>{for(const k of ['left','right','up','down','vault'])game.action(k,false)});
+const canvas=$('view'),ctx=canvas.getContext('2d');let last=performance.now(),acc=0,report=0;
+function paint(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ let bg=ctx.createLinearGradient(0,0,0,canvas.height);
+ bg.addColorStop(0,'#314f5f');bg.addColorStop(.7,'#142d3f');bg.addColorStop(1,'#081624');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,canvas.width,canvas.height);
+ const p=game.player,scale=.92;
+ ctx.save();ctx.translate(canvas.width*.36-p.x*scale,canvas.height*.58-p.y*scale);ctx.scale(scale,scale);
+ SpireFoundationsV12.draw(ctx,foundation,SpireRenderV10);
+ for(const spire of game.terrain){
+  ctx.save();ctx.translate(spire.worldX,spire.worldY);
+  SpireRenderV10.draw(ctx,spire,{clear:false});ctx.restore();
+ }
+ // Reuse only the established character drawing function and pole physics;
+ // all mountain, ladder, platform and foundation assets are v10–v12 originals.
+ ctx.save();ctx.translate(p.x,p.y+22);ctx.scale(.52,.52);
+ if(typeof drawPremiumMountaineer==='function')
+  drawPremiumMountaineer(ctx,{...p,runDistance:p.runDistance||0,state:p.state},0,p.state==='RUNNING');
+ ctx.restore();
+ if(p.vault){ctx.strokeStyle='#e1d0a8';ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(p.x+2,p.y-5);ctx.lineTo(p.vault.anchorX,p.vault.anchorY);ctx.stroke();}
+ ctx.restore();
+}
+function frame(now){
+ const d=Math.min(.05,(now-last)/1000);last=now;acc+=d;
+ for(let i=0;i<6&&acc>=1/120;i++,acc-=1/120)game.tick(1/120);
+ paint();
+ if(now-report>140){report=now;const state=game.inspect(),p=state.player;
+  $('message').textContent=state.won?'SECOND SPIRE REACHED — ASCENT SUCCESSFUL':state.message;
+  $('telemetry').textContent=['Gap '+game.course.gap+' world units','Velocity '+p.vx.toFixed(1),
+  'State '+p.state,'Feet '+(p.y+22).toFixed(1),'Standing '+(p.surface||'AIRBORNE'),
+  'Takeoffs '+state.touchdowns+' landings / '+state.vaults+' vaults',
+  'Second spire '+(p.surface?.startsWith('1:')?'YES':'not yet'),
+  'Foundation blocks '+foundation.foundations.reduce((s,f)=>s+f.blocks.length,0),
+  'Physics unchanged · full rock collision pending'].join('\n');
+ }
+ requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>
