@@ -1,0 +1,1 @@
+Phase 1: clean-room map generator. Existing Five Peaks data must not be used. Status: incomplete, branch only; do not merge. Existing production maps remain until independent replacements are playable. Keep old physics and controls.
