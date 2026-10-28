@@ -54,16 +54,19 @@
   // v0.32: two distinct controllable trajectories at one launch speed.
   // Early = very steep and short; late = shallow and FARTHER; red = spent.
   // Crucially, do not fade power before the distance window.
-  const progress=clamp((u-.24)/.62,0,1);
-  const theta=.72*progress;
-  const load=clamp((u-.11)/.11,0,1);
-  const red=clamp((u-.90)/.26,0,1);
-  const fade=1-red*red*(3-2*red);
-  const energy=(115+665*Math.pow(ratio,1.45))*load*(1-.10*progress)*fade;
+  const progress=clamp((u-.22)/.64,0,1);
+  // Launch choices are deliberately distinct, even with identical run-up:
+  // first: vertical recoil; later: a low fast push; overheld: no usable recoil.
+  const load=clamp((u-.10)/.11,0,1);
+  const red=clamp((u-.93)/.23,0,1);
+  const drained=1-red*red*(3-2*red);
+  const drive=Math.pow(ratio,1.5);
+  const horizontal=(1080*drive)*Math.pow(progress,2.35);
+  const vertical=(110+775*drive*(1-.70*Math.pow(progress,1.3)));
   return {
-   vx:state.facingDir*energy*Math.sin(theta)*(config.arcadeRange??1),
-   vy:-energy*Math.cos(theta)*(config.arcadeLift??1)+
-     config.gravity*.28*Math.max(0,u-1)*state.rideDuration
+   vx:state.facingDir*horizontal*(config.arcadeRange??1)*load*drained,
+   vy:-vertical*(config.arcadeLift??1)*load*drained+
+     config.gravity*.3*Math.max(0,u-1)*state.rideDuration
   };
  };
 })();

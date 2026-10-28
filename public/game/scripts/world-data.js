@@ -248,9 +248,8 @@ function applyRoute(seed){
  // terraces too: no completely featureless spires in the five-peak course.
  // These sit below the main running skyline and are not free shortcuts.
  if(typeof FEATURED_COURSE!=='undefined'){
-  const start=spires[0].summit,final=spires[4].summit;
+  const start=spires[0].summit;
   spires[0].ledges=[[start[0]+110,start[0]+315,start[2]+165,'snow','Lower shelf']];
-  spires[4].ledges=[[final[0]-210,final[0]-20,final[2]+155,'snow','Frozen buttress']];
  }
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge'||platforms[k].kind==='arrival')platforms.splice(k,1);
