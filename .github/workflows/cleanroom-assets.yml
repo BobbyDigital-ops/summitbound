@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '22'
       - name: Certify new modular spire assets, scaffolds, ladders, vertical ice and rendered shapes
-        run: node --test tests/spire-v10.test.cjs tests/spire-phase2.test.cjs tests/spire-course-v11.test.cjs
+        run: node --test tests/spire-v10.test.cjs tests/spire-phase2.test.cjs tests/spire-course-v11.test.cjs tests/spire-phase3-two-spire.test.cjs
 
   visual:
     runs-on: ubuntu-latest
