@@ -70,7 +70,7 @@ test('TRUE mesh pieces are polygon solids with exact matching jigsaw seams',()=>
 });
 test('twenty seeds change mountain polygons, not merely platform labels',()=>{
  const c=make();
- const out=vm.runInContext("(()=>{const all=[];for(let i=0;i<20;i++){applyRoute(0);const report=SummitModularEngine.report();all.push({report,valid:SummitModularEngine.auditInstalled().valid,physics:auditPlayableCourse().valid,graph:compilePhysicalCourseGraph().valid,fingerprints:spires.map(p=>p.moduleAssembly.mesh.fingerprint),roots:spires.map(p=>p.moduleAssembly.mesh.roots.length)});SummitModularEngine.nextSeed();}return all})()",c);
+ const out=vm.runInContext("var platforms=spires.map((m,i)=>platform('s'+i,...m.summit,{kind:'summit',spire:i}));function platform(id,l,r,t,s='snow',extra={}){return {id,left:l,right:r,top:t,...extra}};(()=>{const all=[];for(let i=0;i<20;i++){applyRoute(0);const report=SummitModularEngine.report();all.push({report,valid:SummitModularEngine.auditInstalled().valid,physics:auditPlayableCourse().valid,graph:compilePhysicalCourseGraph().valid,fingerprints:spires.map(p=>p.moduleAssembly.mesh.fingerprint),roots:spires.map(p=>p.moduleAssembly.mesh.roots.length)});SummitModularEngine.nextSeed();}return all})()",c);
  assert.ok(out.every(q=>q.report.certified&&q.valid&&q.physics&&q.graph),JSON.stringify(out.filter(q=>!q.report.certified||!q.valid||!q.physics||!q.graph).map(q=>q.report)));
  for(let peak=0;peak<5;peak++)
   assert.ok(new Set(out.map(q=>q.fingerprints[peak])).size>=15,
