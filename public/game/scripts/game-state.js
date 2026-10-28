@@ -37,7 +37,9 @@ function spawn(stage=0, keepTime=false){
  meter.style.display='none'; document.getElementById('victory').classList.remove('open');
  const zoom = getZoom();
  camera.x = x - .26 * innerWidth / zoom; camera.y = p.y - .60 * innerHeight / zoom;
- hint(stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.', 3);
+ hint((typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)?
+  'MODULAR ASCENT — ORIGINAL CHARACTER AND POLE PHYSICS':
+  (stage ? 'Back at your campfire checkpoint.' : 'THE FIVE PEAKS — one continuous run, four dangerous crossings.'), 3);
 }
 
 function gameReset(){landingHistory=[];practiceTakeoff=null;spawn(0)}
