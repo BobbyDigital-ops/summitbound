@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Summitbound — new vertical spires v10</title><style>
+*{box-sizing:border-box}body{margin:0;color:#e3ecf3;background:#0d1924;font:14px system-ui}header{padding:18px 22px;border-bottom:1px solid #304658}h1{margin:0 0 6px;font-size:21px}p{max-width:900px;line-height:1.5;color:#adbfcc}button,select{background:#25465b;color:#e7f2fa;border:1px solid #607d90;border-radius:7px;padding:9px;cursor:pointer}main{padding:15px;max-width:1500px;margin:auto}section{background:#162938;border:1px solid #3a5869;border-radius:9px;margin-bottom:16px;padding:16px}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.gallery{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.tile{background:#0f2230;border-radius:7px;overflow:hidden;cursor:pointer;border:1px solid #304b5d}.tile.selected{border:2px solid #63d6e3}.tile canvas{width:100%;height:420px;display:block}.tile label{display:block;padding:6px;color:#c4d8e5;font-size:12px}.detail{display:grid;grid-template-columns:1fr 1fr;gap:16px}.detail canvas{width:100%;height:550px;background:linear-gradient(#29485e,#112637);border-radius:8px}pre{white-space:pre-wrap;font:12px ui-monospace;color:#bcd4df;max-height:520px;overflow:auto}.muted{font-size:12px;color:#a8bccb}@media(max-width:900px){.gallery{grid-template-columns:repeat(2,1fr)}.detail{grid-template-columns:1fr}}@media(max-width:500px){.gallery{grid-template-columns:1fr}}
+</style></head><body><header><h1>Summitbound: entirely new vertical modular mountain kit</h1><p>Independent prototype using 64 newly created rock prefabs, 50 rock or scaffold platforms, and straight ice/ladders. All joins are literal matching S/M/L boundaries. Not integrated with the existing game physics.</p><div class="controls"><button id="next">Generate 5 different spires</button><label>Modules <select id="count"><option value="any">3–7</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label><span id="summary" class="muted"></span></div></header><main><section><h2>Generated spires — select to inspect</h2><div id="gallery" class="gallery"></div></section><section><h2>Selected spire and actual join data</h2><div class="detail"><canvas id="detail" width="610" height="650"></canvas><pre id="report"></pre></div></section></main>
+<script src="/game/scripts/spire-kit-v10.js"></script><script src="/game/scripts/spire-assembly-v10.js"></script><script src="/game/scripts/spire-render-v10.js"></script><script>
+let seed=43,selected=0,spires=[];
+function scene(canvas,spire){const ctx=canvas.getContext('2d'),b=spire.bounds;
+ ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#14293a';ctx.fillRect(0,0,canvas.width,canvas.height);
+ const scale=Math.min((canvas.width-32)/(b.right-b.left),(canvas.height-35)/(b.bottom-b.top));
+ ctx.save();ctx.translate((canvas.width-(b.right-b.left)*scale)/2-b.left*scale,(canvas.height-(b.bottom-b.top)*scale)/2-b.top*scale);ctx.scale(scale,scale);
+ SpireRenderV10.draw(ctx,spire,{clear:false});ctx.restore();
+}
+function display(){
+ const grid=document.getElementById('gallery');grid.innerHTML='';
+ spires.forEach((s,i)=>{const tile=document.createElement('div');tile.className='tile'+(i===selected?' selected':'');
+ const cv=document.createElement('canvas');cv.width=260;cv.height=480;tile.appendChild(cv);
+ const label=document.createElement('label');label.textContent='Spire '+(i+1)+' · '+s.pieces.length+' modules · '+s.platforms.filter(p=>p.kind==='scaffold').length+' scaffolds';tile.append(label);grid.append(tile);
+ tile.onclick=()=>{selected=i;display()};scene(cv,s)});
+ const current=spires[selected];scene(document.getElementById('detail'),current);
+ const report=['Seed: '+current.seed,'Parts: '+current.pieces.map(p=>p.prefab).join(' → '),
+ 'Connections: '+current.joins.map(j=>j.size).join(' / '),'Platforms: '+current.platforms.map(p=>p.kind+' ('+p.prefab+')').join(', '),
+ 'Climbs: '+current.routes.map(r=>r.kind+' '+r.source+' → '+r.target).join(', '),
+ 'Departure width: '+current.departure.width.toFixed(1),
+ 'Validated geometry: '+SpireAssemblyV10.inspect(current).valid,
+ 'Pole-vault physics validated: NO'].join('\n\n');
+ document.getElementById('report').textContent=report;
+ document.getElementById('summary').textContent='Seed '+seed+' · 5 independently assembled spires';
+}
+function generate(){const n=document.getElementById('count').value;spires=Array.from({length:5},(_,i)=>SpireAssemblyV10.assemble(seed+i*113,n==='any'?{}:{pieces:Number(n)}));selected=0;display()}
+document.getElementById('next').onclick=()=>{seed+=1;generate()};document.getElementById('count').onchange=generate;generate();
+</script></body></html>
