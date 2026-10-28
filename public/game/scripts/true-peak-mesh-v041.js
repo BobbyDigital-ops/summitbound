@@ -95,12 +95,12 @@ function makeRoot(peak,index,surface,tag,seed,ledgeIndices,rootNo){
  // Twelve deliberately distinct geological silhouettes. Base profiles
  // are hand-designed offsets, not the previous single sloping trapezoid.
  const profiles=[
-  [55,245,80,400,520], [310,110,445,180,650],
-  [90,380,155,520,300], [200,65,355,155,700],
-  [410,220,125,530,470], [115,320,490,210,670],
-  [250,85,520,305,540], [65,455,260,470,760],
-  [360,145,310,580,410], [90,275,70,650,570],
-  [220,505,155,355,790], [405,95,440,210,650]
+  [55,185,80,330,410], [260,110,335,180,430],
+  [90,310,155,380,300], [180,65,315,155,470],
+  [300,220,125,420,360], [115,290,390,210,470],
+  [250,85,395,305,420], [65,355,260,370,490],
+  [280,145,310,420,310], [90,275,70,460,410],
+  [220,405,155,355,510], [305,95,340,210,470]
  ];
  const offsets=profiles[(seed*5+index*7+rootNo*3)%profiles.length];
  const right=[
@@ -200,11 +200,15 @@ function flankExtension(index,root,seed,variant){
  if(!join)return null;
  const r=rng(seed*4201+index*7181+variant*371),seam=join.vertices.map(v=>[...v]);
  const center=join.center,h=SIZE[join.size],x=Math.max(...seam.map(p=>p[0]));
- const outer=x+140+r()*250,up=center-h*.57-r()*70,low=center+h*.72+r()*90;
+ const outer=x+105+r()*135,up=center-h*.54-r()*35,low=center+h*.66+r()*45;
  const poly=seam.concat([
-  [outer-45,low],[outer+35,center+h*.32],
-  [outer,center+h*.06],[outer-45,up+54],
-  [x+46,up],[x+10,center-h*.35]
+  [x+36,low],[outer-43,low+28],
+  [outer-21,center+h*.42],
+  [outer+8,center+h*.20],
+  [outer-19,center+h*.08],
+  [outer-58,center-h*.18],
+  [outer-85,up+13],
+  [x+35,up],[x+12,center-h*.29]
  ]);
  return {kind:'flank',role:'extension',id:'flank-'+index+'-'+root.id,
   name:EXT_LIBRARY[(seed*2+index*3+variant*7)%EXT_LIBRARY.length],
