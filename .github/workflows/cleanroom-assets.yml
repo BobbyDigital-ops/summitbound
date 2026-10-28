@@ -15,3 +15,25 @@ jobs:
           node-version: '22'
       - name: Certify new modular spire assets, scaffolds, ladders, vertical ice and rendered shapes
         run: node --test tests/spire-v10.test.cjs
+
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install preview dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Inspect five generated, textured vertical spires in Chromium
+        run: node tests/spire-v10-browser.cjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spire-v10-visual-preview
+          path: test-results/spire-v10-*.png
+          retention-days: 7
