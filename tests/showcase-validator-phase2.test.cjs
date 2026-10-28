@@ -63,3 +63,21 @@ test('Live course applies certified width changes without losing viable routes',
  // Existing Peak 1 graph discrepancy is measured and preserved, not silently dismissed.
  assert.ok(value.changes.length>=3,'Showcase did not create sufficient actual playable surface variation');
 });
+
+test('diagnose first low shelf: swept position and width candidates',()=>{
+ const c=world();
+ const results=vm.runInContext(`(()=>{applyRoute(0);
+  const l=spires[1].ledges[0],original=l.slice(),out=[];
+  for(const dx of [-100,-70,-40,-20,0,20,40,70,100])
+   for(const dw of [0,30,60,100,150])
+    for(const dy of [-45,-20,0,20,45]){
+     l[0]=original[0]+dx;l[1]=original[1]+dx+dw;l[2]=original[2]+dy;
+     const p=shelfTimingProfiles(spires[1].ledges,spires[0].summit)[0];
+     if(p.safe>=2)out.push({dx,dw,dy,...p});
+    }
+  l.splice(0,l.length,...original);
+  return out.sort((a,b)=>a.dw-b.dw||Math.abs(a.dx)+Math.abs(a.dy)-Math.abs(b.dx)-Math.abs(b.dy)).slice(0,40);
+ })()`,c);
+ console.log('PEAK1_SAFE_CANDIDATES '+JSON.stringify(results));
+ assert.ok(results.length>0,'no geometry proposals could fix the ledge');
+});
