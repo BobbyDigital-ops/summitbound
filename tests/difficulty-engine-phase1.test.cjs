@@ -48,3 +48,29 @@ test('survey physically reachable challenge variants without altering saved base
  console.log('CHALLENGE_SURVEY '+JSON.stringify(results));
  assert.equal(results.base.length,5);
 });
+
+test('alternate course is tougher but all five physical stages remain certified',()=>{
+ const run=harness();
+ const report=run(`(()=>{applyRoute(0);
+  const original=SummitDifficulty.gradeCourse(spires,shelfTimingProfiles);
+  const originalGeometry=JSON.stringify(spires.map(p=>({summit:p.summit,ledges:p.ledges,ridgeArrival:p.ridgeArrival})));
+  activeSummitCourse='challenge';applyRoute(0);
+  const challenge=SummitDifficulty.gradeCourse(spires,shelfTimingProfiles);
+  const audit=auditPlayableCourse(),graph=compilePhysicalCourseGraph();
+  const check=SummitDifficulty.compare(original,challenge);
+  const changedGeometry=JSON.stringify(spires.map(p=>({summit:p.summit,ledges:p.ledges,ridgeArrival:p.ridgeArrival})));
+  activeSummitCourse='original';applyRoute(0);
+  const restored=JSON.stringify(spires.map(p=>({summit:p.summit,ledges:p.ledges,ridgeArrival:p.ridgeArrival})));
+  return {original,challenge,audit,graph,check,changed:changedGeometry!==originalGeometry,restored:restored===originalGeometry};
+ })()`);
+ console.log('CHALLENGE_GRADES '+JSON.stringify({original:report.original.sections,challenge:report.challenge.sections,
+  compare:report.check,failures:report.audit.failures,graphIssues:report.graph.issues,restored:report.restored}));
+ assert.equal(report.changed,true,'challenge did not alter collision terrain');
+ assert.equal(report.restored,true,'original five peaks not restored exactly');
+ assert.ok(report.audit.valid,report.audit.failures.join('; '));
+ assert.ok(report.graph.valid,report.graph.issues.join('; '));
+ assert.ok(report.challenge.valid);
+ assert.ok(report.check.harder>=3,'not enough sections grew harder');
+ assert.ok(report.challenge.sections.at(-1).score>report.challenge.sections[0].score+20,
+  'final crossing not materially tougher than opening');
+});
