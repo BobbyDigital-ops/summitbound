@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 const source=p=>fs.readFileSync('public/game/scripts/'+p,'utf8');
 test('real release engine: steep early, longer late, spent overheld, momentum matters',()=>{
- const ctx=vm.createContext({console,Image:class Image{}});for(const name of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js'])vm.runInContext(source(name),ctx,{filename:name});
+ const ctx=vm.createContext({console,Image:class Image{},document:{getElementById(){return {textContent:'',style:{},classList:{add(){},remove(){}}}},querySelectorAll(){return []}}});for(const name of ['physics.js','world-data.js','course-engine.js','pole-dynamics.js'])vm.runInContext(source(name),ctx,{filename:name});
  const result=vm.runInContext(`(()=>{
   applyRoute(0);
   function sample(u,speed){
