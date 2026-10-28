@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Summitbound — 10 real spire gaps</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d1b29;color:#e0eaf2;font:14px system-ui}header{padding:18px 24px;background:#172b3b;border-bottom:1px solid #405769}h1{font-size:23px;margin:0 0 7px}p{max-width:1050px;color:#b9c8d5;line-height:1.5;margin:6px 0 12px}.tools{display:flex;flex-wrap:wrap;gap:9px;align-items:center}button,select{background:#254b63;color:#eef8fa;border:1px solid #587d93;border-radius:7px;padding:9px;font:inherit;cursor:pointer}main{padding:17px 22px;max-width:1600px;margin:auto}.panel{background:#142a3b;border:1px solid #3f5666;border-radius:10px;padding:14px;margin-bottom:15px}canvas{display:block;width:100%;height:auto;background:linear-gradient(#1e364b,#081522);border-radius:7px}h2{font-size:16px;margin:0 0 10px}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.stat{border:1px solid #445f71;border-radius:7px;padding:10px;background:#1b3446}.stat strong{display:block;color:#e4eff2}.stat small{display:block;color:#adc2d0;margin-top:3px}.status{font-size:13px;color:#b6cddc}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#abc5d3}.dot{width:11px;height:9px;display:inline-block;border-radius:2px;margin-right:5px}@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}header{padding:12px}main{padding:10px}}
+</style></head><body><header><h1>SUMMITBOUND · Ten modular spire distances</h1><p>Five independently built mountains, with gaps measured from the outermost rock of one spire to the next. The course is accepted only when sampled trajectories from the existing PolePhysicsEngine land inside real generated platforms. These are structural flight samples, not gameplay certification.</p><div class="tools"><label>Gap difficulty <select id="gap"></select></label><button id="regen">Another course</button><span class="status" id="status">Generating…</span></div></header>
+<main><section class="panel"><h2>Course layout — 4 crossings, 5 independently generated spires</h2><canvas id="course" width="1550" height="850"></canvas><div class="legend"><span><i class="dot" style="background:#d59753"></i>Orange departure decks</span><span><i class="dot" style="background:#83c9ac"></i>Rock or scaffold landings</span><span><i class="dot" style="background:#f0d697"></i>Sampled crossing line</span><span><i class="dot" style="background:#a9dce6"></i>Straight ice or ladders</span></div></section><section class="panel"><h2>Four physical gaps and sampled flights</h2><div id="crossings" class="stats"></div></section><p>Important: there is no replacement of the original gameplay map in this preview. The player, pole mechanics, rock collisions and all four crossing landings still need to be tested as one uninterrupted playable level before publication.</p></main>
+<script src="/game/scripts/physics.js"></script><script src="/game/scripts/spire-kit-v10.js"></script><script src="/game/scripts/spire-assembly-v10.js"></script><script src="/game/scripts/spire-render-v10.js"></script><script src="/game/scripts/spire-phase2-playtest.js"></script><script src="/game/scripts/spire-course-v11.js"></script>
+<script>
+const $=id=>document.getElementById(id),select=$('gap'),canvas=$('course'),ctx=canvas.getContext('2d');
+let seed=42,course=null;
+for(const g of SpireCourseV11.GAP_PRESETS){const o=document.createElement('option');o.value=String(g.id);o.textContent=g.id+' — '+g.gap+' world units';select.append(o)}
+select.value='1';
+function draw(){
+ if(!course)return;
+ const all=course.peaks,bounds={
+  left:Math.min(...all.map(p=>p.worldX+p.bounds.left)),
+  right:Math.max(...all.map(p=>p.worldX+p.bounds.right)),
+  top:Math.min(...all.map(p=>p.worldY+p.bounds.top)),
+  bottom:Math.max(...all.map(p=>p.worldY+p.bounds.bottom))};
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ const w=bounds.right-bounds.left,h=bounds.bottom-bounds.top;
+ const scale=Math.min((canvas.width-100)/w,(canvas.height-95)/h);
+ ctx.save();ctx.translate(48-bounds.left*scale,36-bounds.top*scale);ctx.scale(scale,scale);
+ for(let i=0;i<all.length;i++){
+  const p=all[i];ctx.save();ctx.translate(p.worldX,p.worldY);
+  SpireRenderV10.draw(ctx,p,{clear:false});ctx.restore();
+ }
+ ctx.lineWidth=2.2/scale;ctx.setLineDash([10/scale,6/scale]);
+ for(const x of course.crossings){
+  const from=all[x.from],to=all[x.to],target=to.platforms.find(p=>p.id===x.targetPlatform);
+  ctx.beginPath();ctx.moveTo(from.worldX+x.flight.launchX,from.worldY+from.departure.y-22);
+  ctx.lineTo(to.worldX+(target.left+target.right)/2,to.worldY+target.y-22);
+  ctx.strokeStyle='#f4d99a';ctx.stroke();
+ }
+ ctx.setLineDash([]);
+ ctx.restore();
+ $('crossings').innerHTML=course.crossings.map((x,i)=>{
+  const a=document.createElement('div');a.className='stat';
+  const tag=document.createElement('strong');tag.textContent='Spire '+(i+1)+' → '+(i+2);
+  const gap=document.createElement('small');gap.textContent='Rock gap '+x.gap+' units';
+  const launch=document.createElement('small');launch.textContent='Sampled vault '+x.flight.speed+' speed, '+Math.round(x.flight.releaseFraction*100)+'% release';
+  const contact=document.createElement('small');contact.textContent='Landing '+x.targetPlatform+' · 40 units higher';
+  a.append(tag,gap,launch,contact);return a.outerHTML;
+ }).join('');
+ $('status').textContent='Seed '+course.seed+' · '+course.peaks.length+' spires · '+course.crossings.length+' sampled crossings · course rerolls '+course.generationAttempts;
+ window.__courseV11=course;
+}
+function update(){
+ $('status').textContent='Finding sampled crossing paths…';
+ try{
+  course=SpireCourseV11.build(seed,{preset:Number(select.value)},
+   {assemble:SpireAssemblyV10.assemble,physics:PolePhysicsEngine,config:SpirePhase2.CONFIG});
+  draw();
+ }catch(e){course=null;$('status').textContent='Rejected: '+e.message;console.error(e)}
+}
+select.onchange=update;$('regen').onclick=()=>{seed++;update()};update();
+</script></body></html>
