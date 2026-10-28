@@ -12,6 +12,10 @@ const SummitIntegrated=(()=>{
  const X_SHIFT=700,Y_SHIFT=2400;
  let course=null,foundations=null,platformRoutes=new Map(),routes=[];
  let setupError=null;
+ // Static rock, scaffold, ice and foundation art is rasterised once per
+ // selected seed. Do not repaint hundreds of mineral strokes every frame.
+ const staticPaint=new Map();
+
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const platformId=(i,local)=>local==='departure'?'s'+i:
    'l'+i+'-'+Number(local.split('-').at(-1));
@@ -30,6 +34,7 @@ const SummitIntegrated=(()=>{
   foundations=SpireFoundationsV12.build(course);
   const validation=SpireFoundationsV12.inspect(course,foundations);
   if(!validation.valid)throw Error('Foundation invalid: '+validation.errors.join('; '));
+  staticPaint.clear();
   routes=[];platformRoutes=new Map();platforms.length=0;
   for(let i=0;i<5;i++){
    const q=course.peaks[i];
@@ -160,18 +165,45 @@ const SummitIntegrated=(()=>{
   }
   return false;
  }
+ function paintCache(i){
+  const q=course.peaks[i],background=foundations.foundations.filter(f=>f.spire===i);
+  const left=Math.floor(q.worldX+q.bounds.left-8);
+  const right=Math.ceil(q.worldX+q.bounds.right+8);
+  const top=Math.floor(q.worldY+q.bounds.top-8);
+  const bottom=Math.ceil(Math.max(q.worldY+q.bounds.bottom,foundations.floor)+8);
+  const width=Math.max(1,right-left),height=Math.max(1,bottom-top);
+  // Canvas dimensions are intentionally bounded so older Android GPUs do
+  // not allocate enormous bitmaps for unusually tall generated mountains.
+  if(width>2048||height>4096)return null;
+  const canvas=document.createElement('canvas');
+  canvas.width=width;canvas.height=height;
+  const g=canvas.getContext('2d');
+  if(!g)return null;
+  g.translate(-left,-top);
+  SpireFoundationsV12.draw(g,{foundations:background},SpireRenderV10);
+  g.save();g.translate(q.worldX,q.worldY);
+  SpireRenderV10.draw(g,q,{clear:false});g.restore();
+  return {image:canvas,left,top,width,height};
+ }
  function drawTerrain(g){
-  SpireFoundationsV12.draw(g,foundations,SpireRenderV10);
-  for(const q of course.peaks){
-   g.save();g.translate(q.worldX,q.worldY);
-   SpireRenderV10.draw(g,q,{clear:false});
-   g.restore();
+  const visibleLeft=camera.x-80,visibleRight=camera.x+innerWidth/getZoom()+80;
+  for(let i=0;i<course.peaks.length;i++){
+   const q=course.peaks[i];
+   if(q.worldX+q.bounds.right<visibleLeft||q.worldX+q.bounds.left>visibleRight)continue;
+   if(!staticPaint.has(i))staticPaint.set(i,paintCache(i));
+   const chunk=staticPaint.get(i);
+   if(chunk)g.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
+   else{
+    // Safety fallback for unsupported canvas sizes.
+    SpireFoundationsV12.draw(g,{foundations:foundations.foundations.filter(f=>f.spire===i)},SpireRenderV10);
+    g.save();g.translate(q.worldX,q.worldY);SpireRenderV10.draw(g,q,{clear:false});g.restore();
+   }
   }
  }
  function claim(){return {active,seed:course?.seed,gap:course?.gap,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
   physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
-  foundationCollision:'background-only',rockSideHits:sideHits,rockMassCollision:'partial exterior walls only',certified:false}}
+  foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,rockSideHits:sideHits,rockMassCollision:'partial exterior walls only',certified:false}}
  install(42,1);
  return {active,install,claim,drawTerrain,climbEntry,beginClimb,down,tickClimb,
   startX,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
