@@ -1,0 +1,17 @@
+name: Validate v0.33 sprite prototype
+on:
+  push:
+    branches: ['dev/v033-sprite-prototype']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sprite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sprite atlas and pose wiring
+        run: node --test tests/sprite-climber-v033.test.cjs
