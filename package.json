@@ -43,7 +43,8 @@
     "test:alpine": "node --test tests/alpine-art-axe-v030.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:playwright": "playwright test"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -67,6 +68,7 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "@playwright/test": "1.56.1"
   }
 }

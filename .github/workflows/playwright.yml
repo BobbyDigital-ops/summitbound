@@ -1,0 +1,32 @@
+name: Summitbound Playwright Visual Testing
+on:
+  push:
+    branches: [main, 'dev/playwright-browser-ci']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test desktop and mobile gameplay
+        run: npm run test:playwright
+      - name: Upload screenshots videos and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: summitbound-playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7

@@ -1,3 +1,7 @@
+## Playwright browser visual tests
+
+Run `npm install`, `npx playwright install chromium`, then `npm run test:playwright`. Automated GitHub Actions tests cover desktop Chromium and mobile landscape; artifacts include screenshots/videos/traces. The test workflow does not deploy to Vercel. Keep actual scene screenshots as evidence when judging whether a character improvement is worthwhile.
+
 # v0.33 Sprite Character Prototype
 
 Actual external SVG sprite atlas with 12 hand-authored poses (idle, 4 running frames, pole plant, launch, flight, forward axe reach, hang, pullup, climb). The game uses sprite rects rather than the Canvas procedural body model. Sprite test on a separate development branch; no Vercel build. Visual acceptance at real game size remains necessary. No changes to physics.
