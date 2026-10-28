@@ -81,28 +81,38 @@ function rock(g,L,R,T,leftAt,rightAt,seed){
  * a readable landing / takeoff face, not a fake pointed collider. */
 function paintModuleSilhouettes(g,i){
  const s=spires[i],assembly=s.moduleAssembly;
- if(!assembly)return;
+ // The starting runway needs a completely unambiguous clean skyline.
+ if(!assembly||i===0)return;
  const tops=s.ridgeArrival?[s.ridgeArrival,s.summit]:[s.summit];
  let n=0;
  for(const piece of assembly.pieces){
   if(piece.role!=='summit'&&!piece.scenic)continue;
-  const surface=tops[Math.min(tops.length-1,(i+n)%tops.length)];
-  n++;
-  const cx=Math.max(surface[0]+55,Math.min(surface[1]-52,piece.anchor.x));
-  const top=surface[2],span=piece.connector==='L'?132:piece.connector==='M'?96:58;
-  const rise=piece.role==='summit'?144+(i%3)*26:76+(n%3)*17;
-  const xs=[cx-span,cx-span*.61,cx-span*.25,cx,cx+span*.18,cx+span*.63,cx+span];
-  const ys=[top+45,top-22,top-rise*.56,top-rise,top-rise*.54,top-18,top+55];
-  const shape=xs.map((x,k)=>[x,ys[k]]);
-  const fade=g.createLinearGradient(cx-span,top-rise,cx+span,top+90);
-  fade.addColorStop(0,'#657883');fade.addColorStop(.5,'#384b5b');
-  fade.addColorStop(1,'#182836');
-  fill(g,shape.concat([[cx+span*.75,top+140],[cx-span*.75,top+140]]),fade);
-  fill(g,[[cx-span*.22,top-rise*.58],[cx,top-rise],
-   [cx+span*.18,top-rise*.54],[cx+span*.1,top-rise*.38],[cx,top-rise*.65]],
-   '#dce3dfad');
-  stroke(g,[[cx,top-rise],[cx+span*.22,top-rise*.52],[cx+span*.3,top-25]],
-   '#111f30aa',2.2);
+  if(piece.role!=='summit'&&n%2===1){n++;continue;}
+  const surface=tops[(i+n)%tops.length];n++;
+  // Silhouette remains behind a continuous, genuinely walkable crest.
+  const width=surface[1]-surface[0],cx=surface[0]+width*(.22+(n%2)*.14);
+  const span=piece.connector==='L'?60:piece.connector==='M'?49:35;
+  const rise=piece.role==='summit'?84+(i%3)*17:49+(n%3)*12;
+  const t=surface[2];
+  const ridge=[
+   [cx-span*1.1,t+38],[cx-span*.82,t-12],[cx-span*.65,t-rise*.30],
+   [cx-span*.25,t-rise*.67],[cx-span*.08,t-rise*.61],
+   [cx+span*.10,t-rise],[cx+span*.33,t-rise*.51],
+   [cx+span*.61,t-rise*.39],[cx+span*.86,t-4],
+   [cx+span*1.2,t+62]];
+  const ink=g.createLinearGradient(cx-span,t-rise,cx+span,t+80);
+  ink.addColorStop(0,'#65757b');ink.addColorStop(.34,'#3c4e59');
+  ink.addColorStop(.72,'#233745');ink.addColorStop(1,'#182b39');
+  fill(g,ridge.concat([[cx+span*.7,t+115],[cx-span*.7,t+115]]),ink);
+  fill(g,[[cx-span*.60,t-rise*.26],[cx-span*.25,t-rise*.67],
+   [cx+span*.10,t-rise],[cx+span*.11,t-rise*.53],
+   [cx-span*.04,t-rise*.57]],'#71858a52');
+  // Wind crust and small exposed frost; never a white triangular cap.
+  stroke(g,[[cx-span*.27,t-rise*.64],[cx-span*.08,t-rise*.61],
+   [cx+span*.10,t-rise],[cx+span*.32,t-rise*.48]],
+   '#c5d5d08a',2.1);
+  stroke(g,[[cx+span*.12,t-rise*.94],[cx+span*.41,t-rise*.33],
+   [cx+span*.29,t+9]],'#112836aa',1.7);
  }
 }
 function paintModuleGranite(g,i){
