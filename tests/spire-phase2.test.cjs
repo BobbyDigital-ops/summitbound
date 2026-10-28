@@ -109,3 +109,14 @@ test('preserves all four placement-law exceptions and stand-alone physics import
  assert.ok(ph.includes('this.physics.stepVault'));
  assert.ok(ph.includes('this.iceStep'));
 });
+
+test('three independent spire scenes can be climbed from the lowest platform to their real departure decks',()=>{
+ for(const seed of [42,143,257]){
+  const g=game(seed);
+  g.action('up',true);
+  for(let i=0;i<12500&&!g.completed;i++)g.tick(1/120);
+  assert.equal(g.completed,true,'seed '+seed+' never reached orange departure');
+  assert.equal(g.player.standingOn,'departure');
+  assert.equal(g.player.y,g.spire.departure.y-22);
+ }
+});
