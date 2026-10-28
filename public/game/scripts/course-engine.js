@@ -82,8 +82,8 @@ function installFeaturedCourseGeometry(spires){
 // onto a lower rock ridge and must *vault again* across a deep exposed
 // fracture before gaining the higher takeoff shelf. Not decorative shapes.
 const FEATURED_RIDGE_CRUXES=Object.freeze([
- {peak:1,gap:320,rise:120,landingWidth:260,name:'The Black Notch'},
- {peak:3,gap:380,rise:120,landingWidth:335,name:'The Broken Crown'}
+ {peak:1,gap:320,rise:120,landingWidth:290,name:'The Black Notch'},
+ {peak:3,gap:380,rise:120,landingWidth:290,name:'The Broken Crown'}
 ]);
 function prepareFeaturedRidgeCruxes(mountains){
  for(const crux of FEATURED_RIDGE_CRUXES){
