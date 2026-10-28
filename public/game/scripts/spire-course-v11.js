@@ -11,7 +11,10 @@ function landings(physics,cfg,source,rise){
  const dt=1/120,deck=source.departure,platform={x:(deck.left+deck.right)/2,
   y:deck.y+60,width:deck.width,height:120};
  const samples=[],phases=[.35,.40,.45,.50,.55,.60,.65,.70,.75,.80,.85];
- const spots=[deck.left+7,deck.right-123].filter((v,i,a)=>v>=deck.left+5&&v<=deck.right-120&&a.indexOf(v)===i);
+ // Keep a genuinely usable 48-unit plant window at full sprint.
+ // Planting at right-123 left only ~3 units before the plant misses,
+ // requiring impossible timing on slower browsers and touchscreens.
+ const spots=[deck.right-168].filter(px=>px>=deck.left+8);
  for(const px of spots){
   const available=Math.max(0,px-deck.left-5);
   const vlimit=Math.sqrt(2*cfg.runAcceleration*available);
