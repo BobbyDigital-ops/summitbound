@@ -46,7 +46,7 @@ function loop(now){
  render();
  if(now-lastReport>140){lastReport=now;const snap=game.snapshot(),p=snap.player;
   status.textContent=snap.message;
-  telemetry.textContent='Seed '+snap.seed+'\\nState '+p.state+'\\nStanding on '+(p.standingOn||'none')+'\\nX '+p.x.toFixed(1)+' / Y '+p.y.toFixed(1)+'\\nClimbing '+(p.climb||'none')+'\\nDeck reached '+snap.completed+'\\nPlatform classes '+[...new Set(game.spire.platforms.map(p=>p.kind))].join(', ');
+  telemetry.textContent='Seed '+snap.seed+'\nState '+p.state+'\nStanding on '+(p.standingOn||'none')+'\nX '+p.x.toFixed(1)+' / Y '+p.y.toFixed(1)+'\nClimbing '+(p.climb||'none')+'\nDeck reached '+snap.completed+'\nPlatform classes '+[...new Set(game.spire.platforms.map(p=>p.kind))].join(', ');
  }
  requestAnimationFrame(loop);
 }
