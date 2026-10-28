@@ -80,7 +80,10 @@ function installFeaturedCourseGeometry(spires){
   const mountain=spires[peakIndex],choices=widthPlan[peakIndex];
   for(let tier=0;tier<mountain.ledges.length;tier++){
    const ledge=mountain.ledges[tier],type=choices[Math.min(tier,choices.length-1)];
-   const limits=SummitLevelEngine.WIDTHS[type];
+   const catalogue=typeof SummitLevelEngine!=='undefined'?SummitLevelEngine.WIDTHS:{
+    narrow:{min:65,max:115},shelf:{min:125,max:215},terrace:{min:230,max:370}
+   };
+   const limits=catalogue[type];
    const original=ledge[1]-ledge[0];
    // Avoid moving either the arrival edge or the ice-route entry point.
    // Actual geometry still must pass the full course audit.
