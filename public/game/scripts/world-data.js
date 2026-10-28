@@ -475,6 +475,8 @@ function rockBackingForIce(index,y,baseX){
 // Source of truth for the opposite cliff boundary. Ice backing and
 // rendering must use this same physical silhouette or floating ice returns.
 function mountainFlankX(index,y){
+ const mesh=spires[index]?.moduleAssembly?.mesh;
+ if(mesh&&typeof SummitPeakMesh!=='undefined')return SummitPeakMesh.meshFlank(mesh,y);
  const s=spires[index],R=s.summit[1],T=s.summit[2];
  const depth=y-T,character=s.ridge?.character??.5;
  const legacyCave=index===4&&typeof FEATURED_COURSE==='undefined';
@@ -486,6 +488,8 @@ function mountainFlankX(index,y){
   Math.sin(depth*.047+index*2)*7+stratified;
 }
 function mountainContourX(index,y){
+ const mesh=spires[index]?.moduleAssembly?.mesh;
+ if(mesh&&typeof SummitPeakMesh!=='undefined')return SummitPeakMesh.meshContour(mesh,y);
  const nodes=mountainContourNodes(index);
  if(y<=nodes[0].y) return rockBackingForIce(index,y,nodes[0].x);
  for(let i=0;i<nodes.length-1;i++){
