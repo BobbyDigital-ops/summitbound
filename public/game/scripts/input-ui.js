@@ -18,6 +18,7 @@ document.getElementById('regenModular')?.addEventListener('click',()=>{
  if(activeSummitCourse!=='modular'){activeSummitCourse='modular';}
  SummitModularEngine.nextSeed();
  applyRoute(0);gameReset();refreshDifficultyView();
+ document.getElementById('tuning').hidden=true;
  hint('NEW MODULAR PEAKS · SEED '+SummitModularEngine.seed(),2.5);
 });
 refreshDifficultyView();
