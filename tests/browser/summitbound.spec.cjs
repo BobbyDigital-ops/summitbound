@@ -85,5 +85,5 @@ test('v0.36.1 33-percent character downscale and detailed accessories',async({pa
  expect(src).toContain("const unit=.64*.67");
  expect(src).toContain("crampon cleats");
  expect(src).toContain("Helmet crown");
- expect(typeof await page.evaluate(()=>drawRigMountaineer)).toBe('string');
+ expect(await page.evaluate(()=>typeof drawRigMountaineer)).toBe('function');
 });
