@@ -48,7 +48,7 @@ function generateAssembly(peak,index,seed){
  const upper=peak.ridgeArrival||peak.summit, main=peak.summit;
  const pieces=[];
  const add=(role,id,connector,anchor,extra={})=>{
-  const piece={role,id,connector,join:CONNECTOR[connector].span,
+  const piece={role,id,connector,join:connector==='ROOT'?0:CONNECTOR[connector].span,
    anchor:{x:Math.round(anchor.x),y:Math.round(anchor.y)},...extra};
   pieces.push(piece);return piece;
  };
