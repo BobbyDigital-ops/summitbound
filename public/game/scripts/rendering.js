@@ -1014,8 +1014,15 @@ function backdropViewport(iw,ih,w,h,cameraX,cameraY){
 }
 
 function draw(){
+ const axeAim=typeof axeCatchApproach==='function'?axeCatchApproach():null;
  const catchBtn=document.getElementById('catch');
- if(catchBtn)catchBtn.hidden=!(p.state==='AIRBORNE'||p.state==='FALLING')||(typeof catchUsed!=='undefined'&&catchUsed);
+ if(catchBtn){
+  const hide=!axeAim;
+  if(catchBtn.hidden!==hide)catchBtn.hidden=hide;
+  const caption=axeAim?.ready?'F / TAP — AXE NOW':'F / TAP — PREPARE';
+  if(catchBtn.textContent!==caption)catchBtn.textContent=caption;
+  catchBtn.classList.toggle('armed',!!axeAim?.ready);
+ }
  const w = innerWidth, h = innerHeight, zoom = getZoom();
  const targetX = p.x - .28 * w / zoom, targetY = p.y - .56 * h / zoom;
  camera.x += (targetX - camera.x) * .055; camera.y += (targetY - camera.y) * .045;
@@ -1077,6 +1084,21 @@ function draw(){
    decorate(i);
   }
  }
+ // A small world-space aiming cue attaches to the ACTUAL collider lip,
+ // never to decorations. Calm outline turns amber only for a true bite.
+ if(axeAim){
+  ctx.save();
+  const x=axeAim.edge,y=axeAim.pl.top,glow=0.5+0.5*Math.sin(sec*9);
+  ctx.lineWidth=axeAim.ready?3:2;
+  ctx.strokeStyle=axeAim.ready?'#f3d19b':'#c4d1c9ad';
+  ctx.beginPath();ctx.arc(x,y+1,16+glow*4,Math.PI*.25,Math.PI*1.75);ctx.stroke();
+  ctx.fillStyle=axeAim.ready?'#f2d19e':'#b6c9c7';
+  ctx.beginPath();ctx.arc(x,y+1,3.5,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 12px system-ui';
+  ctx.textAlign='center';
+  ctx.fillText(axeAim.ready?'F  ·  AXE!':'F  ·  READY',x,y-30);
+  ctx.restore();
+ }
  if(spires[4].cave&&
    (spires[4].cave.right-camera.x)*zoom>-200&&
    (spires[4].cave.left-camera.x)*zoom<w+200){
@@ -1116,7 +1138,7 @@ function draw(){
   paintWoodenStaff(shaft,.88);
   ctx.fillStyle='#293b43';ctx.beginPath();
   ctx.arc(p.anchorX,p.anchorY,5.2,0,PI*2);ctx.fill();
- } else if(p.state !== 'CLIMBING'){
+ } else if(p.state !== 'CLIMBING'&&p.state!=='HANGING'){
   // Match the 195-world-unit pole used by the physics engine at rest.
   const ends=restingStaffEnds(p.x,p.y-13,p.facingDir,cfg.poleLength);
   const shaft=[];
@@ -1155,6 +1177,19 @@ function draw(){
  }
  if(p.state === 'CLIMBING' && p.climb?.isIce) drawIcePicks();
  if(p.state==='HANGING'&&p.catchLedge){
+  // Strong rear silhouette and reaching arms convey a real suspended
+  // body instead of a floating running pose.
+  const side=p.catchLedge.side,extension=p.catchLedge.strokes||0;
+  ctx.save();ctx.lineCap='round';
+  ctx.fillStyle='#802633';ctx.beginPath();
+  ctx.ellipse(p.x,p.y-45,13,20,side*.15,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ac4650';ctx.lineWidth=9;ctx.beginPath();
+  ctx.moveTo(p.x-8,p.y-46);ctx.lineTo(p.x+side*10,p.y-38);
+  ctx.lineTo(p.catchLedge.edge-side*4,p.y-23);ctx.stroke();
+  ctx.strokeStyle='#252d34';ctx.lineWidth=6;ctx.beginPath();
+  ctx.moveTo(p.x-5,p.y-26);ctx.lineTo(p.x-14,p.y+8+extension*1.5);
+  ctx.moveTo(p.x+5,p.y-26);ctx.lineTo(p.x+12,p.y+6-extension*1.5);ctx.stroke();
+  ctx.restore();
   // Axe visibly lodged into the same ledge lip as the collision contact.
   const x=p.catchLedge.edge,y=p.y-20,side=p.catchLedge.side;
   ctx.strokeStyle='#aab9ba';ctx.lineWidth=4;ctx.beginPath();

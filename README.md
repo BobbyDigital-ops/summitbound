@@ -1,3 +1,13 @@
+# SUMMITBOUND v0.30 — ALPINE REBIRTH (DEVELOPMENT PREVIEW)
+
+**Art and axe pass, not a physics rewrite.** The independent v0.30 branch replaces the featured terrain painter with cached world-space alpine granite, irregular broken snow crests and ledges, wind-bent conifers, dead timber, scree, embedded non-tubular ice, and a detailed expedition campsite. Every drawn summit/ledge and ice path uses the same world-space coordinates as the actual physical course. Painter source: `public/game/scripts/alpine-art-v030.js`. The legacy v0.20 painter remains loaded first for archive/tests and is overridden by v0.30 before gameplay.
+
+**Axe recovery UX:** desktop F or the contextual mobile button throws **one** axe. A restrained cue appears as a real lip approaches, turns amber at the edge-accurate catch window, and can buffer one slightly early throw for at most 220ms. Success still requires descending beside a real collision lip; no auto catch, magnetic ledge, free horizontal reach or extra attempt. Four alternating A/D strikes finish the physical hang recovery. Hanging now hides the carried staff and has a separate reaching silhouette.
+
+**Validation:** the v0.30 Alpine suite covers shared terrain painter wiring, cache use, a correct direct contact, early throw buffer, rejected out-of-range throws, and a catch requiring alternating strikes. Full existing regression and Chromium smoke also run on the branch. Hands-on desktop/Android visual and gameplay sign-off, performance profiling and eventual 100 curated levels remain separate commercial gates.
+
+---
+
 # SUMMITBOUND v0.20.1 — REFORGE QUALITY PASS
 
 **Quality pass:** both Windward and Firespine campsite summits have been raised so a full-speed vault from the preceding ridge cannot bypass the intended campsite landing and ice climb. Their real collision and ice routes remain the source of truth; archived procedural tests use their original frozen physics instead of the current player vault. CI now collects all regression failures before failing, rather than stopping at the first test. Trial ghosts use version 10 because the terrain changed. Real player feel and Android profiling still need sign-off.

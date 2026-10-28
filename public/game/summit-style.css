@@ -76,6 +76,10 @@ button.sel{background:#78847f;color:#10191c;border-color:#b1bab4}
 #help{background:#101c26bc;border-radius:4px;color:#d0d9d8}
 #tuning{background:#101b24f2;border-color:#83949d69;border-radius:6px}
 
+/* v0.30 — contextual catch cue. A muted rim signal is visible only near
+   a REAL platform edge; tapping early briefly buffers a single throw. */
+#catch.armed{border-color:#e2c49d;background:#5a4b3beb;box-shadow:0 0 0 2px #a98d6770,0 0 24px #d1ab5c40;color:#ffecbe}
+#catch:not(.armed){border-color:#91a8aab5;background:#233a43ed;color:#d5e4e1}
 #catch{display:block;position:fixed;z-index:8;bottom:max(96px,calc(env(safe-area-inset-bottom) + 92px));right:max(16px,env(safe-area-inset-right));min-width:105px;min-height:55px;border:1px solid #bec6bb89;background:#243440e0;letter-spacing:.08em;font-size:12px;font-weight:900}
 #catch[hidden]{display:none}
 @media(max-width:760px){#catch{bottom:max(85px,calc(env(safe-area-inset-bottom) + 78px));min-height:57px;right:11px}}

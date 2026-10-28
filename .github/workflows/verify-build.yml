@@ -1,7 +1,7 @@
 name: Verify Summitbound build
 on:
   push:
-    branches: [main, 'dev/mega-v092-v097', 'dev/visual-recovery-v099-v0912', 'dev/vault-dynamics-v0130', 'dev/five-peaks-challenge-and-bleak-art']
+    branches: [main, 'dev/mega-v092-v097', 'dev/visual-recovery-v099-v0912', 'dev/vault-dynamics-v0130', 'dev/five-peaks-challenge-and-bleak-art', 'dev/v030-alpine-art-and-axe']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           failed=0
-          for suite in ice cliff staff leaps art ascent vault mobile renderer browser visual terrain climb chasm procedural allroutes ice-art cache resolution template ice-network ice-snow terrain-art phase4b phase4c phase5 phase6 phase7 phase8 five-peaks peak-retry vault-dynamics precision-vault reforge; do
+          for suite in ice cliff staff leaps art ascent vault mobile renderer browser visual terrain climb chasm procedural allroutes ice-art cache resolution template ice-network ice-snow terrain-art phase4b phase4c phase5 phase6 phase7 phase8 five-peaks peak-retry vault-dynamics precision-vault reforge alpine; do
             echo "::group::test:$suite"
             npm run "test:$suite" || { echo "::error title=Regression failure::test:$suite failed"; failed=1; }
             echo "::endgroup::"

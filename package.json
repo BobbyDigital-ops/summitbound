@@ -40,6 +40,7 @@
     "test:vault-dynamics": "node --test tests/vault-dynamics.test.cjs",
     "test:precision-vault": "node --test tests/precision-vault-balance.test.cjs",
     "test:reforge": "node --test tests/reforge-skill-and-art.test.cjs",
+    "test:alpine": "node --test tests/alpine-art-axe-v030.test.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

@@ -131,7 +131,7 @@ test('A player who hesitates while hanging drops; catch cannot repeat in same fl
   p={x:pl.left-30,y:pl.top+17,vx:310,vy:110,
     state:'FALLING',standingOn:null,facingDir:1};
   catchUsed=false;attemptAxeCatch();
-  elapsed+=2.7;updateHanging(1/120);
+  elapsed+=3.0;updateHanging(1/120);
   const again=attemptAxeCatch();
   return {state:p.state,again,used:catchUsed};
  })()`);
@@ -141,8 +141,12 @@ test('A player who hesitates while hanging drops; catch cannot repeat in same fl
 });
 test('Dark art and renderer are one pipeline, not unrelated bright decoration',()=>{
  const html=fs.readFileSync('public/game/summit-leap-v081.html','utf8'),
-  art=source('bleak-art.js'),render=source('rendering.js');
- assert.match(html,/v0\.20\.0/);
+  art=source('bleak-art.js'),render=source('rendering.js'),
+  alpine=source('alpine-art-v030.js');
+ assert.match(alpine,/drawSpire=function alpineSpire/);
+ assert.match(alpine,/decorate=function alpineVegetation/);
+ assert.match(html,/v0\.30\.0/);
+ assert.match(html,/game\/scripts\/alpine-art-v030\.js/);
  assert.match(html,/game\/scripts\/bleak-art\.js/);
  assert.match(html,/game\/scripts\/rescue-catch\.js/);
  assert.match(art,/drawSpire=function bleakSpire/);

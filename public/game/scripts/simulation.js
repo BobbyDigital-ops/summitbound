@@ -299,6 +299,10 @@ function tick(dt){
   if(p.x < 12){ p.x = 12; p.vx = 0; }
  }
  
+ // A thrown axe is only accepted after the moving tip intersects a real
+ // platform rim. Run this after motion, before ordinary landing collision.
+ if(typeof updatePendingAxeCatch==='function'&&updatePendingAxeCatch())return;
+
  // Actual collision against the upper crux wall shares the precise same
  // geometric function as the rendered granite. A low miss hits solid rock
  // and drops into the fracture; it cannot phase through the mountain.
