@@ -19,11 +19,28 @@ function polygon(w,h,shape,seed){
  if(shape==='summit')return [[0,h],[w*.09,h*.55],[w*.23,h*.42],[w*(.33+shift),0],[w*.41,h*.25],[w*.53,h*.13],[w*(.63-shift),h*.57],[w*.79,h*.34],[w,h]].map(p=>p.map(Math.round));
  return [[0,h*.1],[w*.23,0],[w*.47,h*.1],[w*(.72+shift),h*.02],[w,h*.19],[w*(.88-shift),h*.51],[w*.98,h*.79],[w*.58,h],[w*.24,h*.84],[0,h*.69]].map(p=>p.map(Math.round));
 }
-function socketsFor(w,h,seed,role){
- if(role==='summit')return [{id:'bottom',size:'M',side:'left',vertices:edge(w*.15,h*.62,'M','left')}];
- return [{id:'left',size:['S','M','L'][seed%3],side:'left',vertices:edge(0,h*.25,['S','M','L'][seed%3],'left')},
-  {id:'right',size:['S','M','L'][(seed+1)%3],side:'right',vertices:edge(w,h*.28,['S','M','L'][(seed+1)%3],'right')},
-  {id:'upper',size:'M',side:'right',vertices:edge(w*.58,h*.08,'M','right')}];
+function socketsFor(w,h,seed,role,vertices){
+ // Select real polygon boundary edges, then replace the selected edge with
+ // the canonical five-point S/M/L connector profile. Three universal shapes.
+ const sizes=['S','M','L'],chosen=role==='summit'?[1]:[0,1,2];
+ const sockets=[];
+ for(let k=0;k<chosen.length;k++){
+  const index=chosen[k],edgeIndex=(index*3+1)%vertices.length;
+  const p=vertices[edgeIndex],q=vertices[(edgeIndex+1)%vertices.length];
+  const side=index===0?'left':'right',size=sizes[(seed+k)%3];
+  // A socket's shape is embedded directly into the rock's boundary.
+  const dx=q[0]-p[0],dy=q[1]-p[1],length=Math.hypot(dx,dy);
+  if(length<4)throw Error('Degenerate boundary edge');
+  const nx=-dy/length,ny=dx/length,depth=S[size]*.12;
+  const profile=[0,.25,.5,.75,1].map(t=>[
+   Math.round(p[0]+dx*t+nx*Math.sin(Math.PI*t)*depth),
+   Math.round(p[1]+dy*t+ny*Math.sin(Math.PI*t)*depth)
+  ]);
+  vertices.splice(edgeIndex+1,0,...profile.slice(1,-1));
+  sockets.push({id:index===0?'left':index===1?'right':'upper',
+   size,side,vertices:[vertices[edgeIndex],...profile.slice(1,-1),vertices[edgeIndex+4]]});
+ }
+ return sockets;
 }
 const baseNames=['granite-bastion','split-massif','northern-buttress','sheared-ridge','weathered-tower','dark-plateau','storm-wall','scree-foundation','riven-crag','double-spine','frozen-escarpment','western-face','twin-pillar','cloven-plateau','angular-keep','snowbound-column','needle-foundation','south-cliff','layered-bulwark','deep-cut-massif','rubble-keep','hollow-scar','broken-arch','storm-rampart'];
 const extensionNames=['shoulder','overhang','rock-rib','stepped-wall','broken-shelf','granite-fin','gully','hanging-scree','weathered-nose','ice-buttress','slate-wing','fractured-terrace','cliff-hook','sheer-rib','splintered-nose','scree-bridge','ice-carved-collar','granite-scar','rock-hinge','shattered-column','snow-shoulder','broken-spur','high-shelf','shadow-terrace'];
@@ -32,12 +49,13 @@ function define(names,role){
  return names.map((name,i)=>{
   const w=role==='base'?510+((i*83)%280):role==='summit'?180+((i*37)%130):190+((i*67)%190);
   const h=role==='base'?690+((i*109)%370):role==='summit'?180+((i*47)%170):250+((i*59)%210);
-  const sockets=socketsFor(w,h,i,role);
+  const vertices=polygon(w,h,role,i);
+  const sockets=socketsFor(w,h,i,role,vertices);
   const mounts=role==='summit'?[{id:'crest',size:3,x:Math.round(w*.38),y:Math.round(h*.75)}]:
    [{id:'mount-1',size:1+(i%5),x:Math.round(w*.16),y:Math.round(h*.28)},
     {id:'mount-2',size:1+((i+2)%5),x:Math.round(w*.48),y:Math.round(h*.52)},
     {id:'mount-3',size:1+((i+4)%5),x:Math.round(w*.27),y:Math.round(h*.76)}];
-  return Object.freeze({id:role+'-'+name,role,name,width:w,height:h,vertices:polygon(w,h,role,i),textureSeed:i*7919+(role==='base'?101:role==='summit'?303:202),material:['dark-granite','slate','frosted-granite','weathered-rock'][i%4],
+  return Object.freeze({id:role+'-'+name,role,name,width:w,height:h,vertices,textureSeed:i*7919+(role==='base'?101:role==='summit'?303:202),material:['dark-granite','slate','frosted-granite','weathered-rock'][i%4],
    sockets,mounts,iceMounts:role==='base'?[{id:'ice-face',x:Math.round(w*.17),y:Math.round(h*.45),height:200+(i%3)*80}]:[]});
  });
 }
