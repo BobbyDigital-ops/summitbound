@@ -175,7 +175,7 @@ function auditInstalled(){
   if(i>0){
    for(const route of iceRouteNetwork(i)){
     const from=platforms.find(p=>p.id==='l'+i+'-'+route.tier);
-    const to=platforms.find(p=>p.id=(spires[i].ridgeArrival?'a':'s')+i);
+    const to=platforms.find(p=>p.id===(spires[i].ridgeArrival?'a':'s')+i);
     if(!from||!to||!route.points?.length)issues.push('ice route '+i+'/'+route.tier);
     else if(Math.abs(route.points[0].y-(from.top-22))>3||
        Math.abs(route.points.at(-1).y-(to.top-22))>3)
