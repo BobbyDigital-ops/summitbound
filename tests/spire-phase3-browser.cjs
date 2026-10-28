@@ -39,8 +39,13 @@ const {chromium}=require('@playwright/test'),{spawn}=require('node:child_process
    await page.keyboard.up('d');
    if(run.failed||run.count>=350||run.speed<180)throw Error('Cannot build actual run-up '+JSON.stringify(run));
    await page.keyboard.down(' ');
-   const planted=await page.evaluate(()=>window.__phase3.player.state==='RIDING_VAULT');
-   if(!planted)throw Error('Keyboard Space failed to plant the actual pole');
+   const planted=await page.evaluate(()=>{
+    const m=window.__phase3;return {state:m.player.state,message:m.message,
+     x:m.player.x,surface:m.player.surface,vx:m.player.vx,
+     departure:m.surface('0:departure')};
+   });
+   if(planted.state!=='RIDING_VAULT')
+    throw Error('Keyboard Space failed to plant the actual pole: '+JSON.stringify(planted));
    await page.evaluate(fraction=>{
     const m=window.__phase3;
     for(let i=0;i<Math.floor(1.75*fraction*120);i++)m.tick(1/120);
