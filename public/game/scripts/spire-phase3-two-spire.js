@@ -152,7 +152,7 @@ class TwoSpirePlaytest{
  inspect(){
   return {seed:this.seed,gap:this.course.gap,player:{...this.player,
    climb:this.player.climb?.route.id||null,vault:this.player.vault?.phase||null},
-   touchdowns:this.touchdowns,lastLanding:this.lastLanding,won:this.won,message:this.message};
+   touchdowns:this.touchdowns,vaults:this.vaults,lastLanding:this.lastLanding,won:this.won,message:this.message};
  }
 }
 const API=Object.freeze({TwoSpirePlaytest});
