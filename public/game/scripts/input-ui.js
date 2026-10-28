@@ -1,3 +1,20 @@
+// Challenge is opt-in: changing courses always resets the attempt.
+function refreshDifficultyView(){
+ const button=document.getElementById('courseToggle');
+ if(button)button.textContent='Course: '+(activeSummitCourse==='challenge'?'Challenge':'Original');
+ const readout=document.getElementById('difficultyReadout');
+ if(!readout||typeof SummitDifficulty==='undefined')return;
+ const report=SummitDifficulty.gradeCourse(spires,shelfTimingProfiles);
+ readout.textContent=report.sections.map((q,i)=>(
+  (i+1)+'. '+q.name+': '+q.tier+' · '+q.score+'/100 · '+q.safe+' safe flight samples'
+ )).join('  |  ');
+}
+document.getElementById('courseToggle')?.addEventListener('click',()=>{
+ activeSummitCourse=activeSummitCourse==='challenge'?'original':'challenge';
+ applyRoute(0);gameReset();refreshDifficultyView();
+ hint(activeSummitCourse==='challenge'?'CHALLENGE COURSE — HARDER LANDINGS':'ORIGINAL COURSE RESTORED',2.8);
+});
+refreshDifficultyView();
 // Summit Leap v0.8.3 — extracted unchanged from v0.8.1.
 document.getElementById('retry').addEventListener('click', retry);
 // Five Peaks is the only playable course. Keep legacy seed generation for engine QA, not the UI.
