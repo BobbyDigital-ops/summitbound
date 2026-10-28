@@ -49,7 +49,7 @@ const {spawn}=require('node:child_process');
     tick(1/120);
     if(p.standingOn){landed=p.standingOn;break;}
    }
-   return {planted,released,landed,desired:'l1-'+dst,
+   return {planted,released,landed,desired:'l1-'+Number(dst.split('-').at(-1)),
     x:p.x,y:p.y,state:p.state,vx:p.vx,drawRig:typeof drawRigMountaineer};
   });
   if(!result.planted||!result.released||result.landed!==result.desired)
