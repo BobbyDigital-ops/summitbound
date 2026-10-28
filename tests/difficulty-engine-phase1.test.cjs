@@ -74,3 +74,38 @@ test('alternate course is tougher but all five physical stages remain certified'
  assert.ok(report.challenge.sections.at(-1).score>report.challenge.sections[0].score+20,
   'final crossing not materially tougher than opening');
 });
+
+test('survey reachable ridge gaps, rises, widths and final chasm geometry',()=>{
+ const run=harness();
+ const q=run(`(()=>{activeSummitCourse='original';applyRoute(0);const output={};
+  for(const peak of [1,3]){
+   const sp=spires[peak],arrival=sp.ridgeArrival,orig=sp.summit.slice(),opts=[];
+   for(const gap of (peak===1?[320,340,360,380,400,420]:[380,400,420,440,460]))
+    for(const rise of [120,130,140,150,160,170])
+     for(const width of [150,170,190,210,230,250]){
+      sp.summit=[arrival[1]+gap,arrival[1]+gap+width,arrival[2]-rise,orig[3]];
+      const p=shelfTimingProfiles([sp.summit],arrival)[0];
+      if(p.safe>=5){const x=SummitDifficulty.describe(spires,SummitDifficulty.SECTIONS.find(q=>q.to===peak&&q.ridge),shelfTimingProfiles);
+       opts.push({gap,rise,width,safe:p.safe,score:x.score,windows:p.releaseWindows});
+      }
+     }
+   sp.summit=orig;
+   output[peak]=opts.sort((a,b)=>b.score-a.score||b.safe-a.safe).slice(0,22);
+  }
+  const previous=spires[3].summit,camp=spires[4].ledges[0],orig=camp.slice(),final=[];
+  for(const dx of [0,20,40,60,80,100,120,140])
+   for(const dy of [-40,-20,0,20,40])
+    for(const width of [125,145,165,185,205]){
+     camp[0]=orig[0]+dx;camp[1]=camp[0]+width;camp[2]=orig[2]+dy;
+     const profile=shelfTimingProfiles(spires[4].ledges,previous)[0];
+     if(profile.safe>=2){const x=SummitDifficulty.describe(spires,SummitDifficulty.SECTIONS.at(-1),shelfTimingProfiles);
+      final.push({dx,dy,width,safe:profile.safe,score:x.score,windows:x.releaseWindows});
+     }
+    }
+  camp.splice(0,camp.length,...orig);
+  output.final=final.sort((a,b)=>b.score-a.score||b.safe-a.safe).slice(0,22);
+  return output;
+ })()`);
+ console.log('PHASE1_CANDIDATES '+JSON.stringify(q));
+ assert.ok(q[1].length&&q[3].length&&q.final.length);
+});
