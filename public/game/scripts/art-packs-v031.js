@@ -183,6 +183,23 @@ function renderTruePeak(g,i){
    grad.addColorStop(.68,'#273b4b');grad.addColorStop(1,'#122637');
   }
   g.fillStyle=grad;g.fillRect(minX-6,minY-6,maxX-minX+12,maxY-minY+12);
+  // Broad mineral plates create recognisable light/shadow relief at game
+  // zoom, rather than hundreds of imperceptible tiny scratches.
+  if(part.meshRoot){
+   const w0=maxX-minX,h0=maxY-minY;
+   for(let layer=0;layer<11;layer++){
+    const u=choose(i*701+k*73+layer*17,.06,.90);
+    const v=choose(i*307+k*49+layer*53,.05,.92);
+    const x=minX+w0*u,y=minY+h0*v;
+    const pw=choose(i*149+k*31+layer*19,130,380);
+    const ph=choose(i*221+k*47+layer*29,180,570);
+    fill(g,[[x-pw*.64,y-ph*.32],[x+pw*.38,y-ph*.56],
+      [x+pw*.74,y+ph*.25],[x-pw*.14,y+ph*.72]],
+       layer%3===0?'#b9cbd02b':layer%3===1?'#0715236f':'#72909b23');
+    stroke(g,[[x-pw*.64,y-ph*.32],[x+pw*.38,y-ph*.56],
+      [x+pw*.74,y+ph*.25]],layer%4===0?'#d3e1e043':'#0c1b2c95',1.9);
+   }
+  }
   // Screen-aligned geological fractures, clipped against actual solid pieces.
   // Deliberately deterministic: offscreen caches can be safely reused.
   const seed=(i+2)*131+k*467+mesh.seed*37;
