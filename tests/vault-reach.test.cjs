@@ -11,6 +11,9 @@ vm.runInContext(fs.readFileSync('public/game/scripts/world-data.js','utf8'),cont
 vm.runInContext(fs.readFileSync('public/game/scripts/physics.js','utf8'),context);
 const Engine=vm.runInContext('PolePhysicsEngine',context);
 const cfg=vm.runInContext('cfg',context),spires=vm.runInContext('spires',context);
+// Archived 997-seed layouts were approved with this frozen sampler, not
+// the newer featured-course player physics or 450-speed sprint scaling.
+const archivedCfg={...cfg,maxRunSpeed:360,runAcceleration:850,archivedArcadePhysics:true};
 const dt=1/120, flightStep=dt*cfg.arcadeFlightTempo;
 
 function possibleLanding(launch,target){
@@ -23,9 +26,9 @@ function possibleLanding(launch,target){
    for(let tick=42;tick<=210;tick+=12){
     const start=startX-offset, py=surfaceY-22;
     const anchorX=start+120;
-    const initial=Engine.initVault(start,py,speed,0,anchorX,surfaceY,cfg);
-    const result=Engine.stepVault(initial,tick*dt,cfg);
-    const kick=Engine.calculateReleaseVelocity(result.nextVx,result.nextVy,result.state,cfg);
+    const initial=Engine.initVault(start,py,speed,0,anchorX,surfaceY,archivedCfg);
+    const result=Engine.stepVault(initial,tick*dt,archivedCfg);
+    const kick=Engine.calculateReleaseVelocity(result.nextVx,result.nextVy,result.state,archivedCfg);
     let x=result.nextPx,y=result.nextPy,vy=kick.vy;
     if(y+22>landingY)continue;
     for(let t=0;t<325;t++){
