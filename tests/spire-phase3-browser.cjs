@@ -36,9 +36,11 @@ const {chromium}=require('@playwright/test'),{spawn}=require('node:child_process
     while(m.player.x<goal&&count++<350&&m.player.state!=='AIRBORNE')m.tick(1/120);
     return {count,speed:m.player.vx,failed:m.player.state==='AIRBORNE'};
    },init.launchX);
-   await page.keyboard.up('d');
    if(run.failed||run.count>=350||run.speed<180)throw Error('Cannot build actual run-up '+JSON.stringify(run));
+   // Keep the sprint held through planting: releasing Right first would
+   // invoke actual ground braking before Space can reach the browser.
    await page.keyboard.down(' ');
+   await page.keyboard.up('d');
    const planted=await page.evaluate(()=>{
     const m=window.__phase3;return {state:m.player.state,message:m.message,
      x:m.player.x,surface:m.player.surface,vx:m.player.vx,
