@@ -126,15 +126,16 @@ function ledgeExtension(peak,index,root,slot,seed){
  const jag=48+r()*70,outer=l[0]-18-r()*60;
  // Exact parent edge shared by this child; no offset, no open seam.
  const seam=join.vertices.map(v=>[...v]);
- const nose=[
-  [outer,top+6],[l[0]+w*.27,top-3],
-  [l[1],top+3],[l[1]-w*.10,top+18],
-  [l[1]-w*.38,top+65],
-  [l[0]+w*.26,top+78],
-  [outer-jag,top+85],
-  [outer-jag*.55,top+130]
- ];
- const poly=nose.concat([...seam].reverse());
+ // Build a non-self-intersecting outcrop outward from the common
+ // vertical connector. The separate populated platform art sits over its
+ // solid buttress, with exactly the same collider coordinates.
+ const outX=Math.min(outer-jag,Math.min(...seam.map(p=>p[0]))-105);
+ const topY=seam[0][1],lowY=seam.at(-1)[1];
+ const poly=seam.concat([
+  [outX+32,lowY+42],[outX-18,lowY+12],
+  [outX-39,lerp(topY,lowY,.58)],
+  [outX+9,topY-42],[seam[0][0]-64,topY-28]
+ ]);
  return {kind:'ledge',role:'extension',id:'ledge-module-'+index+'-'+slot,
   name:EXT_LIBRARY[(seed+slot*7+index*3)%EXT_LIBRARY.length],
   connector:size,parent:root.id,joinId:join.id,seam,
