@@ -42,6 +42,32 @@ function edgeAt(piece,y){
   if(y>=Math.min(a[1],b[1])&&y<=Math.max(a[1],b[1]))xs.push(a[0]+(y-a[1])*(b[0]-a[0])/(b[1]-a[1]));
  }return xs.length?{left:Math.min(...xs),right:Math.max(...xs)}:null;
 }
+// The rock outline is calculated from *assembled* polygons, never from the mount
+// metadata or a bounding box (which would falsely allow protruding ledges/ice).
+function rockSection(pieces,y){
+ const slices=pieces.map(p=>{
+  const ymin=p.offsetY-p.height,ymax=p.offsetY;
+  return y>=ymin-1e-6&&y<=ymax+1e-6?edgeAt(p,y):null;
+ }).filter(Boolean);
+ if(!slices.length)return null;
+ return {left:Math.min(...slices.map(s=>s.left)),right:Math.max(...slices.map(s=>s.right))};
+}
+function insideRockRect(pieces,left,right,top,bottom,margin=1){
+ if(!(left<right&&top<=bottom))return false;
+ const ys=[top,bottom];
+ // Sample every profile vertex height and the midpoints between them.
+ // Profiles are piecewise-linear, so extrema of each side are at vertices.
+ for(const p of pieces)for(const v of p.vertices)
+  if(v[1]>top&&v[1]<bottom)ys.push(v[1]);
+ ys.sort((a,b)=>a-b);
+ const checks=[...ys];
+ for(let i=1;i<ys.length;i++)checks.push((ys[i]+ys[i-1])/2);
+ for(const y of checks){
+  const sec=rockSection(pieces,y);
+  if(!sec||left<sec.left+margin-1e-7||right>sec.right-margin+1e-7)return false;
+ }
+ return true;
+}
 function inspect(assembled){
  const errors=[],p=assembled.pieces;
  if(p.length<3||p.length>7)errors.push('requires 3–7 pieces');
@@ -68,10 +94,17 @@ function inspect(assembled){
  const platformIds=new Set(assembled.platforms.map(x=>x.id));
  for(const c of assembled.colliders)if(!platformIds.has(c.id)||c.right<=c.left)errors.push('orphan platform collider');
  for(const route of assembled.routes){
+  if(route.kind==='ice'&&!insideRockRect(p,route.collider.left,route.collider.right,route.toY,route.fromY,1))
+   errors.push('icefall breaches mountain outline: '+route.id);
   if(route.fromY<=route.toY||route.x!==route.finishX)errors.push('nonvertical climb route');
   if(route.target!=='departure'&&!platformIds.has(route.target))errors.push('invalid route target');
  }
  for(const plat of assembled.platforms){
+  if(plat.kind==='rock'){
+   const xs=plat.vertices.map(v=>v[0]),ys=plat.vertices.map(v=>v[1]);
+   if(!insideRockRect(p,Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),.5))
+    errors.push('rock ledge breaches mountain outline: '+plat.id);
+  }
   let target=plat.id;const seen=new Set();
   while(target!=='departure'){
    if(seen.has(target)){errors.push('cyclic route from '+plat.id);break}
