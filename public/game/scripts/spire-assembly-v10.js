@@ -94,6 +94,11 @@ function inspect(assembled){
  const platformIds=new Set(assembled.platforms.map(x=>x.id));
  for(const c of assembled.colliders)if(!platformIds.has(c.id)||c.right<=c.left)errors.push('orphan platform collider');
  for(const route of assembled.routes){
+  const from=assembled.platforms.find(q=>q.id===route.source);
+  const receiving=route.target==='departure'?assembled.departure:assembled.platforms.find(q=>q.id===route.target);
+  if(!from||!receiving||route.x<from.left+2||route.x>from.right-2||
+     route.finishX<receiving.left+2||route.finishX>receiving.right-2)
+   errors.push('climb route does not terminate on a genuine platform: '+route.id);
   if(route.kind==='ice'&&!insideRockRect(p,route.collider.left,route.collider.right,route.toY,route.fromY,1))
    errors.push('icefall breaches mountain outline: '+route.id);
   if(route.fromY<=route.toY||route.x!==route.finishX)errors.push('nonvertical climb route');
@@ -207,12 +212,17 @@ function assembleOnce(seed,options={}){
   for(let j=i-1;j>=0;j--){const higher=platforms[j];
    if(x>=higher.left+2&&x<=higher.right-2){next=higher.id;endY=higher.y;break}
   }
+  const receiving=next==='departure'?departure:platforms.find(q=>q.id===next);
+  const routeLo=Math.max(lo,receiving.left+3);
+  const routeHi=Math.min(hi,receiving.right-3);
+  if(routeLo>routeHi)throw Error('No physically shared ladder column');
+  const safeX=Math.max(routeLo,Math.min(routeHi,x));
   const iceAsset=pick(r,K.ICE);
-  const iceX=Math.max(lo,Math.min(hi,0));
+  const iceX=Math.max(routeLo,Math.min(routeHi,0));
   const useIce=r()<.60&&insideRockRect(pieces,iceX-iceAsset.width/2,iceX+iceAsset.width/2,endY,p.y,1);
   const kind=useIce?'ice':'ladder';
   const asset=useIce?iceAsset:pick(r,K.LADDERS);
-  const climbX=useIce?iceX:x;
+  const climbX=useIce?iceX:safeX;
   routes.push({id:'climb-'+i,kind,asset:asset.id,source:p.id,target:next,
    x:climbX,finishX:climbX,fromY:p.y,toY:endY,width:asset.width,straight:true,
    collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,top:endY,bottom:p.y,climbable:true}});
