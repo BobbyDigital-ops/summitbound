@@ -17,5 +17,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test all modular components and platform mount points
-        run: node --test tests/clean-parts-phase1.test.cjs
+      - name: Test prefab catalogue and assembled spires
+        run: node --test tests/clean-parts-phase1.test.cjs tests/clean-map-assembly.test.cjs
