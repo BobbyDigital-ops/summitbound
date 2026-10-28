@@ -185,9 +185,10 @@ resize(); spawn(0); requestAnimationFrame(loop);
  * Only static cached terrain images are invalidated. */
 const artPackToggle=document.getElementById('artPackToggle');
 if(artPackToggle&&typeof window.getSummitboundArtPack==='function'){
- artPackToggle.textContent='Art: '+(window.getSummitboundArtPack()==='painterly'?'Painterly':'Cinematic');
+ artPackToggle.textContent='Art: '+(window.getSummitboundArtPack()==='painterly'?'Painterly':window.getSummitboundArtPack()==='modular'?'Modular':'Cinematic');
  artPackToggle.addEventListener('click',()=>{
-  const next=window.getSummitboundArtPack()==='painterly'?'cinematic':'painterly';
+  const current=window.getSummitboundArtPack();
+  const next=current==='modular'?'painterly':current==='painterly'?'cinematic':'modular';
   window.setSummitboundArtPack(next);
  });
 }

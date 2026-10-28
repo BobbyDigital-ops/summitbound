@@ -5,15 +5,15 @@
 'use strict';
 const rnd=n=>{const x=Math.sin(n*91.117+32.71)*43758.5453;return x-Math.floor(x)};
 const choose=(n,a,b)=>a+(b-a)*rnd(n),mix=(a,b,t)=>a+(b-a)*t;
-let currentPack=localStorage.getItem('summitbound-art-pack')||'painterly';
-if(!['painterly','cinematic'].includes(currentPack))currentPack='painterly';
+let currentPack=localStorage.getItem('summitbound-art-pack')||'modular';
+if(!['painterly','cinematic','modular'].includes(currentPack))currentPack='painterly';
 window.getSummitboundArtPack=()=>currentPack;
 window.setSummitboundArtPack=name=>{
- if(!['painterly','cinematic'].includes(name)||name===currentPack)return;
+ if(!['painterly','cinematic','modular'].includes(name)||name===currentPack)return;
  currentPack=name;localStorage.setItem('summitbound-art-pack',name);
  if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
  const button=document.getElementById('artPackToggle');
- if(button)button.textContent='Art: '+(name==='painterly'?'Painterly':'Cinematic');
+ if(button)button.textContent='Art: '+(name==='painterly'?'Painterly':name==='modular'?'Modular':'Cinematic');
 };
 function path(g,pts){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let k=1;k<pts.length;k++)g.lineTo(pts[k][0],pts[k][1])}
 function fill(g,pts,c){path(g,pts);g.closePath();g.fillStyle=c;g.fill()}

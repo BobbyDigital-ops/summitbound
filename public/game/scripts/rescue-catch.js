@@ -3,11 +3,16 @@
 // platform magnet, unlimited retries or scripted shortcut teleports.
 // The short input buffer accommodates human perception + mobile touch latency
 // but still requires physical contact with the actual ledge edge.
+// Ledge recovery is temporarily retired in the playable game. Archived
+// implementation remains intact for a future redesigned mechanic.
+if(typeof window!=='undefined')window.SUMMITBOUND_LEDGE_GRIP_ENABLED=false;
+const gripAllowed=()=>typeof window==='undefined'||window.SUMMITBOUND_LEDGE_GRIP_ENABLED!==false;
 let catchUsed=false;
 let catchQueuedUntil=-1;
 const AXE_WINDOW=Object.freeze({behind:25,ahead:70,above:-12,below:72,
  warningAhead:150,warningAbove:53,warningBelow:98,bufferSeconds:.4});
 function axeCatchApproach(ignoreUsed=false){
+ if(!gripAllowed())return null;
  if((p.state!=='AIRBORNE'&&p.state!=='FALLING')||
    p.vy<0||(!ignoreUsed&&catchUsed))return null;
  const forward=p.facingDir>=0?1:-1;
@@ -47,6 +52,7 @@ function axeLatch(found){
  return true;
 }
 function attemptAxeCatch(){
+ if(!gripAllowed())return false;
  if(p.state!=='AIRBORNE'&&p.state!=='FALLING')return false;
  if(catchUsed)return false;
  const hit=axeCatchOpportunity();
@@ -71,6 +77,7 @@ function attemptAxeCatch(){
  return false;
 }
 function updatePendingAxeCatch(){
+ if(!gripAllowed())return false;
  if(catchQueuedUntil<0)return false;
  if(p.state!=='AIRBORNE'&&p.state!=='FALLING'){
   catchQueuedUntil=-1;return false;
@@ -85,6 +92,7 @@ function updatePendingAxeCatch(){
  return false;
 }
 function axeCatchStrike(side){
+ if(!gripAllowed())return false;
  if(p.state!=='HANGING'||!p.catchLedge||![-1,1].includes(side))return false;
  const c=p.catchLedge;
  if(c.lastSide===side)return false;
