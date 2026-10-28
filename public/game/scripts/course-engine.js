@@ -102,6 +102,10 @@ function applyChallengeLandingGeometry(mountains){
  final.ledges.forEach(l=>{l[0]+=shift;l[1]=l[0]+125;l[2]-=lift});
  final.summit[0]+=shift;final.summit[1]+=shift;final.summit[2]-=lift;
  if(Number.isFinite(final.rockShoulderLeft))final.rockShoulderLeft+=shift;
+ // Collision and terrain must never read the previous ice geometry after
+ // a level edit. In particular, a narrow shelf changes its axe entry point.
+ if(typeof iceRouteCache!=='undefined')iceRouteCache.clear();
+ if(typeof invalidateTerrainCache==='function')invalidateTerrainCache();
 }
 
 function applyCertifiedShowcaseWidthPass(mountains){
