@@ -45,7 +45,7 @@ function landings(physics,cfg,source,rise){
  }
  return samples;
 }
-function build(seed,settings,api){
+function buildOnce(seed,settings,api){
  const n=settings.count??5,preset=settings.preset??1;
  if(!Number.isInteger(n)||n<2||n>8)throw Error('Course needs 2–8 spires');
  const option=GAP_PRESETS.find(v=>v.id===preset);
@@ -83,6 +83,19 @@ function build(seed,settings,api){
  return {schema:'summitbound.course.v11',seed,source:'new-vertical-assets-only',
   gapPreset:option.id,gap:option.gap,rise,peaks,crossings,
   physicsSampled:true,fullGameplayCertified:false};
+}
+function build(seed,settings={},api){
+ const attempts=settings.maxCourseAttempts??30;
+ for(let attempt=0;attempt<attempts;attempt++){
+  try{
+   const course=buildOnce((seed+attempt*7919)>>>0,settings,api);
+   course.seed=seed;course.generationAttempts=attempt+1;
+   return course;
+  }catch(error){
+   if(!/No sampled reachable next spire|No sampled takeoff trajectory/.test(String(error))||attempt===attempts-1)throw error;
+  }
+ }
+ throw Error('No sampled reachable full course');
 }
 const API=Object.freeze({GAP_PRESETS,landings,build});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireCourseV11=API;
