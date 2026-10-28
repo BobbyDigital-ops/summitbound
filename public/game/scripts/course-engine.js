@@ -5,7 +5,7 @@ const FEATURED_BASE_LAYOUTS=[{"summit":[1637,2070,821,"snow"],"ledges":[[1581,18
 // This is ONE playable course, not five separate levels. The full campaign
 // target is 100 levels; older 997 route seeds are retained only as archived
 // generator/reference data and must not be exposed as playable content.
-let activeSummitCourse='original'; // user-approved course always loads by default
+let activeSummitCourse='modular'; // experimental physical modular course, Original remains selectable
 const FEATURED_COURSE=Object.freeze({
  id:'five-peaks',version:6,levelNumber:1,campaignSize:100,peakCount:5,
  name:'The Five Peaks',

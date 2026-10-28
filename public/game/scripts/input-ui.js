@@ -1,7 +1,7 @@
 // Challenge is opt-in: changing courses always resets the attempt.
 function refreshDifficultyView(){
  const button=document.getElementById('courseToggle');
- if(button)button.textContent='Course: '+(activeSummitCourse==='challenge'?'Challenge':'Original');
+ if(button)button.textContent='Course: '+(activeSummitCourse==='modular'?'Modular':activeSummitCourse==='challenge'?'Challenge':'Original');
  const readout=document.getElementById('difficultyReadout');
  if(!readout||typeof SummitDifficulty==='undefined')return;
  const report=SummitDifficulty.gradeCourse(spires,shelfTimingProfiles);
@@ -10,9 +10,16 @@ function refreshDifficultyView(){
  )).join('  |  ');
 }
 document.getElementById('courseToggle')?.addEventListener('click',()=>{
- activeSummitCourse=activeSummitCourse==='challenge'?'original':'challenge';
+ activeSummitCourse=activeSummitCourse==='original'?'challenge':activeSummitCourse==='challenge'?'modular':'original';
  applyRoute(0);gameReset();refreshDifficultyView();
- hint(activeSummitCourse==='challenge'?'CHALLENGE COURSE — HARDER LANDINGS':'ORIGINAL COURSE RESTORED',2.8);
+ hint(activeSummitCourse==='modular'?'PHYSICAL MODULAR PEAKS · SEED '+SummitModularEngine.seed():activeSummitCourse==='challenge'?'CHALLENGE COURSE — HARDER LANDINGS':'ORIGINAL COURSE RESTORED',2.8);
+});
+document.getElementById('regenModular')?.addEventListener('click',()=>{
+ if(activeSummitCourse!=='modular'){activeSummitCourse='modular';}
+ SummitModularEngine.nextSeed();
+ applyRoute(0);gameReset();refreshDifficultyView();
+ document.getElementById('tuning').hidden=true;
+ hint('NEW MODULAR PEAKS · SEED '+SummitModularEngine.seed(),2.5);
 });
 refreshDifficultyView();
 // Summit Leap v0.8.3 — extracted unchanged from v0.8.1.

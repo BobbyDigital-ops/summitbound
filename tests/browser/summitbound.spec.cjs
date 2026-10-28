@@ -146,6 +146,8 @@ test('Original and Challenge have distinct real collision courses; toggle restor
  await page.goto(url);
  await page.locator('#tuneToggle').click();
  const button=page.locator('#courseToggle');
+ await expect(button).toContainText('Modular');
+ await button.click(); // preserve tested Original/Challenge back-compat
  await expect(button).toContainText('Original');
  const original=await page.evaluate(()=>JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))));
  await button.click();
@@ -163,7 +165,8 @@ test('Original and Challenge have distinct real collision courses; toggle restor
  expect(changed.graph.valid).toBe(true);
  expect(changed.currentState).toBe('GROUNDED');
  await expect(page.locator('#difficultyReadout')).toContainText('Firespine');
- await button.click();
+ await button.click(); // cycle Challenge -> Modular
+ await button.click(); // cycle Modular -> Original
  await expect(page.locator('#routeLabel')).toContainText('ORIGINAL');
  const restored=await page.evaluate(()=>JSON.stringify(spires.map(q=>({summit:q.summit,ledges:q.ledges,ridge:q.ridgeArrival}))));
  expect(restored).toBe(original);
@@ -176,13 +179,15 @@ test('Peak Forge is default and its pieces attach only to real collision surface
  await page.goto(url);await expect(page.locator('#stage')).toContainText('FIVE PEAKS');
  const data=await page.evaluate(()=>({
   pack:window.getSummitboundArtPack(),
+  engine:activeSummitCourse,
   grip:window.SUMMITBOUND_LEDGE_GRIP_ENABLED,
   audits:window.SummitPeakForge.allAudits(),
   manifests:spires.map((_,i)=>window.SummitPeakForge.manifest(i)),
   ground:platforms.filter(pl=>pl.kind==='ledge').map(pl=>pl.id),
   canvas:[canvas.width,canvas.height]
  }));
- expect(data.pack).toBe('modular');
+ expect(data.pack).toBe('cinematic');
+ expect(data.engine).toBe('modular');
  expect(data.grip).toBe(false);
  expect(data.manifests).toHaveLength(5);
  expect(data.audits.every(a=>a.valid)).toBe(true);
@@ -198,11 +203,11 @@ test('Peak Forge is default and its pieces attach only to real collision surface
 test('Peak Forge painter switches back to originals and restores modular view',async({page})=>{
  await page.goto(url);await page.locator('#tuneToggle').click();
  const button=page.locator('#artPackToggle');
- await expect(button).toContainText('Modular');
+ await expect(button).toContainText('Cinematic');
  const before=await page.evaluate(()=>({x:p.x,time:elapsed,mode:window.getSummitboundArtPack()}));
+ await button.click();await expect(button).toContainText('Modular');
  await button.click();await expect(button).toContainText('Painterly');
  await button.click();await expect(button).toContainText('Cinematic');
- await button.click();await expect(button).toContainText('Modular');
  const after=await page.evaluate(()=>({x:p.x,time:elapsed,mode:window.getSummitboundArtPack()}));
  expect(after.x).toBeCloseTo(before.x,1);
  expect(after.time).toBeGreaterThanOrEqual(before.time);
@@ -227,6 +232,7 @@ test('Modular art remains coherent after switching Original / Challenge geometry
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url);await page.locator('#tuneToggle').click();
  const button=page.locator('#courseToggle');
+ await button.click(); // Original first
  const before=await page.evaluate(()=>window.SummitPeakForge.manifest(4));
  await button.click();await expect(button).toContainText('Challenge');
  const data=await page.evaluate(()=>({m:window.SummitPeakForge.manifest(4),a:window.SummitPeakForge.allAudits()}));
@@ -235,6 +241,96 @@ test('Modular art remains coherent after switching Original / Challenge geometry
  expect(data.m.pieces.find(p=>p.role==='landing-extension').x)
  .not.toBe(before.pieces.find(p=>p.role==='landing-extension').x);
  await page.screenshot({path:'test-results/peak-forge-challenge.png'});
+ await button.click(); // Challenge -> Modular
  await button.click();await expect(button).toContainText('Original');
+ expect(errors).toEqual([]);
+});
+
+
+test('v0.40 modular peaks change REAL platform geometry and certify every ice/climb edge',async({page})=>{
+ test.setTimeout(120000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);
+ await expect(page.locator('#routeLabel')).toContainText('MODULAR');
+ const baseline=await page.evaluate(()=>({
+  initial:JSON.stringify(platforms.filter(q=>q.kind==='ledge').map(q=>[q.id,q.left,q.right,q.top])),
+  first:SummitModularEngine.auditInstalled(),
+  physics:auditPlayableCourse().valid,
+  graph:compilePhysicalCourseGraph().valid,
+  seed:SummitModularEngine.seed()
+ }));
+ console.log('MODULAR LIVE AUDIT',JSON.stringify({issues:baseline.first.issues,report:baseline.first.report}));
+ expect(baseline.first.valid).toBe(true);
+ expect(baseline.first.report.certified).toBe(true);
+ expect(baseline.first.report.changes.changed).toBeGreaterThanOrEqual(2);
+ expect(baseline.physics).toBe(true);expect(baseline.graph).toBe(true);
+ await page.locator('#tuneToggle').click();
+ const variants=new Set([baseline.initial]);
+ for(let i=0;i<3;i++){
+  if(i>0)await page.locator('#tuneToggle').click();
+  await page.locator('#regenModular').click();
+  const result=await page.evaluate(()=>({
+   state:activeSummitCourse,
+   geometry:JSON.stringify(platforms.filter(q=>q.kind==='ledge').map(q=>[q.id,q.left,q.right,q.top])),
+   report:SummitModularEngine.report(),
+   audit:SummitModularEngine.auditInstalled(),
+   physics:auditPlayableCourse().valid,
+   graph:compilePhysicalCourseGraph().valid,
+   on:platforms.some(q=>q.id===p.standingOn)
+  }));
+  expect(result.state).toBe('modular');
+  expect(result.report.certified).toBe(true);
+  expect(result.report.changes.changed).toBeGreaterThanOrEqual(2);
+  expect(result.audit.valid).toBe(true);
+  expect(result.physics).toBe(true);
+  expect(result.graph).toBe(true);
+  expect(result.on).toBe(true);
+  variants.add(result.geometry);
+ }
+ expect(variants.size).toBeGreaterThanOrEqual(3);
+ await page.screenshot({path:'test-results/modular-v040-generated-peak.png'});
+ expect(errors).toEqual([]);
+});
+test('v0.40 restores the exact Original course after a modular regenerate',async({page})=>{
+ test.setTimeout(70000);
+ await page.goto(url);await page.locator('#tuneToggle').click();
+ const toggle=page.locator('#courseToggle');
+ await toggle.click();await expect(toggle).toContainText('Original');
+ const original=await page.evaluate(()=>JSON.stringify(spires.map(m=>({
+  summit:m.summit,ledges:m.ledges,ridge:m.ridgeArrival
+ }))));
+ await toggle.click();await expect(toggle).toContainText('Challenge');
+ await toggle.click();await expect(toggle).toContainText('Modular');
+ await page.locator('#regenModular').click();
+ await page.locator('#tuneToggle').click();
+ await toggle.click();await expect(toggle).toContainText('Original');
+ const restored=await page.evaluate(()=>JSON.stringify(spires.map(m=>({
+  summit:m.summit,ledges:m.ledges,ridge:m.ridgeArrival
+ }))));
+ expect(restored).toBe(original);
+});
+
+test('five physically assembled peaks each render a separate inspected scene',async({page})=>{
+ test.setTimeout(90000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);await expect(page.locator('#routeLabel')).toContainText('MODULAR');
+ for(let i=0;i<5;i++){
+  const data=await page.evaluate(index=>{
+   const m=spires[index],upper=m.ridgeArrival||m.summit;
+   const low=m.ledges?.[0]||upper;
+   const zoom=getZoom();
+   camera.x=low[0]-.24*innerWidth/zoom;
+   camera.y=(upper[2]+low[2])*.5-.53*innerHeight/zoom;
+   draw();
+   return {pieces:m.moduleAssembly?.pieces.length,
+    realSurfaces:platforms.filter(pl=>pl.spire===index).length,
+    ice:index===0?[]:iceRouteNetwork(index).map(route=>route.points.length)};
+  },i);
+  expect(data.pieces).toBeGreaterThanOrEqual(3);
+  expect(data.pieces).toBeLessThanOrEqual(7);
+  expect(data.realSurfaces).toBeGreaterThanOrEqual(2);
+  if(i>0)expect(data.ice.length).toBeGreaterThan(0);
+  await page.screenshot({path:'test-results/modular-peak-'+i+'.png'});
+ }
  expect(errors).toEqual([]);
 });

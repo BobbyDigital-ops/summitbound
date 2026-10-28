@@ -251,6 +251,10 @@ function applyRoute(seed){
   const start=spires[0].summit;
   spires[0].ledges=[[start[0]+110,start[0]+315,start[2]+165,'snow','Lower shelf']];
  }
+ // Peak Forge is an actual collision-course generator, not a visual skin.
+ if(activeSummitCourse==='modular'&&typeof SummitModularEngine!=='undefined')
+  SummitModularEngine.install(SummitModularEngine.seed());
+ else for(const peak of spires)delete peak.moduleAssembly;
  if(typeof platforms!=='undefined'&&Array.isArray(platforms)){
   for(let k=platforms.length-1;k>=0;k--)if(platforms[k].kind==='ledge'||platforms[k].kind==='arrival')platforms.splice(k,1);
   for(let i=1;i<=4;i++){
@@ -278,7 +282,7 @@ function applyRoute(seed){
  const label=document.getElementById('routeLabel');
  if(label)label.textContent=
   typeof FEATURED_COURSE!=='undefined'?
-  'FIVE PEAKS · '+(typeof activeSummitCourse!=='undefined'&&activeSummitCourse==='challenge'?'CHALLENGE':'ORIGINAL'):
+  'FIVE PEAKS · '+(typeof activeSummitCourse!=='undefined'&&activeSummitCourse==='modular'?'MODULAR · '+(typeof SummitModularEngine!=='undefined'?SummitModularEngine.seed():1):activeSummitCourse==='challenge'?'CHALLENGE':'ORIGINAL'):
   'Route '+(routeSeed+1);
 }
 

@@ -5,7 +5,7 @@
 'use strict';
 const rnd=n=>{const x=Math.sin(n*91.117+32.71)*43758.5453;return x-Math.floor(x)};
 const choose=(n,a,b)=>a+(b-a)*rnd(n),mix=(a,b,t)=>a+(b-a)*t;
-let currentPack=localStorage.getItem('summitbound-art-pack')||'modular';
+let currentPack=localStorage.getItem('summitbound-art-pack')||'cinematic';
 if(!['painterly','cinematic','modular'].includes(currentPack))currentPack='painterly';
 window.getSummitboundArtPack=()=>currentPack;
 window.setSummitboundArtPack=name=>{
@@ -74,12 +74,99 @@ function rock(g,L,R,T,leftAt,rightAt,seed){
  }
  g.restore();cap(g,L,R,T,seed);
 }
+
+/* Physical modular course pieces: pre-rendered with the existing cinematic
+ * granite painter, and clipped to the very same world-space rock contours.
+ * Dramatic spurs sit BEHIND actual running surfaces so the player always has
+ * a readable landing / takeoff face, not a fake pointed collider. */
+function paintModuleSilhouettes(g,i){
+ const s=spires[i],assembly=s.moduleAssembly;
+ // The starting runway needs a completely unambiguous clean skyline.
+ if(!assembly||i===0)return;
+ const tops=s.ridgeArrival?[s.ridgeArrival,s.summit]:[s.summit];
+ let n=0;
+ for(const piece of assembly.pieces){
+  if(piece.role!=='summit'&&!piece.scenic)continue;
+  if(piece.role!=='summit'&&n%2===1){n++;continue;}
+  const surface=tops[(i+n)%tops.length];n++;
+  // Silhouette remains behind a continuous, genuinely walkable crest.
+  const width=surface[1]-surface[0],cx=surface[0]+width*(.22+(n%2)*.14);
+  const span=piece.connector==='L'?60:piece.connector==='M'?49:35;
+  const rise=piece.role==='summit'?84+(i%3)*17:49+(n%3)*12;
+  const t=surface[2];
+  const ridge=[
+   [cx-span*1.1,t+38],[cx-span*.82,t-12],[cx-span*.65,t-rise*.30],
+   [cx-span*.25,t-rise*.67],[cx-span*.08,t-rise*.61],
+   [cx+span*.10,t-rise],[cx+span*.33,t-rise*.51],
+   [cx+span*.61,t-rise*.39],[cx+span*.86,t-4],
+   [cx+span*1.2,t+62]];
+  const ink=g.createLinearGradient(cx-span,t-rise,cx+span,t+80);
+  ink.addColorStop(0,'#65757b');ink.addColorStop(.34,'#3c4e59');
+  ink.addColorStop(.72,'#233745');ink.addColorStop(1,'#182b39');
+  fill(g,ridge.concat([[cx+span*.7,t+115],[cx-span*.7,t+115]]),ink);
+  fill(g,[[cx-span*.60,t-rise*.26],[cx-span*.25,t-rise*.67],
+   [cx+span*.10,t-rise],[cx+span*.11,t-rise*.53],
+   [cx-span*.04,t-rise*.57]],'#71858a52');
+  // Wind crust and small exposed frost; never a white triangular cap.
+  stroke(g,[[cx-span*.27,t-rise*.64],[cx-span*.08,t-rise*.61],
+   [cx+span*.10,t-rise],[cx+span*.32,t-rise*.48]],
+   '#c5d5d08a',2.1);
+  stroke(g,[[cx+span*.12,t-rise*.94],[cx+span*.41,t-rise*.33],
+   [cx+span*.29,t+9]],'#112836aa',1.7);
+ }
+}
+function paintModuleGranite(g,i){
+ const s=spires[i],assembly=s.moduleAssembly;
+ if(!assembly)return;
+ const tops=s.ridgeArrival?[s.ridgeArrival,s.summit]:[s.summit];
+ for(const peak of tops){
+  const T=peak[2],bottom=2050;
+  const leftAt=s.ridgeArrival&&peak===s.summit?
+   (y)=>ridgeUpperWallX(i,y):(y)=>mountainContourX(i,y);
+  const rightAt=s.ridgeArrival&&peak===s.ridgeArrival?
+   (y)=>peak[1]+Math.min(100,Math.max(0,y-T)*.19):
+   (y)=>mountainFlankX(i,y);
+  g.save();g.beginPath();g.moveTo(peak[0],T);g.lineTo(peak[1],T);
+  for(let y=T+18;y<=bottom;y+=27)g.lineTo(rightAt(y),y);
+  g.lineTo(leftAt(bottom),bottom);
+  for(let y=bottom-19;y>T;y-=22)g.lineTo(leftAt(y),y);
+  g.closePath();g.clip();
+  for(const piece of assembly.pieces){
+   if(piece.role==='summit')continue;
+   const x=piece.anchor.x,y=piece.anchor.y;
+   const span=piece.connector==='ROOT'?300:piece.connector==='L'?240:
+    piece.connector==='M'?144:72;
+   const depth=piece.bodyDepth||260;
+   const code=piece.id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+   const tilt=((code%11)-5)*.11;
+   const grad=g.createLinearGradient(x-span*.6,y-depth*.5,x+span*.6,y+depth);
+   grad.addColorStop(0,'#bac9cb13');
+   grad.addColorStop(.43,'#162b384a');
+   grad.addColorStop(1,'#091b2925');
+   fill(g,[[x-span*.65,y-depth*.35],[x+span*.08,y-depth*.6],
+    [x+span*.55,y-depth*.16],[x+span*.43+tilt*30,y+depth*.62],
+    [x-span*.34,y+depth*.85]],grad);
+   const branches=piece.facets||5;
+   for(let j=0;j<branches;j++){
+    const shift=(j/branches-.5)*span*.9;
+    const from=[x+shift,y-depth*.42+(j%3)*17];
+    const to=[x+shift+span*(.11+tilt*.15),y+depth*(.65+j%3*.07)];
+    stroke(g,[from,[from[0]+(to[0]-from[0])*.35,from[1]+depth*.36],to],
+     j%3?'#0c182685':'#b3c6c533',j%3?1.35:2.3);
+   }
+  }
+  g.restore();
+ }
+}
+
 function renderMountain(i,g){
+ if(spires[i].moduleAssembly)paintModuleSilhouettes(g,i);
  const s=spires[i],m=s.summit,arrival=s.ridgeArrival;
  if(arrival){
   rock(g,arrival[0],arrival[1],arrival[2],y=>mountainContourX(i,y),y=>arrival[1]+Math.min(100,Math.max(0,y-arrival[2])*.19)+Math.sin(y*.032+i)*6,i*193+13);
   rock(g,m[0],m[1],m[2],y=>ridgeUpperWallX(i,y),y=>mountainFlankX(i,y),i*193+73);
  }else rock(g,m[0],m[1],m[2],y=>mountainContourX(i,y),y=>mountainFlankX(i,y),i*193+13);
+ if(s.moduleAssembly)paintModuleGranite(g,i);
  for(let k=0;k<s.ledges.length;k++){
   const ledge=s.ledges[k],a=ledge[0],b=ledge[1],t=ledge[2],seed=i*77+k*131,w=b-a;
   const root=mountainContourX(i,t+100);
