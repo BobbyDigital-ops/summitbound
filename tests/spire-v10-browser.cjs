@@ -9,7 +9,14 @@ const fs=require('node:fs');
   const page=await browser.newPage({viewport:{width:1500,height:1000},deviceScaleFactor:1});
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('http://127.0.0.1:3400/game/new-spire-lab-v10.html',{waitUntil:'networkidle',timeout:45000});
+  let ready=false;
+  for(let i=0;i<30;i++){
+   try{
+    await page.goto('http://127.0.0.1:3400/game/new-spire-lab-v10.html',{waitUntil:'domcontentloaded',timeout:1500});
+    ready=true;break;
+   }catch{await new Promise(resolve=>setTimeout(resolve,350))}
+  }
+  if(!ready)throw Error('Vite failed to start after repeated attempts');
   await page.locator('#gallery .tile').first().waitFor();
   const count=await page.locator('#gallery .tile').count();
   if(count!==5)throw Error('Expected 5 independently rendered mountains, got '+count);
