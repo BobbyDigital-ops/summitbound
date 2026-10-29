@@ -217,29 +217,45 @@ function assembleOnce(seed,options={}){
    braces:p.pref.braces.map(b=>[b[0]+p.centre,b[1]+p.y,b[2]+p.centre,b[3]+p.y])});
   colliders.push({id,left:p.left,right:p.right,top:p.y,kind:p.pref.kind});
  });
+ // Draw a vertical corridor from each ledge towards the summit. Any higher
+ // platform hit first becomes the stopping point; that platform owns the
+ // continuation. Whole ladder/ice width, not merely its centre, must fit.
+ const MAX_CLIMB_HALF=Math.max(...K.ICE.map(a=>a.width),...K.LADDERS.map(a=>a.width))/2;
+ const ROUTE_MARGIN=MAX_CLIMB_HALF+5;
  for(let i=0;i<platforms.length;i++){
-  const p=platforms[i],lo=Math.max(p.left+3,departure.left+3),hi=Math.min(p.right-3,departure.right-3);
-  if(lo>hi)throw Error('Stranded platform');
-  const x=(lo+hi)/2;
-  // Stop at first higher platform encountered; climb through its onward route.
-  let next='departure',endY=departure.y;
-  for(let j=i-1;j>=0;j--){const higher=platforms[j];
-   if(x>=higher.left+2&&x<=higher.right-2){next=higher.id;endY=higher.y;break}
+  const p=platforms[i];
+  const low=Math.max(p.left,departure.left)+ROUTE_MARGIN;
+  const high=Math.min(p.right,departure.right)-ROUTE_MARGIN;
+  if(low>high)throw Error('No full-width shared climb column');
+  const want=Math.max(low,Math.min(high,
+   (p.left+p.right)/2+(r()-.5)*Math.min(80,high-low)));
+  const candidates=[want,Math.max(low,Math.min(high,0)),(low+high)/2];
+  for(let k=0;k<=16;k++)candidates.push(low+(high-low)*k/16);
+  candidates.sort((x,y)=>Math.abs(x-want)-Math.abs(y-want));
+  let selected=null;
+  for(const x of candidates){
+   let next='departure',endY=departure.y,blocked=false;
+   for(let j=i-1;j>=0;j--){
+    const higher=platforms[j];
+    // A vertical route cannot silently pass THROUGH a real green shelf.
+    if(x>=higher.left-1&&x<=higher.right+1){
+     if(x<higher.left+ROUTE_MARGIN||x>higher.right-ROUTE_MARGIN){blocked=true;break}
+     next=higher.id;endY=higher.y;break;
+    }
+   }
+   if(blocked||x<low||x>high)continue;
+   selected={x,next,endY};break;
   }
-  const receiving=next==='departure'?departure:platforms.find(q=>q.id===next);
-  const routeLo=Math.max(lo,receiving.left+3);
-  const routeHi=Math.min(hi,receiving.right-3);
-  if(routeLo>routeHi)throw Error('No physically shared ladder column');
-  const safeX=Math.max(routeLo,Math.min(routeHi,x));
+  if(!selected)throw Error('No unobstructed full-width climb corridor');
+  const {x:climbX,next,endY}=selected;
   const iceAsset=pick(r,K.ICE);
-  const iceX=Math.max(routeLo,Math.min(routeHi,0));
-  const useIce=r()<.60&&insideRockRect(pieces,iceX-iceAsset.width/2,iceX+iceAsset.width/2,endY,p.y,1);
-  const kind=useIce?'ice':'ladder';
-  const asset=useIce?iceAsset:pick(r,K.LADDERS);
-  const climbX=useIce?iceX:safeX;
+  const useIce=r()<.60&&insideRockRect(
+   pieces,climbX-iceAsset.width/2,climbX+iceAsset.width/2,endY,p.y,1);
+  const kind=useIce?'ice':'ladder',asset=useIce?iceAsset:pick(r,K.LADDERS);
   routes.push({id:'climb-'+i,kind,asset:asset.id,source:p.id,target:next,
    x:climbX,finishX:climbX,fromY:p.y,toY:endY,width:asset.width,straight:true,
-   collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,top:endY,bottom:p.y,climbable:true}});
+   collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,
+    top:endY,bottom:p.y,climbable:true}});
  }
  const all=pieces.flatMap(p=>p.vertices);
  const bounds={left:Math.min(...all.map(p=>p[0])),right:Math.max(...all.map(p=>p[0])),
