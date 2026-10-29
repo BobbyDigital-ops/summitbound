@@ -65,7 +65,7 @@ const BODIES=Object.freeze(Array.from({length:24},(_,i)=>makeRock('body',i)));
 const CAPS=Object.freeze(Array.from({length:16},(_,i)=>makeRock('cap',i)));
 // Former spans were [36,52,74,108,154]. Every new surface is >=2x
 // its predecessor and the smallest platform is wide enough to stand/run.
-const SIZES=Object.freeze([180,180,180,216,308]);
+const SIZES=Object.freeze([240,240,260,280,360]);
 const FINISHES=Object.freeze(['ice-rim','wind-packed','fractured','snowy','bare-stone']);
 const PLATFORMS=Object.freeze(Array.from({length:50},(_,i)=>{
  const size=1+Math.floor(i/10),variant=i%10,kind=variant<5?'rock':'scaffold',width=SIZES[size-1];
