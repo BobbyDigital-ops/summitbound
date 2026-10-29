@@ -5,49 +5,53 @@
  */
 (function(root){
 'use strict';
-const GAP_PRESETS=Object.freeze([30,50,70,90,110,130,150,170,190,210].map((gap,i)=>
+const GAP_PRESETS=Object.freeze([90,150,210,270,330,390,450,510,570,630].map((gap,i)=>
  Object.freeze({id:i+1,gap,label:'Gap '+(i+1)})));
+// Generate ONLY physically attainable sprint + plant setups. Simulates real
+// 120 Hz running from rest on the existing orange deck; no scripted speed.
 function landings(physics,cfg,source,rise){
  const dt=1/120,deck=source.departure,platform={x:(deck.left+deck.right)/2,
   y:deck.y+60,width:deck.width,height:120};
- const samples=[],phases=[.35,.40,.45,.50,.55,.60,.65,.70,.75,.80,.85];
- // Keep a genuinely usable 48-unit plant window at full sprint.
- // Planting at right-123 left only ~3 units before the plant misses,
- // requiring impossible timing on slower browsers and touchscreens.
- const spots=[deck.right-168].filter(px=>px>=deck.left+8);
- for(const px of spots){
-  const available=Math.max(0,px-deck.left-5);
-  const vlimit=Math.sqrt(2*cfg.runAcceleration*available);
-  for(const speed of [220,260,300,340,380,420,450]){
-   if(speed>vlimit+1e-8)continue;
-   const py=deck.y-22,plant=physics.validatePlantPoint(px,py,1,[platform],cfg);
-   if(!plant.isValid)continue;
-   for(const fraction of phases){
-    let state=physics.initVault(px,py,speed,0,plant.anchorX,plant.anchorY,cfg),ride;
-    const goal=state.rideDuration*fraction;
-    while(state.elapsed+dt<=goal+1e-7){
-     ride=physics.stepVault(state,dt,cfg);
-     state=ride.state;
-    }
-    if(!ride)continue;
-    const release=physics.calculateReleaseVelocity(ride.nextVx,ride.nextVy,state,cfg);
-    let x=ride.nextPx,y=ride.nextPy,vy=release.vy,oldY=y;
-    const targetFeet=deck.y-rise;
-    // Exact game gravity/time scaling; straight flight without steering.
-    for(let i=0;i<680;i++){
-     const fd=dt*cfg.arcadeFlightTempo;
-     vy+=cfg.gravity*fd;x+=release.vx*fd;oldY=y;y+=vy*fd;
-     if(vy>=0&&oldY+22<=targetFeet&&y+22>=targetFeet){
-      samples.push({launchX:px,landingX:x,speed,releaseFraction:fraction,
-       releaseX:ride.nextPx,releaseY:ride.nextPy,releaseVx:release.vx,releaseVy:release.vy,landingHeightRise:rise});
-      break;
-     }
+ const samples=[],phases=[.38,.44,.50,.56,.60,.64,.68,.72,.76,.80,.84];
+ const startX=deck.left+12;
+ for(const distanceFromRight of [128,139,152,166,184]){
+  let px=startX,vx=0,runFrames=0;
+  const targetPlantX=deck.right-distanceFromRight;
+  while(px<targetPlantX&&runFrames<250){
+   vx=Math.min(cfg.maxRunSpeed,vx+cfg.runAcceleration*dt);
+   px+=vx*dt;runFrames++;
+  }
+  if(runFrames<2||px>deck.right-physics.PLANT_OFFSET-5)continue;
+  const py=deck.y-22,plant=physics.validatePlantPoint(px,py,1,[platform],cfg);
+  if(!plant.isValid)continue;
+  for(const fraction of phases){
+   let state=physics.initVault(px,py,vx,0,plant.anchorX,plant.anchorY,cfg),ride;
+   const releaseFrames=Math.round(state.rideDuration*fraction*120);
+   for(let step=0;step<releaseFrames;step++){
+    ride=physics.stepVault(state,dt,cfg);state=ride.state;
+   }
+   if(!ride)continue;
+   const kick=physics.calculateReleaseVelocity(ride.nextVx,ride.nextVy,state,cfg);
+   let x=ride.nextPx,y=ride.nextPy,vy=kick.vy;
+   const targetFeet=deck.y-rise;
+   for(let step=0;step<820;step++){
+    const oldFeet=y+22,fd=dt*cfg.arcadeFlightTempo;
+    vy+=cfg.gravity*fd;x+=kick.vx*fd;y+=vy*fd;
+    if(vy>=0&&oldFeet<=targetFeet&&y+22>=targetFeet){
+     samples.push({launchX:px,landingX:x,speed:vx,runStartX:startX,
+      runFrames,releaseFrames,releaseFraction:releaseFrames/(state.rideDuration*120),
+      releaseX:ride.nextPx,releaseY:ride.nextPy,releaseVx:kick.vx,
+      releaseVy:kick.vy,landingHeightRise:rise});
+     break;
     }
    }
   }
  }
- return samples;
+ // Prefer useful takeoff velocity, high release timing tolerance and a natural
+ // long flight; the course builder scores actual collision contacts separately.
+ return samples.sort((a,b)=>b.speed-a.speed||b.landingX-a.landingX);
 }
+
 // Check the FIRST contact with *all* actual platform/deck colliders, not just
 // whether a hypothetical trajectory passes across the intended ledge.
 // This prevents passing the geometry sampler but landing on an earlier surface.
@@ -78,29 +82,51 @@ function firstContact(sample,source,target,worldX,worldY,cfg){
 // acceleration and a one-frame variation in release timing. This is not
 // assistance in flight: it rejects fragile level layouts at generation time.
 function robustContact(sample,physics,cfg,source,target,dx,dy,landingId){
- const dt=1/120,platform={x:(source.departure.left+source.departure.right)/2,
-  y:source.departure.y+60,width:source.departure.width,height:120};
- const wanted='target:'+landingId;
- for(const deltaSpeed of [0,13,-8]){
-  for(const frameOffset of [0,-1,1]){
-   const speed=sample.speed+deltaSpeed;
-   const px=sample.launchX,py=source.departure.y-22;
-   const plant=physics.validatePlantPoint(px,py,1,[platform],cfg);
+ const dt=1/120,deck=source.departure,platform={x:(deck.left+deck.right)/2,
+  y:deck.y+60,width:deck.width,height:120},wanted='target:'+landingId;
+ // Reject layouts that fail a roughly ±42 ms planting window or ±67 ms
+ // release window under the ORIGINAL physics (5 and 8 frames at 120 Hz).
+ for(const plantShift of [-5,0,5]){
+  for(const releaseShift of [-8,0,8]){
+   let px=sample.runStartX,speed=0;
+   const n=sample.runFrames+plantShift;
+   if(n<1)return false;
+   for(let i=0;i<n;i++){speed=Math.min(cfg.maxRunSpeed,speed+cfg.runAcceleration*dt);px+=speed*dt}
+   const py=deck.y-22,plant=physics.validatePlantPoint(px,py,1,[platform],cfg);
    if(!plant.isValid)return false;
    let state=physics.initVault(px,py,speed,0,plant.anchorX,plant.anchorY,cfg),ride;
-   const steps=Math.floor(state.rideDuration*sample.releaseFraction*120)+frameOffset;
-   for(let frame=0;frame<steps;frame++){
-    ride=physics.stepVault(state,dt,cfg);state=ride.state;
-   }
-   if(!ride)return false;
+   const frames=sample.releaseFrames+releaseShift;
+   if(frames<1)return false;
+   for(let i=0;i<frames;i++){ride=physics.stepVault(state,dt,cfg);state=ride.state}
    const kick=physics.calculateReleaseVelocity(ride.nextVx,ride.nextVy,state,cfg);
-   const trial={releaseX:ride.nextPx,releaseY:ride.nextPy,
-    releaseVx:kick.vx,releaseVy:kick.vy};
-   if(firstContact(trial,source,target,dx,dy,cfg)!==wanted)return false;
+   if(firstContact({releaseX:ride.nextPx,releaseY:ride.nextPy,
+       releaseVx:kick.vx,releaseVy:kick.vy},source,target,dx,dy,cfg)!==wanted)return false;
   }
  }
  return true;
 }
+// A receiving scaffold genuinely extends the existing climbable platform
+// toward the incoming chasm. Its *entire surface* is a real collider, and
+// the old vertical climbing route stays attached to the same platform ID.
+// Rock ledges are never stretched out of the mountain outline.
+function incomingScaffold(target,index,protrusion){
+ const original=target.platforms[index];
+ const surface=target.platforms.map(q=>({...q}));
+ const left=Math.min(original.left,target.bounds.left-protrusion);
+ const right=original.right, y=original.y,width=right-left;
+ const braces=[];
+ for(let x=left+14;x<right-14;x+=46){
+  braces.push([x,y+8,x+13,y+33],[x+13,y+33,Math.min(x+36,right-3),y+8]);
+ }
+ const attached={...original,kind:'scaffold',prefab:'scaffold-incoming-v14',
+  material:'weathered-steel',left,right,x:(left+right)/2,width,
+  vertices:[[left,y],[right,y],[right,y+8],[left,y+8]],braces,
+  arrivalFacing:'left',textureSeed:(target.seed+index*79)>>>0};
+ surface[index]=attached;
+ return {...target,platforms:surface,colliders:target.colliders.map(q=>
+  q.id===original.id?{...q,left,right,kind:'scaffold'}:{...q})};
+}
+
 function buildOnce(seed,settings,api){
  const n=settings.count??5,preset=settings.preset??1;
  if(!Number.isInteger(n)||n<2||n>8)throw Error('Course needs 2–8 spires');
@@ -120,19 +146,24 @@ function buildOnce(seed,settings,api){
   for(let attempt=0;attempt<(settings.maxAttempts??120)&&!choice;attempt++){
    const target=api.assemble(seedAt(i,attempt));
    const worldX=from.worldX+from.bounds.right-target.bounds.left+option.gap;
-   const options=target.platforms.slice().sort((a,b)=>b.width-a.width);
-   for(const landing of options){
+   // Make the arrival unmistakable and physically large: a scaffold
+   // projecting toward the incoming jump, not a hidden rock ledge.
+   const options=target.platforms.map((_,j)=>j)
+    .sort((a,b)=>target.platforms[b].width-target.platforms[a].width);
+   for(const index of options){
+    const candidate=incomingScaffold(target,index,72);
+    const landing=candidate.platforms[index];
     const left=worldX+landing.left,right=worldX+landing.right;
     const worldY=from.worldY+from.departure.y-rise-landing.y;
-    // firstContact operates in the source spire's local world coordinates.
     const offsetX=worldX-from.worldX,offsetY=worldY-from.worldY;
-    const match=samples.find(q=>from.worldX+q.landingX>=left+5&&from.worldX+q.landingX<=right-5
+    const match=samples.find(q=>from.worldX+q.landingX>=left+20&&from.worldX+q.landingX<=right-20
       &&from.worldX+q.releaseX<left+1
-      &&robustContact(q,api.physics,api.config,from,target,offsetX,offsetY,landing.id));
+      &&robustContact(q,api.physics,api.config,from,candidate,offsetX,offsetY,landing.id));
     if(match){
-     choice={peak:{...target,worldX,worldY},
+     choice={peak:{...candidate,worldX,worldY},
       crossing:{index:i-1,from:i-1,to:i,gapPreset:option.id,gap:option.gap,rise,
-       targetPlatform:landing.id,flight:match,flightSampleVerified:true}};
+       targetPlatform:landing.id,flight:match,flightSampleVerified:true,
+       fullyAcceleratedFromRest:true,landingType:'visible-scaffold',runStartX:match.runStartX}};
      break;
     }
    }
@@ -142,7 +173,7 @@ function buildOnce(seed,settings,api){
  }
  return {schema:'summitbound.course.v11',seed,source:'new-vertical-assets-only',
   gapPreset:option.id,gap:option.gap,rise,peaks,crossings,
-  physicsSampled:true,fullGameplayCertified:false};
+  physicsSampled:true,standingStartCertified:true,fullGameplayCertified:false};
 }
 function build(seed,settings={},api){
  const attempts=settings.maxCourseAttempts??30;
