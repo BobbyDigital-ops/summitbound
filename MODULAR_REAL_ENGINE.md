@@ -44,3 +44,16 @@ The player starts and respawns at the certified launch-run-up position rather th
 QA: `tests/spire-triple-gap-v14.test.cjs` verifies all 10 sizes × 3 seeds (30 generated courses) from rest and validates the measured rock gap, actual launch coordinates, valid pole plant, visible scaffold, and onward climb route. `tests/spire-real-engine-browser.cjs` completes all 10 gaps with the full original `tick()` from zero-speed start and explicitly brakes/walks to the onward climbing route. User playtesting remains necessary for timing satisfaction and Android touch behaviour; these are not yet guaranteed by automation.
 
 Known remaining limits: only two spires in the live test, complete solid-rock interiors/carved cave walls unfinished, mountain texture seams and receiving scaffold finishing need visual polish. Original Five Peaks is still the normal launch.
+
+
+## Phase 7A + 7B — Wider Alpine Rock Pass (v16)
+
+**Geometry is physical, not a drawing scale.** Every v10 base, body, cap and S/M/L socket is exactly 2× its original horizontal prefab dimensions. All 50 physical landing prefab colliders are ≥2× the original, with a stronger 240-world-unit minimum. Departure rock decks must be at least 300 units wide. The procedural assembler and course audits reject layouts that cannot meet the new minimums; no character physics, pole dynamics or movement speeds were increased.
+
+Exterior cliff collisions now check the actual assembled polygon at the player's feet, torso and head. Normal landing entrances remain open only around genuine collision-enabled platforms. **This is not full closed-rock collision**: inside-rock pockets, carved caves and below-base scenic foundations have not yet been made solid. Those remain separate work.
+
+**Visuals:** The v10 renderer now shares a continuous muted granite lighting field across connected physical modules, adds clipped fault-line strata, windswept thin snow along the true walkable edges, darker rock-backed staging and jagged translucent ice within the existing true climb routes. The old drawn seam between root spire and decorative foundations is removed. Geometry, colliders and route IDs remain single-sourced.
+
+**Proof:** \`tests/spire-phase7ab-wide-alpine.test.cjs\` covers prefab width floor/factors, physical platform collider agreement, multi-seed assembly audit, five-spire route viability, and renderer cache presence. The existing full-engine Chromium check uses actual running/plant/release/landing and climbs across all four crossing segments. These are automated tests, not aesthetic sign-off or uninterrupted human playtesting. Android performance and visual approval remain outstanding.
+
+**Rollback:** Branch \`backup/pre-phase7ab-width-art-2026-10-29\` preserves the prior main tree.
