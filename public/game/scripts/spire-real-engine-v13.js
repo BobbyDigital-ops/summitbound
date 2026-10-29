@@ -25,7 +25,7 @@ const SummitIntegrated=(()=>{
    p.worldY+d.y,'rock',{kind:'summit',spire:i,tier:'Departure',modular:true});
  }
  function install(seed=42,preset=1){
-  const original=SpireCourseV11.build(seed,{count:2,preset},{
+  const original=SpireCourseV11.build(seed,{count:5,preset},{
    assemble:SpireAssemblyV10.assemble,physics:PolePhysicsEngine,config:cfg
   });
   course={...original,peaks:original.peaks.map(q=>({
@@ -64,14 +64,14 @@ const SummitIntegrated=(()=>{
    }
   }
   const name=document.getElementById('routeLabel');
-  if(name)name.textContent='REAL ENGINE · MODULAR GAP '+course.gap;
+  if(name)name.textContent='REAL ENGINE · '+course.peaks.length+' SPIRES · GAP '+course.gap;
   invalidateTerrainCache();
   return course;
  }
  function startX(stage,pl){
-  if(stage===0&&course?.crossings?.[0]?.flight){
-   const flight=course.crossings[0].flight;
-   return course.peaks[0].worldX+flight.runStartX;
+  if(course?.crossings?.[stage]?.flight){
+   const flight=course.crossings[stage].flight;
+   return course.peaks[stage].worldX+flight.runStartX;
   }
   return clamp(pl.left+13,pl.left+8,pl.right-124);
  }
@@ -105,7 +105,7 @@ const SummitIntegrated=(()=>{
   p.state='GROUNDED';p.standingOn=id;p.surface=pl.surfaceType;
   p.vx=0;p.vy=0;p.climb=null;p.groundedFor=.4;
   hint(pl.kind==='summit'?'ORANGE DEPARTURE DECK REACHED':'MOUNTAIN ROUTE CONNECTED',1.6);
-  if(id==='s1')finish();
+  if(id==='s'+(course.peaks.length-1))finish();
  }
  function tickClimb(dt,k){
   const c=p.climb;if(!c?.modular)return false;
@@ -121,11 +121,11 @@ const SummitIntegrated=(()=>{
  function finish(){
   completed=true;p.state='GROUNDED';p.vx=0;p.vy=0;
   document.getElementById('victoryText').textContent=
-   'Two modular spires completed using the ORIGINAL Summitbound engine, v036 character, pole physics and camera.';
+   'Five modular spires completed using the ORIGINAL Summitbound engine, v036 character, pole physics and camera.';
   document.getElementById('victory').classList.add('open');
-  hint('TWO-SPIRE ASCENT COMPLETE',5);
+  hint('FIVE-SPIRE ASCENT COMPLETE',5);
  }
- function onLanding(pl){if(pl.id==='s1')finish()}
+ function onLanding(pl){if(pl.id==='s'+(course.peaks.length-1))finish()}
  function onFail(){
   const retry=typeof practiceTakeoff!=='undefined'?practiceTakeoff:null;
   if(retry&&retry.platformId&&platforms.some(pl=>pl.id===retry.platformId)){
@@ -134,7 +134,7 @@ const SummitIntegrated=(()=>{
    p.standingOn=pl.id;p.x=startX(pl.spire,pl);p.y=pl.top-22;
    p.surface=pl.surfaceType;hint('MISSED JUMP — RETRY FROM TAKEOFF',2);return true;
   }
-  spawn(0,true);hint('MISSED MOUNTAIN — RETRY',2);return true;
+  spawn(Math.max(0,Math.min(course.peaks.length-2,lastSafeStage||0)),true);hint('MISSED MOUNTAIN — RETRY',2);return true;
  }
  // Exterior side-wall contact only. The internal rock is NOT solid yet:
  // each generated ledge is intentionally embedded in the outline. The narrow
