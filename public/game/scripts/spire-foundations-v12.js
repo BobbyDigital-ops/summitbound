@@ -76,13 +76,8 @@ function draw(ctx,foundation,renderer){
  for(const item of foundation.foundations){
   ctx.save();ctx.translate(item.worldX,item.worldY);
   for(const block of item.blocks)renderer.drawRock(ctx,block);
-  // A narrow mineral dust seam softens the first module join without
-  // altering its actual vertices or introducing a gameplay collider.
-  if(item.blocks.length){
-   const a=item.baseEdge;
-   ctx.strokeStyle='#b4c9cc65';ctx.lineWidth=2.3;
-   ctx.beginPath();ctx.moveTo(a[0][0],0);ctx.lineTo(a[1][0],0);ctx.stroke();
-  }
+  // Keep the root boundary completely unmarked: the shared granite light
+  // field now joins the foundation and climbable spire without a drawn seam.
   ctx.restore();
  }
 }
