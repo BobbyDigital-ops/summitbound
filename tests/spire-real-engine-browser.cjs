@@ -84,10 +84,13 @@ const {spawn}=require('node:child_process');
      const dx=entry-p.x;
      const targetV=Math.sign(dx)*Math.min(155,Math.sqrt(Math.max(0,Math.abs(dx))*1350)*.75);
      keys.delete('a');keys.delete('d');keys.delete('w');
-     if(p.vx<targetV-15)keys.add('d');
+     if(Math.abs(dx)<24){
+      // Release sideways controls, naturally brake and press the same Up
+      // input a human uses. Walking corrections must not oscillate forever.
+      keys.add('w');
+     }else if(p.vx<targetV-15)keys.add('d');
      else if(p.vx>targetV+15)keys.add('a');
-     else if(Math.abs(dx)>16)keys.add(dx>0?'d':'a');
-     else if(Math.abs(p.vx)<85&&p.groundedFor>.09)keys.add('w');
+     else keys.add(dx>0?'d':'a');
      tick(1/120);walkingSteps++;
      if(p.state==='CLIMBING'){attached=true;break}
     }
