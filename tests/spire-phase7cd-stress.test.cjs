@@ -79,8 +79,10 @@ test('7C scaffold protrusion is allowed, rock protrusion never is',()=>{
  const p=q.platforms.find(p=>p.kind==='scaffold');
  assert.ok(p);
  const scaffold=clone(q),pl=scaffold.platforms.find(x=>x.id===p.id);
- pl.left-=800;pl.width=pl.right-pl.left;pl.vertices[0][0]=pl.left;pl.vertices[3][0]=pl.left;
- scaffold.colliders.find(c=>c.id===pl.id).left=pl.left;
+ // Extend *outward* beyond the rock, without crossing another ladder.
+ pl.right=Math.max(pl.right,scaffold.bounds.right+50);
+ pl.width=pl.right-pl.left;pl.vertices[1][0]=pl.right;pl.vertices[2][0]=pl.right;
+ scaffold.colliders.find(c=>c.id===pl.id).right=pl.right;
  assert.ok(assembler.inspect(scaffold).valid,'scaffold may genuinely protrude');
  pl.kind='rock';scaffold.colliders.find(c=>c.id===pl.id).kind='rock';
  assert.ok(!assembler.inspect(scaffold).valid,'same slab must be rejected as rock');
