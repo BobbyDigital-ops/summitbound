@@ -19,7 +19,7 @@ const {spawn}=require('node:child_process');
    physics:typeof PolePhysicsEngine,originalTick:typeof tick,
    originalRender:typeof draw,originalInput:typeof processKeyDown,
    player:{state:p.state,standingOn:p.standingOn,x:p.x,y:p.y}}));
-  if(!boot.info.active||boot.info.peaks!==2||boot.rig!=='function'||
+  if(!boot.info.active||boot.info.peaks!==5||boot.rig!=='function'||
    boot.originalTick!=='function'||boot.originalRender!=='function'||
    boot.originalInput!=='function'||boot.player.standingOn!=='s0')
    throw Error('Full original game bootstrap failed: '+JSON.stringify(boot));
@@ -41,6 +41,7 @@ const {spawn}=require('node:child_process');
    const result=await page.evaluate(()=>{
     const crossing=SummitIntegrated.course.crossings[0],sample=crossing.flight;
     const from=SummitIntegrated.course.peaks[0],to=SummitIntegrated.course.peaks[1];
+    const sequence=SummitIntegrated.course.crossings;
     const targetId='l1-'+Number(crossing.targetPlatform.split('-').at(-1));
     const target=platforms.find(q=>q.id===targetId);
     const start={x:p.x,y:p.y,velocity:p.vx,state:p.state};
@@ -58,6 +59,7 @@ const {spawn}=require('node:child_process');
      if(p.standingOn){landed=p.standingOn;break}
     }
     return {seed:SummitIntegrated.course.seed,gap:crossing.gap,actualRockGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
+     crossingCount:sequence.length,allFourConnected:sequence.every((c,i)=>c.from===i&&c.to===i+1&&SummitIntegrated.course.peaks[i+1].platforms.some(q=>q.id===c.targetPlatform)),
      planted,released,landed,expected:targetId,landingKind:target.kind,landingWidth:target.width,
      sourceDeck:from.departure.width,start,sprint,
      expectedSpeed:sample.speed,expectedPlantX:from.worldX+sample.launchX,
@@ -66,7 +68,7 @@ const {spawn}=require('node:child_process');
    });
    reports.push(result);
    if(result.error||result.seed!==seed||result.gap!==gaps[preset-1]||Math.abs(result.actualRockGap-result.gap)>1e-7||
-      !result.planted||!result.released||result.landed!==result.expected||
+      result.crossingCount!==4||!result.allFourConnected||!result.planted||!result.released||result.landed!==result.expected||
       result.landingKind!=='ledge'||result.start.velocity!==0||
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
