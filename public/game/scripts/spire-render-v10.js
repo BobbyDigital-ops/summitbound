@@ -4,12 +4,12 @@
 (function(root){
 'use strict';
 const COLORS={
- 'charcoal-granite':['#a5b4bc','#536675','#1b2c3a'],
- 'blue-schist':['#9dafb4','#516d80','#1b3346'],
- 'frosted-slate':['#c3ced0','#647e8c','#213644'],
- 'weathered-basalt':['#96a8a7','#51636c','#20303c'],
- 'pale-quartzite':['#d4d9d5','#81939c','#334655'],
- 'dark-gneiss':['#a1aab2','#4c6170','#162c3b'],
+ 'charcoal-granite':['#87999e','#405362','#132635'],
+ 'blue-schist':['#8ba2a9','#3f5c6a','#172c3a'],
+ 'frosted-slate':['#9fafb1','#526a77','#20313e'],
+ 'weathered-basalt':['#7c9698','#405561','#152731'],
+ 'pale-quartzite':['#b2c2bd','#667e88','#2a3c49'],
+ 'dark-gneiss':['#889aa1','#3c5563','#10212e'],
  'weathered-steel':['#adb8ba','#62737b','#26313b']
 };
 function random(seed){let s=seed>>>0||1;return ()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296)}
@@ -110,22 +110,40 @@ function platform(ctx,p){
  ctx.restore();
 }
 function climb(ctx,r){
- const y0=r.toY,y1=r.fromY,x=r.x;
+ const top=r.toY,bottom=r.fromY,x=r.x;
+ ctx.save();
  if(r.kind==='ice'){
-  const grad=ctx.createLinearGradient(x-r.width/2,0,x+r.width/2,0);
-  grad.addColorStop(0,'#85adbb86');grad.addColorStop(.3,'#b6e5edcb');
-  grad.addColorStop(.70,'#d1eff2b3');grad.addColorStop(1,'#567f9a94');
-  ctx.fillStyle=grad;ctx.fillRect(x-r.width/2,y0,r.width,y1-y0);
-  ctx.strokeStyle='#e9fcffcf';ctx.lineWidth=1.4;
-  // Ice facets are straight and vertical, with no sinusoidal path.
-  for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*r.width/4,y0);
-   ctx.lineTo(x+i*r.width/4,y1);ctx.stroke()}
+  // A narrow physical ice route embedded in granite: broken edges,
+  // transparent cores and trapped blue striations rather than a cyan tube.
+  const rand=random((r.fromY*197+r.x*131)>>>0),half=r.width/2;
+  ctx.beginPath();ctx.moveTo(x-half+2,top);
+  for(let y=top+19;y<bottom;y+=23)ctx.lineTo(x-half+(rand()-.5)*5,y);
+  ctx.lineTo(x-half+2,bottom);ctx.lineTo(x+half-2,bottom);
+  for(let y=bottom-19;y>top;y-=23)ctx.lineTo(x+half+(rand()-.5)*5,y);
+  ctx.closePath();
+  const grad=ctx.createLinearGradient(x-half,top,x+half,bottom);
+  grad.addColorStop(0,'#5f87998c');grad.addColorStop(.30,'#b8d5d5bf');
+  grad.addColorStop(.67,'#8fb9c6a9');grad.addColorStop(1,'#35566c91');
+  ctx.fillStyle=grad;ctx.fill();ctx.clip();
+  for(let i=0;i<26;i++){
+   const y=top+rand()*(bottom-top),off=(rand()-.5)*half;
+   ctx.beginPath();ctx.moveTo(x+off,y);ctx.lineTo(x+off+3-rand()*6,y+9+rand()*31);
+   ctx.strokeStyle=i%3?'#dcece874':'#2a50697e';ctx.lineWidth=.7+rand()*1.6;ctx.stroke();
+  }
+  ctx.beginPath();ctx.moveTo(x-half+2,top+4);ctx.lineTo(x-half+5,bottom-5);
+  ctx.strokeStyle='#d1e5e67a';ctx.lineWidth=1.4;ctx.stroke();
  }else{
-  ctx.strokeStyle='#222b32';ctx.lineWidth=4;
-  for(const v of [-r.width/2,r.width/2]){ctx.beginPath();ctx.moveTo(x+v,y0);ctx.lineTo(x+v,y1);ctx.stroke()}
-  ctx.strokeStyle='#dfc39c';ctx.lineWidth=2;
-  for(let y=y0+7;y<y1;y+=14){ctx.beginPath();ctx.moveTo(x-r.width/2,y);ctx.lineTo(x+r.width/2,y);ctx.stroke()}
+  // Slim rope-and-timber ladder, still mapped to its original true route.
+  ctx.strokeStyle='#283541';ctx.lineWidth=3.4;
+  for(const v of [-r.width/2,r.width/2]){
+   ctx.beginPath();ctx.moveTo(x+v,top);ctx.lineTo(x+v,bottom);ctx.stroke();
+  }
+  ctx.strokeStyle='#a1aaa8';ctx.lineWidth=2.1;
+  for(let y=top+6;y<bottom;y+=15){
+   ctx.beginPath();ctx.moveTo(x-r.width/2,y);ctx.lineTo(x+r.width/2,y);ctx.stroke();
+  }
  }
+ ctx.restore();
 }
 function draw(ctx,spire,opt={}){
  const clear=opt.clear!==false;
