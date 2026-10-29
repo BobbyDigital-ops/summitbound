@@ -25,7 +25,7 @@ const SummitIntegrated=(()=>{
    p.worldY+d.y,'rock',{kind:'summit',spire:i,tier:'Departure',modular:true});
  }
  function install(seed=42,preset=1){
-  const original=SpireCourseV11.build(seed,{count:5,preset},{
+  const original=SpireCourseV11.build(seed,{count:5,preset,varyGaps:true},{
    assemble:SpireAssemblyV10.assemble,physics:PolePhysicsEngine,config:cfg
   });
   course={...original,peaks:original.peaks.map(q=>({
@@ -64,7 +64,7 @@ const SummitIntegrated=(()=>{
    }
   }
   const name=document.getElementById('routeLabel');
-  if(name)name.textContent='REAL ENGINE · '+course.peaks.length+' SPIRES · GAP '+course.gap;
+  if(name)name.textContent='REAL ENGINE · '+course.peaks.length+' SPIRES · GAPS '+course.gaps.join(' / ');
   invalidateTerrainCache();
   return course;
  }
@@ -209,7 +209,7 @@ const SummitIntegrated=(()=>{
  function claim(){return {active,seed:course?.seed,gap:course?.gap,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
   physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
-  foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,rockSideHits:sideHits,rockMassCollision:'partial exterior walls only',certified:false}}
+  foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,rockSideHits:sideHits,rockMassCollision:'partial exterior walls only',generatorAudit:course?.audit?.valid??false,certified:false}}
  install(42,1);
  return {active,install,claim,drawTerrain,climbEntry,beginClimb,down,tickClimb,
   startX,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
