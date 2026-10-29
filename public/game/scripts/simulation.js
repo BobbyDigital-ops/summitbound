@@ -375,6 +375,13 @@ function tick(dt){
    }
   }
   if(standing){
+   if((p.longFlightScale||1)>1){
+    // Physical landing impact dissipates the high-speed chasm flight.
+    // Reset arc gravity immediately; otherwise walking off the next shelf
+    // would inherit floaty low gravity from the previous vault.
+    p.vx=Math.sign(p.vx)*Math.min(180,Math.abs(p.vx)*.18);
+    p.longFlightScale=1;
+   }
    p.standingOn = standing.id; p.surface = standing.surfaceType;
    if(!isGround()) p.state = Math.abs(p.vx) > 20 ? 'RUNNING' : 'GROUNDED';
    const rungX = climbEntryX(standing);
