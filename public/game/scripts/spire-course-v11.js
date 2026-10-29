@@ -140,12 +140,15 @@ function buildOnce(seed,settings,api){
  const peaks=[{...first,worldX:0,worldY:0}];
  const crossings=[];
  for(let i=1;i<n;i++){
+  const gapId=settings.gapSequence?.[i-1]??(settings.varyGaps?Math.min(GAP_PRESETS.length,preset+((i-1)%3)):preset);
+  const legOption=GAP_PRESETS.find(g=>g.id===gapId);
+  if(!legOption)throw Error('Invalid gap at crossing '+i);
   const from=peaks[i-1],samples=landings(api.physics,api.config,from,rise);
   if(!samples.length)throw Error('No sampled takeoff trajectory on spire '+(i-1));
   let choice=null;
   for(let attempt=0;attempt<(settings.maxAttempts??120)&&!choice;attempt++){
    const target=api.assemble(seedAt(i,attempt));
-   const worldX=from.worldX+from.bounds.right-target.bounds.left+option.gap;
+   const worldX=from.worldX+from.bounds.right-target.bounds.left+legOption.gap;
    // Make the arrival unmistakable and physically large: a scaffold
    // projecting toward the incoming jump, not a hidden rock ledge.
    const options=target.platforms.map((_,j)=>j)
@@ -161,33 +164,74 @@ function buildOnce(seed,settings,api){
       &&robustContact(q,api.physics,api.config,from,candidate,offsetX,offsetY,landing.id));
     if(match){
      choice={peak:{...candidate,worldX,worldY},
-      crossing:{index:i-1,from:i-1,to:i,gapPreset:option.id,gap:option.gap,rise,
+      crossing:{index:i-1,from:i-1,to:i,gapPreset:legOption.id,gap:legOption.gap,rise,
        targetPlatform:landing.id,flight:match,flightSampleVerified:true,
        fullyAcceleratedFromRest:true,landingType:'visible-scaffold',runStartX:match.runStartX}};
      break;
     }
    }
   }
-  if(!choice)throw Error('No sampled reachable next spire for gap '+option.gap+' at crossing '+i);
+  if(!choice)throw Error('No sampled reachable next spire for gap '+legOption.gap+' at crossing '+i);
   peaks.push(choice.peak);crossings.push(choice.crossing);
  }
  return {schema:'summitbound.course.v11',seed,source:'new-vertical-assets-only',
-  gapPreset:option.id,gap:option.gap,rise,peaks,crossings,
+  gapPreset:option.id,gap:option.gap,gaps:crossings.map(c=>c.gap),rise,peaks,crossings,
   physicsSampled:true,standingStartCertified:true,fullGameplayCertified:false};
+}
+// Phase 6B structural audit. Uses genuine platform/route IDs, not rendered art.
+function audit(course){
+ const errors=[],p=course?.peaks||[],cs=course?.crossings||[];
+ if(p.length<2||cs.length!==p.length-1)errors.push('incorrect peak/crossing count');
+ for(let i=0;i<p.length;i++){
+  const q=p[i];if(!q?.departure||!Number.isFinite(q.worldX)||!Number.isFinite(q.worldY)){
+   errors.push('missing departure '+i);continue;
+  }
+  if(i<p.length-1&&q.departure.right-q.departure.left<150)errors.push('short takeoff '+i);
+  for(const r of q.routes){
+   const source=r.source==='departure'?q.departure:q.platforms.find(l=>l.id===r.source);
+   const target=r.target==='departure'?q.departure:q.platforms.find(l=>l.id===r.target);
+   if(!source||!target)errors.push('orphan climb '+i+':'+r.id);
+   if(!Number.isFinite(r.x)||!Number.isFinite(r.fromY)||!Number.isFinite(r.toY)||r.fromY<=r.toY)
+    errors.push('invalid climb geometry '+i+':'+r.id);
+   if(source&&(r.x<source.left-1||r.x>source.right+1))errors.push('climb entry outside ledge '+i+':'+r.id);
+  }
+ }
+ for(let i=0;i<cs.length;i++){
+  const c=cs[i],from=p[i],to=p[i+1];if(!from||!to)continue;
+  if(c.from!==i||c.to!==i+1||!c.flight||!c.flightSampleVerified||!c.fullyAcceleratedFromRest)
+   errors.push('uncertified crossing '+i);
+  const actual=(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right);
+  if(Math.abs(actual-c.gap)>1e-6||c.gap<=0)errors.push('incorrect rock gap '+i);
+  const landing=to.platforms.find(q=>q.id===c.targetPlatform);
+  if(!landing||landing.kind!=='scaffold'||landing.width<150)errors.push('missing landable scaffold '+i);
+  const reachable=new Set([c.targetPlatform]);
+  for(let pass=0;pass<to.routes.length+1;pass++)for(const r of to.routes)
+   if(reachable.has(r.source))reachable.add(r.target);
+  if(!reachable.has('departure'))errors.push('climb dead end after crossing '+i);
+  const f=c.flight;if(f){
+   if(f.speed<=0||f.runFrames<=0||f.runStartX<from.departure.left||f.launchX>=from.departure.right)
+    errors.push('invalid running start '+i);
+   if(landing&&(f.landingX+from.worldX<to.worldX+landing.left+3||
+    f.landingX+from.worldX>to.worldX+landing.right-3))errors.push('landing outside scaffold '+i);
+  }
+ }
+ return {valid:errors.length===0,errors,peaks:p.length,crossings:cs.length,gaps:cs.map(c=>c.gap)};
 }
 function build(seed,settings={},api){
  const attempts=settings.maxCourseAttempts??30;
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const course=buildOnce((seed+attempt*7919)>>>0,settings,api);
-   course.seed=seed;course.generationAttempts=attempt+1;
+   const checked=audit(course);
+   if(!checked.valid)throw Error('Generated course failed structural audit: '+checked.errors.join('; '));
+   course.seed=seed;course.generationAttempts=attempt+1;course.audit=checked;
    return course;
   }catch(error){
-   if(!/No sampled reachable next spire|No sampled takeoff trajectory/.test(String(error))||attempt===attempts-1)throw error;
+   if(!/No sampled reachable next spire|No sampled takeoff trajectory|Generated course failed structural audit/.test(String(error))||attempt===attempts-1)throw error;
   }
  }
  throw Error('No sampled reachable full course');
 }
-const API=Object.freeze({GAP_PRESETS,landings,build});
+const API=Object.freeze({GAP_PRESETS,landings,build,audit});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireCourseV11=API;
 })(typeof globalThis!=='undefined'?globalThis:this);
