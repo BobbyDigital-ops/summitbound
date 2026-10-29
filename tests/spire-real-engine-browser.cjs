@@ -67,12 +67,29 @@ const {spawn}=require('node:child_process');
     await page.screenshot({path:'test-results/real-engine-landing-gap-'+gaps[preset-1]+'.png',fullPage:true});
    // The receiving scaffold is a real platform and its climb leads onward.
    const climb=await page.evaluate(()=>{
-    const pl=currentPlatform(),entry=SummitIntegrated.climbEntry(pl);
-    p.x=entry;keys.add('w');tick(1/120);
-    const attached=p.state==='CLIMBING';
-    for(let i=0;i<5500&&p.state==='CLIMBING';i++)tick(1/120);
-    keys.delete('w');
-    return {attached,state:p.state,on:p.standingOn};
+    const pl=currentPlatform(),entry=SummitIntegrated.climbEntry(pl),startX=p.x;
+    let attached=false,walkingSteps=0;
+    // From the ACTUAL touchdown: brake, walk to the climb entrance and
+    // stop naturally. No teleport, p.x edits, or velocity injection.
+    for(let i=0;i<1200;i++){
+     if(!p.standingOn||!p.standingOn.startsWith('l1-'))break;
+     const dx=entry-p.x;
+     const targetV=Math.sign(dx)*Math.min(155,Math.sqrt(Math.max(0,Math.abs(dx))*1350)*.75);
+     keys.delete('a');keys.delete('d');keys.delete('w');
+     if(p.vx<targetV-15)keys.add('d');
+     else if(p.vx>targetV+15)keys.add('a');
+     else if(Math.abs(dx)>16)keys.add(dx>0?'d':'a');
+     else if(Math.abs(p.vx)<85&&p.groundedFor>.09)keys.add('w');
+     tick(1/120);walkingSteps++;
+     if(p.state==='CLIMBING'){attached=true;break}
+    }
+    keys.delete('a');keys.delete('d');keys.delete('w');
+    if(attached){
+     keys.add('w');
+     for(let i=0;i<5500&&p.state==='CLIMBING';i++)tick(1/120);
+     keys.delete('w');
+    }
+    return {attached,state:p.state,on:p.standingOn,startX,entry,finishX:p.x,walkingSteps};
    });
    if(!climb.attached||climb.state!=='GROUNDED')
     throw Error('Incoming scaffold has no workable onward climb gap '+result.gap+': '+JSON.stringify(climb));
