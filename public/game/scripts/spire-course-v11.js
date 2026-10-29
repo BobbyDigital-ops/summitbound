@@ -127,6 +127,15 @@ function incomingScaffold(target,index,protrusion){
   q.id===original.id?{...q,left,right,kind:'scaffold'}:{...q})};
 }
 
+// Extending an arrival scaffold can cover a ladder column which was valid
+// before extension. Reject that attachment rather than allowing a ghost
+// climb through another actual platform.
+function clearClimbingCorridors(peak){
+ return peak.routes.every(route=>!peak.platforms.some(p=>
+  p.id!==route.source&&p.id!==route.target&&
+  p.y>route.toY&&p.y<route.fromY&&
+  route.x>=p.left-1&&route.x<=p.right+1));
+}
 function buildOnce(seed,settings,api){
  const n=settings.count??5,preset=settings.preset??1;
  if(!Number.isInteger(n)||n<2||n>8)throw Error('Course needs 2–8 spires');
@@ -155,6 +164,7 @@ function buildOnce(seed,settings,api){
     .sort((a,b)=>target.platforms[b].width-target.platforms[a].width);
    for(const index of options){
     const candidate=incomingScaffold(target,index,72);
+    if(!clearClimbingCorridors(candidate))continue;
     const landing=candidate.platforms[index];
     const left=worldX+landing.left,right=worldX+landing.right;
     const worldY=from.worldY+from.departure.y-rise-landing.y;
@@ -187,6 +197,7 @@ function audit(course){
    errors.push('missing departure '+i);continue;
   }
   if(i<p.length-1&&q.departure.right-q.departure.left<300)errors.push('short takeoff '+i);
+  if(!clearClimbingCorridors(q))errors.push('scaffold blocks climb corridor '+i);
   for(const r of q.routes){
    const source=r.source==='departure'?q.departure:q.platforms.find(l=>l.id===r.source);
    const target=r.target==='departure'?q.departure:q.platforms.find(l=>l.id===r.target);
