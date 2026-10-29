@@ -5,7 +5,7 @@
 (function(root){
 'use strict';
 const MIN_LAUNCH_DECK=300;
-const MIN_LANDING_SPAN=180;
+const MIN_LANDING_SPAN=240;
 const K=typeof module==='object'&&module.exports?require('./spire-kit-v10.js'):root.SpireKitV10;
 if(!K)throw Error('Missing new v10 spire prefab library');
 const pick=(r,a)=>a[Math.floor(r()*a.length)];
