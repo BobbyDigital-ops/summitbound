@@ -122,9 +122,15 @@ const {spawn}=require('node:child_process');
   });
   if(!collision.blocked||Math.abs(collision.x-collision.want)>1e-6)
    throw Error('Exposed rock collision failed '+JSON.stringify(collision));
+  const memory=await page.evaluate(()=>SummitIntegrated.claim());
+  if(memory.cachedRasterMountains>memory.maxCachedRasterMountains||
+     memory.maxCachedRasterMountains!==3||
+     memory.cachedRasterBytes>3*2048*4096*4)
+   throw Error('Unbounded mountain raster cache: '+JSON.stringify(memory));
   if(errors.length)throw Error('Browser JS errors: '+errors.join(' | '));
   console.log(JSON.stringify({boot:boot.info,originalRuntimeControlledFromRest:true,
    gapCrossings:reports.map(r=>({stage:r.stage,gap:r.gap,runFrames:r.runFrames,
-    landing:r.landed,climbSteps:r.climb.steps.length})),rockCollision:collision.blocked}));
+    landing:r.landed,climbSteps:r.climb.steps.length})),rockCollision:collision.blocked,
+   rasterCache:{peaks:memory.cachedRasterMountains,bytes:memory.cachedRasterBytes,limit:memory.maxCachedRasterMountains}}));
  }finally{if(browser)await browser.close();vite.kill()}
 })().catch(e=>{console.error(e);process.exitCode=1});
