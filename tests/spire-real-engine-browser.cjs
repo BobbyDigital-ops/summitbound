@@ -29,7 +29,10 @@ const {spawn}=require('node:child_process');
   // using the real functions, then collides with the real receiving scaffold.
   const gaps=[90,150,210,270,330,390,450,510,570,630],reports=[];
   for(let seed=42;seed<=44;seed++){
-   if(seed!==42)await page.click('#integratedReroll');
+   if(seed!==42){
+    await page.click('#again'); // close genuine completed-course overlay
+    await page.click('#integratedReroll');
+   }
    for(let preset=1;preset<=10;preset++){
    await page.selectOption('#integratedGap',String(preset));
    const result=await page.evaluate(()=>{
