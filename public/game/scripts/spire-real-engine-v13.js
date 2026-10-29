@@ -245,7 +245,8 @@ const SummitIntegrated=(()=>{
  function claim(){return {active,seed:course?.seed,gap:course?.gap,gaps:course?.gaps,
   gapMultiplier,longPhysics:gapMultiplier>1,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
-  physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
+  physics:gapMultiplier>1?'original pole + explicitly time-scaled post-release long-vault physics':'original simulation.js + PolePhysicsEngine',
+  character:'original rendering.js + character-rig-v036.js',
   foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,
   cachedRasterBytes:[...staticPaint.values()].reduce((sum,c)=>sum+c.width*c.height*4,0),
   maxCachedRasterMountains:MAX_RASTER_MOUNTAINS,rockSideHits:sideHits,rockMassCollision:'physical polygon exterior sampled at boots, torso and head; embedded cavities pending',generatorAudit:course?.audit?.valid??false,certified:false}}
