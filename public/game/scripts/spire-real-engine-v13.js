@@ -162,6 +162,20 @@ const SummitIntegrated=(()=>{
    const landingCorridor=platforms.some(pl=>pl.spire===i&&
      Math.abs(feet-pl.top)<65&&p.x>=pl.left-45&&p.x<=pl.right+45);
    if(landingCorridor)continue;
+   // The scaffold's genuine descending approach corridor must remain open.
+   // The original blanket 65-unit rule deflected legitimate long vaults
+   // into the cliff about 80–100 units BEFORE touching the platform. This
+   // exemption is restricted to the currently targeted real scaffold, its
+   // collision footprint, and a 130-unit downward approach window.
+   const crossing=course.crossings[atStage];
+   const receiver=(gapMultiplier>1&&p.longFlightScale>1&&p.vy>=0&&crossing?.to===i)
+    ?q.platforms.find(pl=>pl.id===crossing.targetPlatform):null;
+   if(receiver){
+    const top=q.worldY+receiver.y;
+    const approach=feet>=top-130&&feet<=top+12&&
+      p.x>=q.worldX+receiver.left-25&&p.x<=q.worldX+receiver.right+25;
+    if(approach)continue;
+   }
    const samples=[feet,feet-19,feet-38];
    for(const sampleY of samples){
     const localY=sampleY-q.worldY;
