@@ -2,13 +2,15 @@ name: Summitbound Real Engine Modular Integration QA
 on:
   push:
     branches: ['dev/phase4-real-engine-modular', 'dev/phase5-playable-triple-gaps', 'dev/phase6a-five-spire-course']
+  pull_request:
+    branches: ['main']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   original-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Run preserved physics and existing course regression tests
-        run: node --test tests/modular-physical-v040.test.cjs tests/level-engine-v1.test.cjs tests/spire-triple-gap-v14.test.cjs
+        run: node --test tests/modular-physical-v040.test.cjs tests/level-engine-v1.test.cjs tests/spire-triple-gap-v14.test.cjs tests/spire-phase6b-validation.test.cjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Prove original character, original simulation and real vault landing
@@ -26,6 +28,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: original-engine-modular-v14
+          name: original-engine-modular-v15
           path: test-results/real-engine-*.png
           retention-days: 7
