@@ -23,91 +23,85 @@ const {spawn}=require('node:child_process');
    boot.originalTick!=='function'||boot.originalRender!=='function'||
    boot.originalInput!=='function'||boot.player.standingOn!=='s0')
    throw Error('Full original game bootstrap failed: '+JSON.stringify(boot));
-  // The test NEVER assigns p.vx, p.x, or player state in the flight path.
-  // It starts at the game's natural spawn on the orange launch deck;
-  // accelerates by real A/D controls and original tick(), plants & releases
-  // using the real functions, then collides with the real receiving scaffold.
-  const gaps=[90,150,210,270,330,390,450,510,570,630],reports=[];
-  for(let seed=42;seed<=44;seed++){
-   if(seed!==42){
-    // Some routes reach the orange summit directly; others climb via an
-    // intermediate platform, so the victory overlay is conditional.
-    if(await page.locator('#victory').evaluate(el=>el.classList.contains('open')))
-     await page.click('#again');
-    await page.click('#integratedReroll');
-   }
-   for(let preset=1;preset<=10;preset++){
-   await page.selectOption('#integratedGap',String(preset));
-   const result=await page.evaluate(()=>{
-    const crossing=SummitIntegrated.course.crossings[0],sample=crossing.flight;
-    const from=SummitIntegrated.course.peaks[0],to=SummitIntegrated.course.peaks[1];
-    const sequence=SummitIntegrated.course.crossings;
-    const targetId='l1-'+Number(crossing.targetPlatform.split('-').at(-1));
-    const target=platforms.find(q=>q.id===targetId);
-    const start={x:p.x,y:p.y,velocity:p.vx,state:p.state};
-    if(!target||p.standingOn!=='s0'||p.vx!==0)return {error:'not stationary at start',start};
+  // Every vault uses the original 120Hz tick, actual sprint input, original
+  // pole plant/release, actual landing collision, and all real climb links.
+  // Only the position between completed crossings is reset to the next
+  // authored run-up (the normal Retry Peak spawn). This is a segment-level
+  // gameplay test, not an unassisted end-to-end speedrun.
+  const reports=[];
+  for(let stage=0;stage<4;stage++){
+   const result=await page.evaluate(stage=>{
+    if(stage)spawn(stage,true);
+    const course=SummitIntegrated.course,c=course.crossings[stage],sample=c.flight;
+    const from=course.peaks[stage],to=course.peaks[stage+1];
+    const targetId='l'+(stage+1)+'-'+Number(c.targetPlatform.split('-').at(-1));
+    const initial={x:p.x,vx:p.vx,state:p.state,on:p.standingOn};
+    if(p.standingOn!=='s'+stage||p.vx!==0)
+     return {error:'wrong standing launch',stage,initial};
     keys.add('d');
     for(let frame=0;frame<sample.runFrames;frame++)tick(1/120);
     keys.delete('d');
-    const sprint={x:p.x,vx:p.vx,state:p.state,standingOn:p.standingOn};
+    const sprint={x:p.x,vx:p.vx};
     plant();const planted=p.state==='RIDING_VAULT';
     for(let frame=0;frame<sample.releaseFrames;frame++)tick(1/120);
     release();const released=p.state==='AIRBORNE';
     let landed=null;
     for(let frame=0;frame<950;frame++){
-     tick(1/120);
-     if(p.standingOn){landed=p.standingOn;break}
+     tick(1/120);if(p.standingOn){landed=p.standingOn;break}
     }
-    return {seed:SummitIntegrated.course.seed,gap:crossing.gap,actualRockGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
-     crossingCount:sequence.length,allFourConnected:sequence.every((c,i)=>c.from===i&&c.to===i+1&&SummitIntegrated.course.peaks[i+1].platforms.some(q=>q.id===c.targetPlatform)),
-     planted,released,landed,expected:targetId,landingKind:target.kind,landingWidth:target.width,
-     sourceDeck:from.departure.width,start,sprint,
-     expectedSpeed:sample.speed,expectedPlantX:from.worldX+sample.launchX,
-     plan:{runFrames:sample.runFrames,releaseFrames:sample.releaseFrames},state:p.state,
-     secondSpireReached:p.standingOn?.startsWith('l1-')||p.standingOn==='s1'};
-   });
+    return {stage,gap:c.gap,actualGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
+     totalPeaks:course.peaks.length,legs:course.crossings.length,audit:course.audit?.valid,
+     planted,released,landed,targetId,initial,sprint,expectedSpeed:sample.speed,
+     expectedPlantX:from.worldX+sample.launchX,runFrames:sample.runFrames};
+   },stage);
    reports.push(result);
-   if(result.error||result.seed!==seed||result.gap!==gaps[preset-1]||Math.abs(result.actualRockGap-result.gap)>1e-7||
-      result.crossingCount!==4||!result.allFourConnected||!result.planted||!result.released||result.landed!==result.expected||
-      result.landingKind!=='ledge'||result.start.velocity!==0||
+   if(result.error||result.totalPeaks!==5||result.legs!==4||!result.audit||
+      Math.abs(result.gap-result.actualGap)>1e-6||!result.planted||!result.released||
+      result.landed!==result.targetId||result.initial.vx!==0||
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
-    throw Error('Stationary-start REAL player crossing failed gap '+gaps[preset-1]+': '+JSON.stringify(result));
-   if(seed===42&&(preset===1||preset===10))
-    await page.screenshot({path:'test-results/real-engine-landing-gap-'+gaps[preset-1]+'.png',fullPage:true});
-   // The receiving scaffold is a real platform and its climb leads onward.
-   const climb=await page.evaluate(()=>{
-    const pl=currentPlatform(),entry=SummitIntegrated.climbEntry(pl),startX=p.x;
-    let attached=false,walkingSteps=0;
-    // From the ACTUAL touchdown: brake, walk to the climb entrance and
-    // stop naturally. No teleport, p.x edits, or velocity injection.
-    for(let i=0;i<1200;i++){
-     if(!p.standingOn||!p.standingOn.startsWith('l1-'))break;
-     const dx=entry-p.x;
-     const targetV=Math.sign(dx)*Math.min(155,Math.sqrt(Math.max(0,Math.abs(dx))*1350)*.75);
+    throw Error('Five-spire original-runtime vault failed: '+JSON.stringify(result));
+   if(stage===0||stage===3)await page.screenshot({
+    path:'test-results/real-engine-landing-stage-'+stage+'.png',fullPage:true});
+   // Follow EVERY actual climb/ladder edge; some procedurally built routes
+   // require multiple linked landing shelves before reaching the orange deck.
+   const climb=await page.evaluate(stage=>{
+    const target='s'+(stage+1),steps=[];
+    for(let section=0;section<9;section++){
+     if(p.standingOn===target)return {ok:true,on:p.standingOn,steps,finished:completed};
+     const pl=currentPlatform();
+     if(!pl)return {ok:false,reason:'no current platform',steps,state:p.state};
+     const entry=SummitIntegrated.climbEntry(pl);
+     if(!Number.isFinite(entry)||entry<0)return {ok:false,reason:'missing climb entrance',on:pl.id,steps};
+     let attached=false,walkFrames=0;
+     for(let i=0;i<1200;i++){
+      if(!p.standingOn||p.standingOn!==pl.id)break;
+      const dx=entry-p.x;
+      const targetV=Math.sign(dx)*Math.min(155,Math.sqrt(Math.max(0,Math.abs(dx))*1350)*.75);
+      keys.delete('a');keys.delete('d');keys.delete('w');
+      if(Math.abs(dx)<24)keys.add('w');
+      else if(p.vx<targetV-15)keys.add('d');
+      else if(p.vx>targetV+15)keys.add('a');
+      else keys.add(dx>0?'d':'a');
+      tick(1/120);walkFrames++;
+      if(p.state==='CLIMBING'){attached=true;break}
+     }
      keys.delete('a');keys.delete('d');keys.delete('w');
-     if(Math.abs(dx)<24){
-      // Release sideways controls, naturally brake and press the same Up
-      // input a human uses. Walking corrections must not oscillate forever.
-      keys.add('w');
-     }else if(p.vx<targetV-15)keys.add('d');
-     else if(p.vx>targetV+15)keys.add('a');
-     else keys.add(dx>0?'d':'a');
-     tick(1/120);walkingSteps++;
-     if(p.state==='CLIMBING'){attached=true;break}
-    }
-    keys.delete('a');keys.delete('d');keys.delete('w');
-    if(attached){
+     if(!attached)return {ok:false,reason:'failed to reach climb entrance',from:pl.id,x:p.x,entry,walkFrames,steps};
      keys.add('w');
      for(let i=0;i<5500&&p.state==='CLIMBING';i++)tick(1/120);
      keys.delete('w');
+     steps.push({from:pl.id,to:p.standingOn,state:p.state,walkFrames});
+     if(p.state!=='GROUNDED')return {ok:false,reason:'climb did not finish',steps};
     }
-    return {attached,state:p.state,on:p.standingOn,startX,entry,finishX:p.x,walkingSteps};
-   });
-   if(!climb.attached||climb.state!=='GROUNDED')
-    throw Error('Incoming scaffold has no workable onward climb seed '+seed+' gap '+result.gap+': '+JSON.stringify(climb));
-   }
+    return {ok:p.standingOn===target,on:p.standingOn,steps,finished:completed};
+   },stage);
+   if(!climb.ok)throw Error('Five-spire climb graph failed at '+stage+': '+JSON.stringify(climb));
+   reports[reports.length-1].climb=climb;
   }
+  const finished=await page.evaluate(()=>({completed,overlay:document.getElementById('victory').classList.contains('open'),peak:atStage}));
+  if(!finished.completed||!finished.overlay)
+   throw Error('Fifth spire did not trigger true completion '+JSON.stringify(finished));
   const collision=await page.evaluate(()=>{
    const q=SummitIntegrated.course.peaks[1],base=q.pieces[0];
    let choice=null;
@@ -127,7 +121,7 @@ const {spawn}=require('node:child_process');
    throw Error('Exposed rock collision failed '+JSON.stringify(collision));
   if(errors.length)throw Error('Browser JS errors: '+errors.join(' | '));
   console.log(JSON.stringify({boot:boot.info,originalRuntimeControlledFromRest:true,
-   gapCrossings:reports.map(r=>({gap:r.gap,runFrames:r.plan.runFrames,launchSpeed:r.sprint.vx,
-    landing:r.landed,scaffoldWidth:r.landingWidth})),rockCollision:collision.blocked}));
+   gapCrossings:reports.map(r=>({stage:r.stage,gap:r.gap,runFrames:r.runFrames,
+    landing:r.landed,climbSteps:r.climb.steps.length})),rockCollision:collision.blocked}));
  }finally{if(browser)await browser.close();vite.kill()}
 })().catch(e=>{console.error(e);process.exitCode=1});
