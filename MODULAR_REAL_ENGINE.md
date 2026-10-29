@@ -57,3 +57,15 @@ Exterior cliff collisions now check the actual assembled polygon at the player's
 **Proof:** \`tests/spire-phase7ab-wide-alpine.test.cjs\` covers prefab width floor/factors, physical platform collider agreement, multi-seed assembly audit, five-spire route viability, and renderer cache presence. The existing full-engine Chromium check uses actual running/plant/release/landing and climbs across all four crossing segments. These are automated tests, not aesthetic sign-off or uninterrupted human playtesting. Android performance and visual approval remain outstanding.
 
 **Rollback:** Branch \`backup/pre-phase7ab-width-art-2026-10-29\` preserves the prior main tree.
+
+## v18 — Real 10× Chasms, Long Vault and Collision Fix
+
+The default playable modular five-spire course now positions the actual rock meshes, platform colliders and climbing routes with **tenfold rock-to-rock gaps**. The gap dropdown selects preset 1–10 (900–6300 world units in long mode); `Spacing → 1× Classic` restores the original 90–630-unit course. The earlier spacing lab remains a comparison tool.
+
+Because the original pole cannot bridge 900–6300 world units, **this is intentionally not the original airborne physics**. The original pole bend/plant/ride/release timing and character controls are preserved. After release, long mode scales horizontal velocity by `sqrt(stretch)`, divides vertical release velocity by the same amount, and divides flight gravity by `stretch`. The result is a longer *real simulated arc*, not teleports, invisible scaffold bridges or landing magnets. Genuine collision surfaces still decide landing.
+
+The previous exterior cliff rule could deflect even a successful incoming approach while the climber was roughly 80–100 units above the real arrival scaffold. Long mode now exempts a narrow, descending approach envelope **only for the designated real incoming scaffold**. Missed routes can still strike the actual mountain wall. On landing, impact dissipates excess horizontal momentum and restores normal airborne gravity, so players don't slide off or inherit low gravity on subsequent jumps.
+
+The original standalone Five Peaks course is unchanged. Automated browser checks exercise all four real physics vaults in preset 1, 5 and 10, require zero false rock impacts on certified sample landings, and verify Classic 1× fallback. These runs simulate keyboard controls and physics frame-by-frame, resetting at the next peak between legs, so they do **not** replace an uninterrupted human playthrough.
+
+The complete solid-rock interior and authored caves remain separate work.

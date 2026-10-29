@@ -64,7 +64,13 @@ function release(){
  if(p.state!=='RIDING_VAULT')return;
  const kick = PolePhysicsEngine.calculateReleaseVelocity(p.vx, p.vy, p.vault, cfg);
  if(typeof catchUsed!=='undefined')catchUsed=false;
- p.vx = kick.vx; p.vy = kick.vy; p.state = 'AIRBORNE'; p.vault = null; p.bend = 0; meter.style.display = 'none';
+ // The optional long-vault mode is physical flight tuning, NOT a hidden
+ // teleport or collision magnet. Scale release speed and airtime together.
+ const extended=(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)
+  ?SummitIntegrated.longFlightForStage(atStage):null;
+ const scale=extended?.longTimeScale??1;
+ p.vx=kick.vx*scale; p.vy=kick.vy/scale;p.longFlightScale=scale;
+ p.state = 'AIRBORNE'; p.vault = null; p.bend = 0; meter.style.display = 'none';
 }
 
 function input(){

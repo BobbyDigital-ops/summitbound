@@ -290,11 +290,14 @@ function tick(dt){
   if(result.shouldAutoRelease) release();
  } else if(p.state === 'AIRBORNE' || p.state === 'FALLING'){
   const fd = dt * cfg.arcadeFlightTempo;
-  p.vy += cfg.gravity * fd;
-  if(k.left) p.vx -= cfg.airborneSteerForce * fd;
-  if(k.right) p.vx += cfg.airborneSteerForce * fd;
-  // Do not flatten the skill-driven launch by clipping speed to the old cap.
-  p.vx = clamp(p.vx,-cfg.maxAirborneSpeed,cfg.maxAirborneSpeed);
+  // Long chasm mode preserves the measured pole release but gives the
+  // airborne arc proportionally more time and horizontal reach. This is
+  // explicit modular-only physics, never invisible midflight repositioning.
+  const arcScale=p.longFlightScale||1;
+  p.vy += cfg.gravity/(arcScale*arcScale) * fd;
+  if(k.left) p.vx -= cfg.airborneSteerForce * arcScale * fd;
+  if(k.right) p.vx += cfg.airborneSteerForce * arcScale * fd;
+  p.vx = clamp(p.vx,-cfg.maxAirborneSpeed*arcScale,cfg.maxAirborneSpeed*arcScale);
   p.x += p.vx * fd; p.y += p.vy * fd;
   if(trail.length === 0 || Math.hypot(p.x - trail.at(-1).x, p.y - trail.at(-1).y) > 8){
    trail.push({x:p.x, y:p.y}); if(trail.length > 52) trail.shift();
@@ -372,6 +375,13 @@ function tick(dt){
    }
   }
   if(standing){
+   if((p.longFlightScale||1)>1){
+    // Physical landing impact dissipates the high-speed chasm flight.
+    // Reset arc gravity immediately; otherwise walking off the next shelf
+    // would inherit floaty low gravity from the previous vault.
+    p.vx=Math.sign(p.vx)*Math.min(180,Math.abs(p.vx)*.18);
+    p.longFlightScale=1;
+   }
    p.standingOn = standing.id; p.surface = standing.surfaceType;
    if(!isGround()) p.state = Math.abs(p.vx) > 20 ? 'RUNNING' : 'GROUNDED';
    const rungX = climbEntryX(standing);
@@ -389,7 +399,9 @@ function tick(dt){
  const dropLimit=(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)?
   Math.max(...SummitIntegrated.course.peaks.map(s=>s.worldY+s.bounds.bottom))+320:
   Math.max(1650,fallbackFloor+500);
- if(p.y>dropLimit||p.x>8100||p.x<-90)fail();
+ const modularRight=(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)
+  ?Math.max(8100,...SummitIntegrated.course.peaks.map(q=>q.worldX+q.bounds.right+1100)):8100;
+ if(p.y>dropLimit||p.x>modularRight||p.x<-90)fail();
  updateCaveCampfire();
  if(messageTimeout > 0){ messageTimeout -= dt; if(messageTimeout <= 0) notice.textContent = ''; }
 }
