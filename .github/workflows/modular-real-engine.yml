@@ -1,7 +1,7 @@
 name: Summitbound Real Engine Modular Integration QA
 on:
   push:
-    branches: ['dev/phase4-real-engine-modular', 'dev/phase5-playable-triple-gaps']
+    branches: ['dev/phase4-real-engine-modular', 'dev/phase5-playable-triple-gaps', 'dev/phase6a-five-spire-course']
   workflow_dispatch:
 permissions:
   contents: read
