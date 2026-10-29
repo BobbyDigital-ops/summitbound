@@ -19,7 +19,7 @@ const {spawn}=require('node:child_process');
    physics:typeof PolePhysicsEngine,originalTick:typeof tick,
    originalRender:typeof draw,originalInput:typeof processKeyDown,
    player:{state:p.state,standingOn:p.standingOn,x:p.x,y:p.y}}));
-  if(!boot.info.active||boot.info.peaks!==5||boot.rig!=='function'||
+  if(!boot.info.active||boot.info.peaks!==5||boot.info.gapMultiplier!==10||boot.rig!=='function'||
    boot.originalTick!=='function'||boot.originalRender!=='function'||
    boot.originalInput!=='function'||boot.player.standingOn!=='s0')
    throw Error('Full original game bootstrap failed: '+JSON.stringify(boot));
@@ -38,25 +38,28 @@ const {spawn}=require('node:child_process');
     const initial={x:p.x,vx:p.vx,state:p.state,on:p.standingOn};
     if(p.standingOn!=='s'+stage||p.vx!==0)
      return {error:'wrong standing launch',stage,initial};
+    const wallHitsBefore=SummitIntegrated.claim().rockSideHits;
     keys.add('d');
     for(let frame=0;frame<sample.runFrames;frame++)tick(1/120);
     keys.delete('d');
     const sprint={x:p.x,vx:p.vx};
     plant();const planted=p.state==='RIDING_VAULT';
     for(let frame=0;frame<sample.releaseFrames;frame++)tick(1/120);
-    release();const released=p.state==='AIRBORNE';
+    release();const released=p.state==='AIRBORNE',arcScale=p.longFlightScale;
     let landed=null;
     for(let frame=0;frame<950;frame++){
      tick(1/120);if(p.standingOn){landed=p.standingOn;break}
     }
     return {stage,gap:c.gap,actualGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
      totalPeaks:course.peaks.length,legs:course.crossings.length,audit:course.audit?.valid,
-     planted,released,landed,targetId,initial,sprint,expectedSpeed:sample.speed,
+     planted,released,landed,targetId,initial,sprint,arcScale,
+     wallHits:SummitIntegrated.claim().rockSideHits-wallHitsBefore,expectedSpeed:sample.speed,
      expectedPlantX:from.worldX+sample.launchX,runFrames:sample.runFrames};
    },stage);
    reports.push(result);
    if(result.error||result.totalPeaks!==5||result.legs!==4||!result.audit||
-      Math.abs(result.gap-result.actualGap)>1e-6||!result.planted||!result.released||
+      Math.abs(result.gap-result.actualGap)>1e-6||result.gap<900||!result.planted||!result.released||
+      result.arcScale<=1||result.wallHits>0||
       result.landed!==result.targetId||result.initial.vx!==0||
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
@@ -130,7 +133,8 @@ const {spawn}=require('node:child_process');
   if(errors.length)throw Error('Browser JS errors: '+errors.join(' | '));
   console.log(JSON.stringify({boot:boot.info,originalRuntimeControlledFromRest:true,
    gapCrossings:reports.map(r=>({stage:r.stage,gap:r.gap,runFrames:r.runFrames,
-    landing:r.landed,climbSteps:r.climb.steps.length})),rockCollision:collision.blocked,
+    landing:r.landed,arcScale:r.arcScale,wallHits:r.wallHits,
+    climbSteps:r.climb.steps.length})),rockCollision:collision.blocked,
    rasterCache:{peaks:memory.cachedRasterMountains,bytes:memory.cachedRasterBytes,limit:memory.maxCachedRasterMountains}}));
  }finally{if(browser)await browser.close();vite.kill()}
 })().catch(e=>{console.error(e);process.exitCode=1});
