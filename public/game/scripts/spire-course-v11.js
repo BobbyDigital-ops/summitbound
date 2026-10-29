@@ -186,7 +186,7 @@ function audit(course){
   const q=p[i];if(!q?.departure||!Number.isFinite(q.worldX)||!Number.isFinite(q.worldY)){
    errors.push('missing departure '+i);continue;
   }
-  if(i<p.length-1&&q.departure.right-q.departure.left<150)errors.push('short takeoff '+i);
+  if(i<p.length-1&&q.departure.right-q.departure.left<300)errors.push('short takeoff '+i);
   for(const r of q.routes){
    const source=r.source==='departure'?q.departure:q.platforms.find(l=>l.id===r.source);
    const target=r.target==='departure'?q.departure:q.platforms.find(l=>l.id===r.target);
@@ -203,7 +203,7 @@ function audit(course){
   const actual=(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right);
   if(Math.abs(actual-c.gap)>1e-6||c.gap<=0)errors.push('incorrect rock gap '+i);
   const landing=to.platforms.find(q=>q.id===c.targetPlatform);
-  if(!landing||landing.kind!=='scaffold'||landing.width<150)errors.push('missing landable scaffold '+i);
+  if(!landing||landing.kind!=='scaffold'||landing.width<240)errors.push('missing landable scaffold '+i);
   const reachable=new Set([c.targetPlatform]);
   for(let pass=0;pass<to.routes.length+1;pass++)for(const r of to.routes)
    if(reachable.has(r.source))reachable.add(r.target);

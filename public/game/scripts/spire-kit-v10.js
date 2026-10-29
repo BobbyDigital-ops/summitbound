@@ -4,7 +4,11 @@
  */
 (function(root){
 'use strict';
-const WIDTH=Object.freeze({S:104,M:160,L:224});
+// Exactly 2x physical rock geometry and jigsaw connectors. The independent
+// prefab platform spans also have a 2x floor and a usable 180-unit minimum.
+const HORIZONTAL_SCALE=2;
+const SOURCE_WIDTH=Object.freeze({S:104,M:160,L:224});
+const WIDTH=Object.freeze({S:208,M:320,L:448});
 const MATERIALS=Object.freeze(['charcoal-granite','blue-schist','frosted-slate','weathered-basalt','pale-quartzite','dark-gneiss']);
 const pick=(seed,n)=>{let x=(Math.imul((seed+1)|0,1664525)+1013904223)>>>0;return x%n};
 const round=x=>Math.round(x);
@@ -13,15 +17,18 @@ function makeRock(role,index){
  const r=rand((index+13)*7193+(role==='base'?43:role==='body'?71:97));
  const bottom=role==='base'?null:['S','M','L'][index%3];
  const top=role==='cap'?null:['S','M','L'][(index+Math.floor(index/3)+1)%3];
- const bw=role==='base'?260+(index%3)*66:WIDTH[bottom];
- const tw=role==='cap'?0:WIDTH[top];
+ const bw=role==='base'?260+(index%3)*66:SOURCE_WIDTH[bottom];
+ const tw=role==='cap'?0:SOURCE_WIDTH[top];
  const h=role==='base'?250+(index%5)*27:role==='body'?145+(index%7)*18:180+(index%6)*31;
  // Left and right sides are strictly monotone in Y, so adjacent pieces
  // cannot overlap except at the exact shared top/bottom edge.
  const sidePoint=(side,t)=>{
   const basic=(bw*(1-t)+tw*t)/2;
-  const bulge=(role==='cap'?32:role==='base'?80:68)*(r()*.9+.2);
-  const x=side*(basic+bulge*Math.sin(Math.PI*t));
+  // Less ballooning at every joint; true outlines now taper like fractured
+  // alpine bedrock, with restrained asymmetrical weathering on each flank.
+  const bulge=(role==='cap'?24:role==='base'?48:38)*(r()*.65+.35);
+  const fractured=(r()-.5)*18*Math.sin(Math.PI*t);
+  const x=side*(basic+bulge*Math.sin(Math.PI*t)+fractured);
   return [round(x),round(-h*t)];
  };
  const right=[],left=[];
@@ -41,7 +48,9 @@ function makeRock(role,index){
    accepted:['rock','scaffold'],anchor:'exposed-face'});
  }
  return Object.freeze({id:role+'-'+String(index+1).padStart(2,'0'),role,index,
-  height:h,bottomSocket:bottom,topSocket:top,vertices:verts,mounts,
+  height:h,bottomSocket:bottom,topSocket:top,
+  vertices:verts.map(([x,y])=>[x*HORIZONTAL_SCALE,y]),
+  mounts:mounts.map(m=>({...m,x:m.x*HORIZONTAL_SCALE})),
   material:MATERIALS[(index+(role==='cap'?2:role==='body'?1:0))%MATERIALS.length],
   textureSeed:(index+1)*1039+(role==='base'?11:role==='body'?29:53)});
 }
@@ -57,7 +66,9 @@ function section(poly,y){
 const BASES=Object.freeze(Array.from({length:24},(_,i)=>makeRock('base',i)));
 const BODIES=Object.freeze(Array.from({length:24},(_,i)=>makeRock('body',i)));
 const CAPS=Object.freeze(Array.from({length:16},(_,i)=>makeRock('cap',i)));
-const SIZES=Object.freeze([36,52,74,108,154]);
+// Former spans were [36,52,74,108,154]. Every new surface is >=2x
+// its predecessor and the smallest platform is wide enough to stand/run.
+const SIZES=Object.freeze([240,240,260,280,360]);
 const FINISHES=Object.freeze(['ice-rim','wind-packed','fractured','snowy','bare-stone']);
 const PLATFORMS=Object.freeze(Array.from({length:50},(_,i)=>{
  const size=1+Math.floor(i/10),variant=i%10,kind=variant<5?'rock':'scaffold',width=SIZES[size-1];
@@ -77,6 +88,6 @@ function joinLowerToUpper(lower,upper){
  return {size:lower.topSocket,lowerEdge:[[-width/2,-lower.height],[width/2,-lower.height]],
   upperEdge:[[-width/2,-lower.height],[width/2,-lower.height]],dy:-lower.height};
 }
-const API=Object.freeze({version:'10.0',WIDTH,MATERIALS,BASES,BODIES,CAPS,PLATFORMS,ICE,LADDERS,rand,section,joinLowerToUpper});
+const API=Object.freeze({version:'10.0',HORIZONTAL_SCALE,WIDTH,MATERIALS,BASES,BODIES,CAPS,PLATFORMS,ICE,LADDERS,rand,section,joinLowerToUpper});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireKitV10=API;
 })(typeof globalThis!=='undefined'?globalThis:this);

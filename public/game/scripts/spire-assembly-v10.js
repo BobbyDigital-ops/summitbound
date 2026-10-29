@@ -4,6 +4,8 @@
  */
 (function(root){
 'use strict';
+const MIN_LAUNCH_DECK=300;
+const MIN_LANDING_SPAN=240;
 const K=typeof module==='object'&&module.exports?require('./spire-kit-v10.js'):root.SpireKitV10;
 if(!K)throw Error('Missing new v10 spire prefab library');
 const pick=(r,a)=>a[Math.floor(r()*a.length)];
@@ -104,7 +106,9 @@ function inspect(assembled){
   if(route.fromY<=route.toY||route.x!==route.finishX)errors.push('nonvertical climb route');
   if(route.target!=='departure'&&!platformIds.has(route.target))errors.push('invalid route target');
  }
+ if(assembled.departure?.width<MIN_LAUNCH_DECK)errors.push('short takeoff');
  for(const plat of assembled.platforms){
+  if(plat.width<MIN_LANDING_SPAN)errors.push('landing too narrow '+plat.id);
   if(plat.kind==='rock'){
    const xs=plat.vertices.map(v=>v[0]),ys=plat.vertices.map(v=>v[1]);
    if(!insideRockRect(p,Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),.5))
@@ -144,7 +148,7 @@ function assembleOnce(seed,options={}){
  const candidateDeck=[];
  for(const piece of pieces.slice(1,-1))for(const t of [.25,.45,.65,.80]){
   const yy=Math.round(piece.offsetY-piece.height*t),edge=edgeAt(piece,yy);
-  if(yy<top+35||yy>-height*.48||!edge||edge.right-edge.left<85)continue;
+  if(yy<top+35||yy>-height*.48||!edge||edge.right-edge.left<MIN_LAUNCH_DECK+4)continue;
   candidateDeck.push({y:yy,left:edge.left,right:edge.right,width:edge.right-edge.left,piece:piece.id});
  }
  if(!candidateDeck.length)throw Error('No usable departure deck');
@@ -152,6 +156,7 @@ function assembleOnce(seed,options={}){
  const deck=pick(r,best);
  // The orange deck follows only the actual rock width at its height.
  const departure={id:'departure',y:deck.y,left:deck.left+2,right:deck.right-2,width:deck.width-4,piece:deck.piece};
+ if(departure.width<MIN_LAUNCH_DECK)throw Error('No usable departure deck');
  const possible=[];
  for(const piece of pieces)for(const m of piece.mounts){
   if(m.y<=departure.y+25||m.y>=-25)continue;

@@ -61,8 +61,11 @@ const {spawn}=require('node:child_process');
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
     throw Error('Five-spire original-runtime vault failed: '+JSON.stringify(result));
-   if(stage===0||stage===3)await page.screenshot({
-    path:'test-results/real-engine-landing-stage-'+stage+'.png',fullPage:true});
+   if(stage===0||stage===3){
+    await page.waitForFunction(expected=>document.getElementById('stage').textContent.includes(expected),
+      (stage+2)+' / 5',{timeout:5000});
+    await page.screenshot({path:'test-results/real-engine-landing-stage-'+stage+'.png',fullPage:true});
+   }
    // Follow EVERY actual climb/ladder edge; some procedurally built routes
    // require multiple linked landing shelves before reaching the orange deck.
    const climb=await page.evaluate(stage=>{
