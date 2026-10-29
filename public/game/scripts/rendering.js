@@ -1265,7 +1265,7 @@ function draw(){
  const inCrux=p.standingOn==='a1'?'THE BLACK NOTCH':
   p.standingOn==='a3'?'THE BROKEN CROWN':null;
  const stageText=typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active?
-  (completed?'TWO-SPIRE ASCENT COMPLETE':'MODULAR · REAL ENGINE · SPIRE '+Math.min(atStage+1,2)+' / 2'):
+  (completed?'FIVE-SPIRE ASCENT COMPLETE':'MODULAR · REAL ENGINE · SPIRE '+Math.min(atStage+1,SummitIntegrated.course.peaks.length)+' / '+SummitIntegrated.course.peaks.length):
   completed?'ASCENT COMPLETE':
   inCrux?'FIVE PEAKS · '+inCrux+' · UPHILL RIDGE VAULT':
   `FIVE PEAKS · PEAK ${Math.min(atStage+1,5)} / 5 · ${leapTitles[Math.min(atStage,3)]}`;
