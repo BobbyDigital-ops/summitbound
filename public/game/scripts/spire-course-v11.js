@@ -84,10 +84,10 @@ function firstContact(sample,source,target,worldX,worldY,cfg){
 function robustContact(sample,physics,cfg,source,target,dx,dy,landingId){
  const dt=1/120,deck=source.departure,platform={x:(deck.left+deck.right)/2,
   y:deck.y+60,width:deck.width,height:120},wanted='target:'+landingId;
- // A 2-frame change to plant timing and 2-frame change to pole release is
- // a meaningful keyboard/mouse timing tolerance at 120 Hz.
- for(const plantShift of [-2,0,2]){
-  for(const releaseShift of [-2,0,2]){
+ // Reject layouts that fail a roughly ±42 ms planting window or ±67 ms
+ // release window under the ORIGINAL physics (5 and 8 frames at 120 Hz).
+ for(const plantShift of [-5,0,5]){
+  for(const releaseShift of [-8,0,8]){
    let px=sample.runStartX,speed=0;
    const n=sample.runFrames+plantShift;
    if(n<1)return false;
