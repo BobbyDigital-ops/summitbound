@@ -30,7 +30,10 @@ const {spawn}=require('node:child_process');
   const gaps=[90,150,210,270,330,390,450,510,570,630],reports=[];
   for(let seed=42;seed<=44;seed++){
    if(seed!==42){
-    await page.click('#again'); // close genuine completed-course overlay
+    // Some routes reach the orange summit directly; others climb via an
+    // intermediate platform, so the victory overlay is conditional.
+    if(await page.locator('#victory').evaluate(el=>el.classList.contains('open')))
+     await page.click('#again');
     await page.click('#integratedReroll');
    }
    for(let preset=1;preset<=10;preset++){
