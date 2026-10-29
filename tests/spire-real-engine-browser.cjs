@@ -125,6 +125,50 @@ const {spawn}=require('node:child_process');
   });
   if(!collision.blocked||Math.abs(collision.x-collision.want)>1e-6)
    throw Error('Exposed rock collision failed '+JSON.stringify(collision));
+  // The most ambitious gap presets must also use real pole movement and
+  // collision, not just pass a geometry-only generator audit.
+  const farther=await page.evaluate(()=>{
+   const reports=[];
+   for(const preset of [5,10]){
+    SummitIntegrated.install(42,preset,10);gameReset();
+    const course=SummitIntegrated.course;
+    for(let stage=0;stage<4;stage++){
+     if(stage)spawn(stage,true);
+     const c=course.crossings[stage],f=c.flight;
+     const startHits=SummitIntegrated.claim().rockSideHits;
+     keys.add('d');
+     for(let i=0;i<f.runFrames;i++)tick(1/120);
+     keys.delete('d');plant();
+     if(p.state!=='RIDING_VAULT')throw Error('no pole plant preset '+preset+' leg '+stage);
+     for(let i=0;i<f.releaseFrames;i++)tick(1/120);
+     release();
+     if(p.state!=='AIRBORNE')throw Error('no release preset '+preset+' leg '+stage);
+     let landed='';
+     for(let i=0;i<1800;i++){
+      tick(1/120);
+      if(p.standingOn){landed=p.standingOn;break}
+     }
+     const expected='l'+(stage+1)+'-'+Number(c.targetPlatform.split('-').at(-1));
+     const wallHits=SummitIntegrated.claim().rockSideHits-startHits;
+     const realGap=(course.peaks[stage+1].worldX+course.peaks[stage+1].bounds.left)-
+      (course.peaks[stage].worldX+course.peaks[stage].bounds.right);
+     const result={preset,stage,gap:c.gap,realGap,landed,expected,wallHits};
+     reports.push(result);
+     if(landed!==expected||wallHits!==0||Math.abs(realGap-c.gap)>1e-6)
+      throw Error('long-chasm flight or collision regression '+JSON.stringify(result));
+    }
+   }
+   return reports;
+  });
+  // Classic mode is a genuine 1x fallback with untouched airborne dynamics.
+  await page.selectOption('#integratedSpacing','1');
+  const classic=await page.evaluate(()=>{
+   const info=SummitIntegrated.claim();
+   const course=SummitIntegrated.course;
+   return {scale:info.gapMultiplier,gaps:course.gaps,long:info.longPhysics};
+  });
+  if(classic.scale!==1||classic.long||classic.gaps[0]!==90)
+   throw Error('Classic mode failed '+JSON.stringify(classic));
   const memory=await page.evaluate(()=>SummitIntegrated.claim());
   if(memory.cachedRasterMountains>memory.maxCachedRasterMountains||
      memory.maxCachedRasterMountains!==3||
@@ -134,7 +178,8 @@ const {spawn}=require('node:child_process');
   console.log(JSON.stringify({boot:boot.info,originalRuntimeControlledFromRest:true,
    gapCrossings:reports.map(r=>({stage:r.stage,gap:r.gap,runFrames:r.runFrames,
     landing:r.landed,arcScale:r.arcScale,wallHits:r.wallHits,
-    climbSteps:r.climb.steps.length})),rockCollision:collision.blocked,
+    climbSteps:r.climb.steps.length})),rockCollision:collision.blocked,longGapPresets:farther,
+   classicFallback:classic,
    rasterCache:{peaks:memory.cachedRasterMountains,bytes:memory.cachedRasterBytes,limit:memory.maxCachedRasterMountains}}));
  }finally{if(browser)await browser.close();vite.kill()}
 })().catch(e=>{console.error(e);process.exitCode=1});
