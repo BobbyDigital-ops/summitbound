@@ -186,7 +186,7 @@ function audit(course){
   const q=p[i];if(!q?.departure||!Number.isFinite(q.worldX)||!Number.isFinite(q.worldY)){
    errors.push('missing departure '+i);continue;
   }
-  if(q.departure.right-q.departure.left<150)errors.push('short takeoff '+i);
+  if(i<p.length-1&&q.departure.right-q.departure.left<150)errors.push('short takeoff '+i);
   for(const r of q.routes){
    const source=r.source==='departure'?q.departure:q.platforms.find(l=>l.id===r.source);
    const target=r.target==='departure'?q.departure:q.platforms.find(l=>l.id===r.target);
@@ -227,7 +227,7 @@ function build(seed,settings={},api){
    course.seed=seed;course.generationAttempts=attempt+1;course.audit=checked;
    return course;
   }catch(error){
-   if(!/No sampled reachable next spire|No sampled takeoff trajectory/.test(String(error))||attempt===attempts-1)throw error;
+   if(!/No sampled reachable next spire|No sampled takeoff trajectory|Generated course failed structural audit/.test(String(error))||attempt===attempts-1)throw error;
   }
  }
  throw Error('No sampled reachable full course');
