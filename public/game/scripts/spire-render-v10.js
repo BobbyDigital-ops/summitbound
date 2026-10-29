@@ -83,10 +83,20 @@ function platform(ctx,p){
  if(p.kind==='rock'){
   // The visible slab is backed by the same rock mass; a jagged apron and
   // shadow anchor it into the face instead of creating a floating rectangle.
-  const g=ctx.createLinearGradient(p.left,p.y,p.right,p.y+23);
-  g.addColorStop(0,'#8c9ea5');g.addColorStop(.48,'#435a68');g.addColorStop(1,'#1a2e3e');
-  trace(ctx,p.vertices);ctx.fillStyle=g;ctx.fill();
-  ctx.strokeStyle='#1a2a38';ctx.lineWidth=2;ctx.stroke();
+  // This rock shelf is embedded completely INSIDE its parent polygon.
+  // Keep the parent mineral painting visible instead of outlining it as
+  // a floating rectangle; add only a carved shadow and a fractured lip.
+  trace(ctx,p.vertices);ctx.clip();
+  const g=ctx.createLinearGradient(p.left,p.y,p.left,p.y+23);
+  g.addColorStop(0,'#0615224a');g.addColorStop(.42,'#263d4840');
+  g.addColorStop(1,'#091c285c');
+  ctx.fillStyle=g;ctx.fillRect(p.left,p.y,p.width+7,24);
+  const r=random((p.textureSeed+29)>>>0);
+  ctx.strokeStyle='#0b202b75';ctx.lineWidth=1.1;
+  for(let x=p.left+8;x<p.right-8;x+=20){
+   ctx.beginPath();ctx.moveTo(x,p.y+2);
+   ctx.lineTo(x+4+r()*9,p.y+9+r()*7);ctx.stroke();
+  }
  }else{
   // The arrival ledge remains a REAL scaffold collider, but now uses
   // snow-caked timbers and low contrast stone-braced structure.
