@@ -272,7 +272,7 @@ function assemble(seed,options={}){
    assembled.seed=seed;assembled.generationAttempts=attempt+1;
    return assembled;
   }catch(error){
-   if(!/Insufficient reachable platform mounts|No usable departure deck|Invalid spire: rock ledge breaches parent mountain block/.test(String(error))||attempt===19)throw error;
+   if(!/Insufficient reachable platform mounts|No usable departure deck|No full-width shared climb column|No unobstructed full-width climb corridor|Invalid spire: rock ledge breaches parent mountain block/.test(String(error))||attempt===19)throw error;
   }
  }
  throw Error('No valid vertical spire could be produced');
