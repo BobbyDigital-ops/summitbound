@@ -28,7 +28,9 @@ const {spawn}=require('node:child_process');
   // accelerates by real A/D controls and original tick(), plants & releases
   // using the real functions, then collides with the real receiving scaffold.
   const gaps=[90,150,210,270,330,390,450,510,570,630],reports=[];
-  for(let preset=1;preset<=10;preset++){
+  for(let seed=42;seed<=44;seed++){
+   if(seed!==42)await page.click('#integratedReroll');
+   for(let preset=1;preset<=10;preset++){
    await page.selectOption('#integratedGap',String(preset));
    const result=await page.evaluate(()=>{
     const crossing=SummitIntegrated.course.crossings[0],sample=crossing.flight;
@@ -49,7 +51,7 @@ const {spawn}=require('node:child_process');
      tick(1/120);
      if(p.standingOn){landed=p.standingOn;break}
     }
-    return {gap:crossing.gap,actualRockGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
+    return {seed:SummitIntegrated.course.seed,gap:crossing.gap,actualRockGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
      planted,released,landed,expected:targetId,landingKind:target.kind,landingWidth:target.width,
      sourceDeck:from.departure.width,start,sprint,
      expectedSpeed:sample.speed,expectedPlantX:from.worldX+sample.launchX,
@@ -57,13 +59,13 @@ const {spawn}=require('node:child_process');
      secondSpireReached:p.standingOn?.startsWith('l1-')||p.standingOn==='s1'};
    });
    reports.push(result);
-   if(result.error||result.gap!==gaps[preset-1]||Math.abs(result.actualRockGap-result.gap)>1e-7||
+   if(result.error||result.seed!==seed||result.gap!==gaps[preset-1]||Math.abs(result.actualRockGap-result.gap)>1e-7||
       !result.planted||!result.released||result.landed!==result.expected||
       result.landingKind!=='ledge'||result.start.velocity!==0||
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
     throw Error('Stationary-start REAL player crossing failed gap '+gaps[preset-1]+': '+JSON.stringify(result));
-   if(preset===1||preset===10)
+   if(seed===42&&(preset===1||preset===10))
     await page.screenshot({path:'test-results/real-engine-landing-gap-'+gaps[preset-1]+'.png',fullPage:true});
    // The receiving scaffold is a real platform and its climb leads onward.
    const climb=await page.evaluate(()=>{
@@ -92,7 +94,8 @@ const {spawn}=require('node:child_process');
     return {attached,state:p.state,on:p.standingOn,startX,entry,finishX:p.x,walkingSteps};
    });
    if(!climb.attached||climb.state!=='GROUNDED')
-    throw Error('Incoming scaffold has no workable onward climb gap '+result.gap+': '+JSON.stringify(climb));
+    throw Error('Incoming scaffold has no workable onward climb seed '+seed+' gap '+result.gap+': '+JSON.stringify(climb));
+   }
   }
   const collision=await page.evaluate(()=>{
    const q=SummitIntegrated.course.peaks[1],base=q.pieces[0];
