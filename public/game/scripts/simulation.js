@@ -112,7 +112,7 @@ function getLanding(plat){
  }
  if(typeof FEATURED_COURSE==='undefined'&&plat.kind === 'summit' && plat.spire === 2)activateCampsiteCheckpoint(2);
  if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)SummitIntegrated.onLanding(plat);
- if(plat.kind === 'summit' && plat.spire === 4) win();
+ if(plat.kind === 'summit' && plat.spire === 4 && !(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)) win();
 }
 
 function win(){
