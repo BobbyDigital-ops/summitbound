@@ -53,6 +53,7 @@ const {spawn}=require('node:child_process');
     return {stage,gap:c.gap,actualGap:(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right),
      totalPeaks:course.peaks.length,legs:course.crossings.length,audit:course.audit?.valid,
      planted,released,landed,targetId,initial,sprint,arcScale,
+     postLandingSpeed:Math.abs(p.vx),postLandingArc:p.longFlightScale,
      wallHits:SummitIntegrated.claim().rockSideHits-wallHitsBefore,expectedSpeed:sample.speed,
      expectedPlantX:from.worldX+sample.launchX,runFrames:sample.runFrames};
    },stage);
@@ -60,6 +61,7 @@ const {spawn}=require('node:child_process');
    if(result.error||result.totalPeaks!==5||result.legs!==4||!result.audit||
       Math.abs(result.gap-result.actualGap)>1e-6||result.gap<900||!result.planted||!result.released||
       result.arcScale<=1||result.wallHits>0||
+      result.postLandingSpeed>180.001||result.postLandingArc!==1||
       result.landed!==result.targetId||result.initial.vx!==0||
       Math.abs(result.sprint.vx-result.expectedSpeed)>1e-6||
       Math.abs(result.sprint.x-result.expectedPlantX)>1e-5)
@@ -152,9 +154,11 @@ const {spawn}=require('node:child_process');
      const wallHits=SummitIntegrated.claim().rockSideHits-startHits;
      const realGap=(course.peaks[stage+1].worldX+course.peaks[stage+1].bounds.left)-
       (course.peaks[stage].worldX+course.peaks[stage].bounds.right);
-     const result={preset,stage,gap:c.gap,realGap,landed,expected,wallHits};
+     const result={preset,stage,gap:c.gap,realGap,landed,expected,wallHits,
+      postLandingSpeed:Math.abs(p.vx),postLandingArc:p.longFlightScale};
      reports.push(result);
-     if(landed!==expected||wallHits!==0||Math.abs(realGap-c.gap)>1e-6)
+     if(landed!==expected||wallHits!==0||Math.abs(realGap-c.gap)>1e-6||
+        result.postLandingSpeed>180.001||result.postLandingArc!==1)
       throw Error('long-chasm flight or collision regression '+JSON.stringify(result));
     }
    }
