@@ -35,7 +35,7 @@
 
 The ten exact **outer rock-to-outer rock** gaps are now `[90,150,210,270,330,390,450,510,570,630]` units: three times each original preset `[30,50,70,90,110,130,150,170,190,210]`. Do not make these look closer by moving or narrowing the mountain geometry.
 
-This is **not** an alteration to `PolePhysicsEngine`. The generation pipeline now simulates original `runAcceleration` at 120 Hz starting at **zero velocity** on the actual orange departure surface, searches plant/release frame choices, tests swept first-contact against the actual receiving platform, and rejects layouts that fail a ±2-frame plant/release tolerance. No free momentum, flight assist or hidden landing magnet.
+This is **not** an alteration to `PolePhysicsEngine`. The generation pipeline now simulates original `runAcceleration` at 120 Hz starting at **zero velocity** on the actual orange departure surface, searches plant/release frame choices, tests swept first-contact against the actual receiving platform, and rejects layouts that fail a ±5-frame plant / ±8-frame release tolerance (42 ms and 67 ms). No free momentum, flight assist or hidden landing magnet.
 
 The receiving platform is a **visible scaffold** integrated with the generated rock face. It may protrude 72 units beyond the rock silhouette. It is a continuous genuine landing collider, uses regular scaffold visuals and has an existing climb route attached at the same ID. Original solid-rock ledges remain entirely within the rock outline; icefalls stay straight and within the rock, while ladders may be exterior.
 
