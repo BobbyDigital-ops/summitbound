@@ -15,6 +15,7 @@ const SummitIntegrated=(()=>{
  // Static rock, scaffold, ice and foundation art is rasterised once per
  // selected seed. Do not repaint hundreds of mineral strokes every frame.
  const staticPaint=new Map();
+ const MAX_RASTER_MOUNTAINS=3; // Bound offscreen cached terrain on Android.
 
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const platformId=(i,local)=>local==='departure'?'s'+i:
@@ -197,7 +198,17 @@ const SummitIntegrated=(()=>{
   for(let i=0;i<course.peaks.length;i++){
    const q=course.peaks[i];
    if(q.worldX+q.bounds.right<visibleLeft||q.worldX+q.bounds.left>visibleRight)continue;
-   if(!staticPaint.has(i))staticPaint.set(i,paintCache(i));
+   if(!staticPaint.has(i)){
+    const bitmap=paintCache(i);
+    if(bitmap){
+     while(staticPaint.size>=MAX_RASTER_MOUNTAINS)
+      staticPaint.delete(staticPaint.keys().next().value);
+     staticPaint.set(i,bitmap);
+    }
+   }else{
+    // Least-recently-used: do not evict the currently visible mountains.
+    const bitmap=staticPaint.get(i);staticPaint.delete(i);staticPaint.set(i,bitmap);
+   }
    const chunk=staticPaint.get(i);
    if(chunk)g.drawImage(chunk.image,chunk.left,chunk.top,chunk.width,chunk.height);
    else{
@@ -210,7 +221,9 @@ const SummitIntegrated=(()=>{
  function claim(){return {active,seed:course?.seed,gap:course?.gap,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
   physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
-  foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,rockSideHits:sideHits,rockMassCollision:'physical polygon exterior sampled at boots, torso and head; embedded cavities pending',generatorAudit:course?.audit?.valid??false,certified:false}}
+  foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,
+  cachedRasterBytes:[...staticPaint.values()].reduce((sum,c)=>sum+c.width*c.height*4,0),
+  maxCachedRasterMountains:MAX_RASTER_MOUNTAINS,rockSideHits:sideHits,rockMassCollision:'physical polygon exterior sampled at boots, torso and head; embedded cavities pending',generatorAudit:course?.audit?.valid??false,certified:false}}
  install(42,1);
  return {active,install,claim,drawTerrain,climbEntry,beginClimb,down,tickClimb,
   startX,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};

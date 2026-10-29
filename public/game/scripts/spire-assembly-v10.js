@@ -70,6 +70,16 @@ function insideRockRect(pieces,left,right,top,bottom,margin=1){
  }
  return true;
 }
+// A rock ledge must fit INSIDE the exact prefab block owning its mount.
+// The neighbouring module or combined spire silhouette cannot excuse a
+// protrusion through this block's own face or either connector seam.
+function rockLedgeInsideOwner(assembled,ledge,margin=.5){
+ const owner=assembled?.pieces?.find(piece=>piece.id===ledge?.owner);
+ if(!owner||ledge?.kind!=='rock'||!Array.isArray(ledge.vertices)||ledge.vertices.length<3)return false;
+ const xs=ledge.vertices.map(v=>v[0]),ys=ledge.vertices.map(v=>v[1]);
+ if(xs.some(x=>!Number.isFinite(x))||ys.some(y=>!Number.isFinite(y)))return false;
+ return insideRockRect([owner],Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),margin);
+}
 function inspect(assembled){
  const errors=[],p=assembled.pieces;
  if(p.length<3||p.length>7)errors.push('requires 3–7 pieces');
@@ -94,13 +104,35 @@ function inspect(assembled){
   for(let j=0;j<i-1;j++)if(strictOverlap(p[j].vertices,part.vertices))errors.push('nonadjacent overlap');
  }
  const platformIds=new Set(assembled.platforms.map(x=>x.id));
- for(const c of assembled.colliders)if(!platformIds.has(c.id)||c.right<=c.left)errors.push('orphan platform collider');
+ if(platformIds.size!==assembled.platforms.length)errors.push('duplicate landing IDs');
+ if(assembled.colliders.length!==assembled.platforms.length)errors.push('missing platform collider');
+ for(const c of assembled.colliders){
+  const pl=assembled.platforms.find(q=>q.id===c.id);
+  if(!pl||c.right<=c.left)errors.push('orphan platform collider');
+  else if(Math.abs(pl.left-c.left)>1e-6||Math.abs(pl.right-c.right)>1e-6||
+          Math.abs(pl.y-c.top)>1e-6||pl.kind!==c.kind)
+   errors.push('platform art/collider mismatch: '+c.id);
+ }
+ if(new Set(assembled.routes.map(r=>r.source)).size!==assembled.routes.length)
+  errors.push('more than one climb exit from a platform');
  for(const route of assembled.routes){
   const from=assembled.platforms.find(q=>q.id===route.source);
   const receiving=route.target==='departure'?assembled.departure:assembled.platforms.find(q=>q.id===route.target);
-  if(!from||!receiving||route.x<from.left+2||route.x>from.right-2||
-     route.finishX<receiving.left+2||route.finishX>receiving.right-2)
-   errors.push('climb route does not terminate on a genuine platform: '+route.id);
+  const half=route.width/2;
+  if(!from||!receiving||!Number.isFinite(route.x)||!Number.isFinite(half)||half<=0)
+   errors.push('missing climb source or exit: '+route.id);
+  else {
+   // Both complete rails or full ice strip must terminate ON the shelves,
+   // rather than only the centre line appearing to connect.
+   if(route.x-half<from.left+3||route.x+half>from.right-3||
+      route.finishX-half<receiving.left+3||route.finishX+half>receiving.right-3)
+    errors.push('climb width breaches landing: '+route.id);
+   if(Math.abs(route.fromY-from.y)>1e-6||Math.abs(route.toY-receiving.y)>1e-6)
+    errors.push('climb height disconnect: '+route.id);
+   if(assembled.platforms.some(q=>q.id!==from.id&&q.id!==route.target&&
+        q.y>route.toY&&q.y<route.fromY&&route.x>=q.left-1&&route.x<=q.right+1))
+    errors.push('climb crosses intermediate platform: '+route.id);
+  }
   if(route.kind==='ice'&&!insideRockRect(p,route.collider.left,route.collider.right,route.toY,route.fromY,1))
    errors.push('icefall breaches mountain outline: '+route.id);
   if(route.fromY<=route.toY||route.x!==route.finishX)errors.push('nonvertical climb route');
@@ -109,11 +141,8 @@ function inspect(assembled){
  if(assembled.departure?.width<MIN_LAUNCH_DECK)errors.push('short takeoff');
  for(const plat of assembled.platforms){
   if(plat.width<MIN_LANDING_SPAN)errors.push('landing too narrow '+plat.id);
-  if(plat.kind==='rock'){
-   const xs=plat.vertices.map(v=>v[0]),ys=plat.vertices.map(v=>v[1]);
-   if(!insideRockRect(p,Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),.5))
-    errors.push('rock ledge breaches mountain outline: '+plat.id);
-  }
+  if(plat.kind==='rock'&&!rockLedgeInsideOwner(assembled,plat))
+   errors.push('rock ledge breaches parent mountain block: '+plat.id);
   let target=plat.id;const seen=new Set();
   while(target!=='departure'){
    if(seen.has(target)){errors.push('cyclic route from '+plat.id);break}
@@ -170,10 +199,12 @@ function assembleOnce(seed,options={}){
     const lipRight=Math.max(...pref.vertices.map(v=>v[0]));
     const depth=Math.max(...pref.vertices.map(v=>v[1]));
     const levels=[m.y,m.y+depth],allowed=[];
-    for(const part of pieces)for(const v of part.vertices)
+    // The original mount's own parent block is the ONLY allowable rock
+    // footprint, including the slab thickness and its projecting lip.
+    for(const v of piece.vertices)
      if(v[1]>m.y&&v[1]<m.y+depth)levels.push(v[1]);
     for(const yy of levels){
-     const sec=rockSection(pieces,yy);
+     const sec=edgeAt(piece,yy);
      if(!sec){allowed.length=0;break}
      allowed.push(sec);
     }
@@ -208,29 +239,45 @@ function assembleOnce(seed,options={}){
    braces:p.pref.braces.map(b=>[b[0]+p.centre,b[1]+p.y,b[2]+p.centre,b[3]+p.y])});
   colliders.push({id,left:p.left,right:p.right,top:p.y,kind:p.pref.kind});
  });
+ // Draw a vertical corridor from each ledge towards the summit. Any higher
+ // platform hit first becomes the stopping point; that platform owns the
+ // continuation. Whole ladder/ice width, not merely its centre, must fit.
+ const MAX_CLIMB_HALF=Math.max(...K.ICE.map(a=>a.width),...K.LADDERS.map(a=>a.width))/2;
+ const ROUTE_MARGIN=MAX_CLIMB_HALF+5;
  for(let i=0;i<platforms.length;i++){
-  const p=platforms[i],lo=Math.max(p.left+3,departure.left+3),hi=Math.min(p.right-3,departure.right-3);
-  if(lo>hi)throw Error('Stranded platform');
-  const x=(lo+hi)/2;
-  // Stop at first higher platform encountered; climb through its onward route.
-  let next='departure',endY=departure.y;
-  for(let j=i-1;j>=0;j--){const higher=platforms[j];
-   if(x>=higher.left+2&&x<=higher.right-2){next=higher.id;endY=higher.y;break}
+  const p=platforms[i];
+  const low=Math.max(p.left,departure.left)+ROUTE_MARGIN;
+  const high=Math.min(p.right,departure.right)-ROUTE_MARGIN;
+  if(low>high)throw Error('No full-width shared climb column');
+  const want=Math.max(low,Math.min(high,
+   (p.left+p.right)/2+(r()-.5)*Math.min(80,high-low)));
+  const candidates=[want,Math.max(low,Math.min(high,0)),(low+high)/2];
+  for(let k=0;k<=16;k++)candidates.push(low+(high-low)*k/16);
+  candidates.sort((x,y)=>Math.abs(x-want)-Math.abs(y-want));
+  let selected=null;
+  for(const x of candidates){
+   let next='departure',endY=departure.y,blocked=false;
+   for(let j=i-1;j>=0;j--){
+    const higher=platforms[j];
+    // A vertical route cannot silently pass THROUGH a real green shelf.
+    if(x>=higher.left-1&&x<=higher.right+1){
+     if(x<higher.left+ROUTE_MARGIN||x>higher.right-ROUTE_MARGIN){blocked=true;break}
+     next=higher.id;endY=higher.y;break;
+    }
+   }
+   if(blocked||x<low||x>high)continue;
+   selected={x,next,endY};break;
   }
-  const receiving=next==='departure'?departure:platforms.find(q=>q.id===next);
-  const routeLo=Math.max(lo,receiving.left+3);
-  const routeHi=Math.min(hi,receiving.right-3);
-  if(routeLo>routeHi)throw Error('No physically shared ladder column');
-  const safeX=Math.max(routeLo,Math.min(routeHi,x));
+  if(!selected)throw Error('No unobstructed full-width climb corridor');
+  const {x:climbX,next,endY}=selected;
   const iceAsset=pick(r,K.ICE);
-  const iceX=Math.max(routeLo,Math.min(routeHi,0));
-  const useIce=r()<.60&&insideRockRect(pieces,iceX-iceAsset.width/2,iceX+iceAsset.width/2,endY,p.y,1);
-  const kind=useIce?'ice':'ladder';
-  const asset=useIce?iceAsset:pick(r,K.LADDERS);
-  const climbX=useIce?iceX:safeX;
+  const useIce=r()<.60&&insideRockRect(
+   pieces,climbX-iceAsset.width/2,climbX+iceAsset.width/2,endY,p.y,1);
+  const kind=useIce?'ice':'ladder',asset=useIce?iceAsset:pick(r,K.LADDERS);
   routes.push({id:'climb-'+i,kind,asset:asset.id,source:p.id,target:next,
    x:climbX,finishX:climbX,fromY:p.y,toY:endY,width:asset.width,straight:true,
-   collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,top:endY,bottom:p.y,climbable:true}});
+   collider:{left:climbX-asset.width/2,right:climbX+asset.width/2,
+    top:endY,bottom:p.y,climbable:true}});
  }
  const all=pieces.flatMap(p=>p.vertices);
  const bounds={left:Math.min(...all.map(p=>p[0])),right:Math.max(...all.map(p=>p[0])),
@@ -247,11 +294,11 @@ function assemble(seed,options={}){
    assembled.seed=seed;assembled.generationAttempts=attempt+1;
    return assembled;
   }catch(error){
-   if(!/Insufficient reachable platform mounts|No usable departure deck/.test(String(error))||attempt===19)throw error;
+   if(!/Insufficient reachable platform mounts|No usable departure deck|No full-width shared climb column|No unobstructed full-width climb corridor|Invalid spire: rock ledge breaches parent mountain block/.test(String(error))||attempt===19)throw error;
   }
  }
  throw Error('No valid vertical spire could be produced');
 }
-const API=Object.freeze({assemble,inspect,edgeAt,strictOverlap});
+const API=Object.freeze({assemble,inspect,edgeAt,strictOverlap,rockLedgeInsideOwner});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireAssemblyV10=API;
 })(typeof globalThis!=='undefined'?globalThis:this);
