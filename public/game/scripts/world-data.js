@@ -421,6 +421,10 @@ function caveGeometry(){
 }
 function climbEntryX(platform) {
  if (!platform) return -999;
+ // The modular route has a real straight ladder/ice position, which is not
+ // necessarily 30px from the right end of a long receiving scaffold.
+ if(typeof SummitIntegrated!=='undefined'&&SummitIntegrated.active)
+  return SummitIntegrated.climbEntry(platform);
  return platform.kind === 'cave' ? caveGeometry().ladderX : platform.right - 30;
 }
 
