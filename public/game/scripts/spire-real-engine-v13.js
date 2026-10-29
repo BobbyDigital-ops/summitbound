@@ -68,7 +68,13 @@ const SummitIntegrated=(()=>{
   invalidateTerrainCache();
   return course;
  }
- function startX(stage,pl){return clamp(pl.left+13,pl.left+8,pl.right-124)}
+ function startX(stage,pl){
+  if(stage===0&&course?.crossings?.[0]?.flight){
+   const flight=course.crossings[0].flight;
+   return course.peaks[0].worldX+flight.runStartX;
+  }
+  return clamp(pl.left+13,pl.left+8,pl.right-124);
+ }
  function climbEntry(pl){return platformRoutes.get(pl?.id)?.x??-999}
  function beginClimb(pl){
   const r=platformRoutes.get(pl.id);if(!r||Math.abs(p.x-r.x)>39)return false;
@@ -125,7 +131,7 @@ const SummitIntegrated=(()=>{
   if(retry&&retry.platformId&&platforms.some(pl=>pl.id===retry.platformId)){
    const pl=platforms.find(x=>x.id===retry.platformId);
    spawn(pl.spire,true);
-   p.standingOn=pl.id;p.x=Math.max(pl.left+8,pl.right-167);p.y=pl.top-22;
+   p.standingOn=pl.id;p.x=startX(pl.spire,pl);p.y=pl.top-22;
    p.surface=pl.surfaceType;hint('MISSED JUMP — RETRY FROM TAKEOFF',2);return true;
   }
   spawn(0,true);hint('MISSED MOUNTAIN — RETRY',2);return true;
