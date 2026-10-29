@@ -24,8 +24,11 @@ function makeRock(role,index){
  // cannot overlap except at the exact shared top/bottom edge.
  const sidePoint=(side,t)=>{
   const basic=(bw*(1-t)+tw*t)/2;
-  const bulge=(role==='cap'?32:role==='base'?80:68)*(r()*.9+.2);
-  const x=side*(basic+bulge*Math.sin(Math.PI*t));
+  // Less ballooning at every joint; true outlines now taper like fractured
+  // alpine bedrock, with restrained asymmetrical weathering on each flank.
+  const bulge=(role==='cap'?24:role==='base'?48:38)*(r()*.65+.35);
+  const fractured=(r()-.5)*18*Math.sin(Math.PI*t);
+  const x=side*(basic+bulge*Math.sin(Math.PI*t)+fractured);
   return [round(x),round(-h*t)];
  };
  const right=[],left=[];
