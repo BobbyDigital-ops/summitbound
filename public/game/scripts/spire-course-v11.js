@@ -203,7 +203,7 @@ function audit(course){
   const actual=(to.worldX+to.bounds.left)-(from.worldX+from.bounds.right);
   if(Math.abs(actual-c.gap)>1e-6||c.gap<=0)errors.push('incorrect rock gap '+i);
   const landing=to.platforms.find(q=>q.id===c.targetPlatform);
-  if(!landing||landing.kind!=='scaffold'||landing.width<180)errors.push('missing landable scaffold '+i);
+  if(!landing||landing.kind!=='scaffold'||landing.width<240)errors.push('missing landable scaffold '+i);
   const reachable=new Set([c.targetPlatform]);
   for(let pass=0;pass<to.routes.length+1;pass++)for(const r of to.routes)
    if(reachable.has(r.source))reachable.add(r.target);
