@@ -30,3 +30,17 @@
 - Browser automation proves a controlled flight, not that 10 presets are equally fun or playable without tuning, especially on touchscreens.
 - AI Studio's unsynced editor state **cannot be verified here**. GitHub is the verified repository; Vercel is verified as the publishing endpoint for `main`. Users should ensure AI Studio is synced to main before editing/exporting in that editor.
 - Do not replace the default app `src/App.tsx` or delete old assets used by the original published Five Peaks game. The new terrain does not import them.
+
+## Phase 5 — Triple-length jump gaps, genuine zero-speed starts (v14)
+
+The ten exact **outer rock-to-outer rock** gaps are now `[90,150,210,270,330,390,450,510,570,630]` units: three times each original preset `[30,50,70,90,110,130,150,170,190,210]`. Do not make these look closer by moving or narrowing the mountain geometry.
+
+This is **not** an alteration to `PolePhysicsEngine`. The generation pipeline now simulates original `runAcceleration` at 120 Hz starting at **zero velocity** on the actual orange departure surface, searches plant/release frame choices, tests swept first-contact against the actual receiving platform, and rejects layouts that fail a ±2-frame plant/release tolerance. No free momentum, flight assist or hidden landing magnet.
+
+The receiving platform is a **visible scaffold** integrated with the generated rock face. It may protrude 72 units beyond the rock silhouette. It is a continuous genuine landing collider, uses regular scaffold visuals and has an existing climb route attached at the same ID. Original solid-rock ledges remain entirely within the rock outline; icefalls stay straight and within the rock, while ladders may be exterior.
+
+The player starts and respawns at the certified launch-run-up position rather than near the cliff edge. The original running, planting, releasing, landing, braking and climb/ice controls remain intact.
+
+QA: `tests/spire-triple-gap-v14.test.cjs` verifies all 10 sizes × 3 seeds (30 generated courses) from rest and validates the measured rock gap, actual launch coordinates, valid pole plant, visible scaffold, and onward climb route. `tests/spire-real-engine-browser.cjs` completes all 10 gaps with the full original `tick()` from zero-speed start and explicitly brakes/walks to the onward climbing route. User playtesting remains necessary for timing satisfaction and Android touch behaviour; these are not yet guaranteed by automation.
+
+Known remaining limits: only two spires in the live test, complete solid-rock interiors/carved cave walls unfinished, mountain texture seams and receiving scaffold finishing need visual polish. Original Five Peaks is still the normal launch.
