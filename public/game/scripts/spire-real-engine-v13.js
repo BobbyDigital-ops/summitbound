@@ -10,6 +10,7 @@ const SummitIntegrated=(()=>{
  'use strict';
  const active=true;
  const X_SHIFT=700,Y_SHIFT=2400;
+ let gapMultiplier=10;
  let course=null,foundations=null,platformRoutes=new Map(),routes=[];
  let setupError=null;
  // Static rock, scaffold, ice and foundation art is rasterised once per
@@ -25,11 +26,16 @@ const SummitIntegrated=(()=>{
   return platform('s'+i,p.worldX+d.left,p.worldX+d.right,
    p.worldY+d.y,'rock',{kind:'summit',spire:i,tier:'Departure',modular:true});
  }
- function install(seed=42,preset=1){
+ function install(seed=42,preset=1,multiplier=10){
+  // Generate and validate a standard physically attainable route FIRST.
+  // Long mode then expands the REAL rock spacing and tunes the post-release
+  // long arc. The original pole dynamics and classic mode remain intact.
   const original=SpireCourseV11.build(seed,{count:5,preset,varyGaps:true},{
    assemble:SpireAssemblyV10.assemble,physics:PolePhysicsEngine,config:cfg
   });
-  course={...original,peaks:original.peaks.map(q=>({
+  const selected=multiplier>1?SpireLongGapV18.transform(original,multiplier):original;
+  gapMultiplier=multiplier;
+  course={...selected,peaks:selected.peaks.map(q=>({
    ...q,worldX:q.worldX+X_SHIFT,worldY:q.worldY+Y_SHIFT
   }))};
   foundations=SpireFoundationsV12.build(course);
@@ -65,9 +71,13 @@ const SummitIntegrated=(()=>{
    }
   }
   const name=document.getElementById('routeLabel');
-  if(name)name.textContent='REAL ENGINE · '+course.peaks.length+' SPIRES · GAPS '+course.gaps.join(' / ');
+  if(name)name.textContent='REAL ENGINE · '+course.peaks.length+' SPIRES · ROCK GAPS '+course.gaps.join(' / ')+(gapMultiplier>1?' · LONG VAULT':' · CLASSIC');
   invalidateTerrainCache();
   return course;
+ }
+ function longFlightForStage(stage){
+  if(gapMultiplier<=1)return null;
+  return course?.crossings?.[stage]?.flight??null;
  }
  function startX(stage,pl){
   if(course?.crossings?.[stage]?.flight){
@@ -218,7 +228,8 @@ const SummitIntegrated=(()=>{
    }
   }
  }
- function claim(){return {active,seed:course?.seed,gap:course?.gap,peaks:course?.peaks.length,
+ function claim(){return {active,seed:course?.seed,gap:course?.gap,gaps:course?.gaps,
+  gapMultiplier,longPhysics:gapMultiplier>1,peaks:course?.peaks.length,
   platforms:platforms.filter(x=>x.modular).length,routes:routes.length,
   physics:'original simulation.js + PolePhysicsEngine',character:'original rendering.js + character-rig-v036.js',
   foundationCollision:'background-only',cachedRasterMountains:staticPaint.size,
@@ -226,5 +237,5 @@ const SummitIntegrated=(()=>{
   maxCachedRasterMountains:MAX_RASTER_MOUNTAINS,rockSideHits:sideHits,rockMassCollision:'physical polygon exterior sampled at boots, torso and head; embedded cavities pending',generatorAudit:course?.audit?.valid??false,certified:false}}
  install(42,1);
  return {active,install,claim,drawTerrain,climbEntry,beginClimb,down,tickClimb,
-  startX,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
+  startX,longFlightForStage,finish,onLanding,onFail,solidSideCollision,get course(){return course},get foundations(){return foundations},get routes(){return routes}};
 })();
