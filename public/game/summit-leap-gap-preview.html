@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Summitbound · 10× Spire Gap Experiment</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#e5edf2;background:#09121c}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 55% 0,#293d4a 0,#101b28 42%,#09121c 85%);min-height:100vh}
+header{padding:22px clamp(16px,4vw,60px);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid #ffffff19}
+h1{font-size:clamp(21px,3vw,31px);margin:0;letter-spacing:.06em}small,.muted{color:#9cb1c2}
+.back{color:#d1dde6;text-decoration:none;border:1px solid #7c98a34a;padding:9px 13px;border-radius:8px}
+main{max-width:1550px;margin:auto;padding:22px clamp(12px,3vw,42px) 56px}
+.lede{margin:0 0 18px;color:#bfd0d9;line-height:1.6;max-width:960px}
+.controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:17px;background:#172634ca;border:1px solid #7894a326;border-radius:12px;margin:17px 0}
+label{display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.08em;color:#aebec9;text-transform:uppercase}
+select,button{font:inherit;background:#263949;color:#f5f7f8;border:1px solid #607884;border-radius:8px;padding:9px 11px;min-height:40px}
+button{cursor:pointer}button:hover,.back:hover{background:#345365}
+.summary{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:15px}
+.pill{background:#233747;padding:10px 13px;border-radius:8px;border:1px solid #4a677677;font-variant-numeric:tabular-nums}
+strong{color:#f5e5bc}h2{font-size:17px;font-weight:600;margin:0 0 8px}
+.panel{border:1px solid #6d859335;border-radius:12px;margin:16px 0;overflow:hidden;background:#0d1c27}
+.panel-heading{padding:13px 15px;background:#152837;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.scroll{overflow-x:auto;overflow-y:hidden;max-width:100%;scrollbar-color:#8197a3 #172b39;scrollbar-width:thin}
+canvas{display:block;max-width:none}
+.caption{padding:9px 15px;color:#a9c0c9;font-size:12px;border-top:1px solid #ffffff13}
+.note{font-size:13px;line-height:1.55;color:#c7d7de;border-left:3px solid #9daeb7;padding:10px 14px;background:#182a39c4}
+#loading{color:#f1d59c}
+@media(max-width:680px){.controls>*{flex:1 1 130px}.panel-heading{flex-wrap:wrap}.pill{flex:1 1 auto}}
+</style>
+</head>
+<body>
+<header><div><h1>SUMMITBOUND <small>· SPACING LAB v17</small></h1><small>Real modular rock meshes, real world-space measurements</small></div>
+<a class="back" href="/game/summit-leap-modular-integrated.html">Back to playable game</a></header>
+<main>
+<p class="lede">An exact <strong>10× increase to every one of the ten standard rock-to-rock gap presets</strong>. Compare the original and expanded spire geometry at the <strong>same pixel scale</strong>. Pan horizontally in either view to inspect the full chasm. This is a visual test, not an upgraded pole or a newly playable jump.</p>
+<div class="controls">
+<label>Standard gap preset<select id="preset" aria-label="Standard gap preset"></select></label>
+<label>Crossing to inspect<select id="crossing"><option value="0">Spire 1 → 2</option><option value="1">Spire 2 → 3</option><option value="2">Spire 3 → 4</option><option value="3">Spire 4 → 5</option></select></label>
+<label>Rock seed <select id="seed"><option value="42">42 · default</option><option value="43">43</option><option value="44">44</option><option value="45">45</option></select></label>
+<button type="button" id="reroll">New spire shapes</button>
+</div>
+<p id="loading" role="status">Generating actual modular mountain surfaces…</p>
+<div class="summary">
+<div class="pill">Original gap: <strong id="originalValue">90 units</strong></div>
+<div class="pill">10× gap: <strong id="expandedValue">900 units</strong></div>
+<div class="pill">Difference: <strong id="deltaValue">+810 units</strong></div>
+<div class="pill">Five-spire preview: <strong id="totalValue">4 crossings</strong></div>
+</div>
+<section class="panel"><div class="panel-heading"><h2>Before · standard rock spacing</h2><span class="muted" id="beforeTag">90 world units</span></div>
+<div class="scroll" id="beforeScroll"><canvas id="beforeCanvas" aria-label="Two original physically rendered mountain spires"></canvas></div>
+<div class="caption">Standard geometry, same scale as the 10× view below.</div></section>
+<section class="panel"><div class="panel-heading"><h2>After · 10× actual rock spacing</h2><span class="muted" id="afterTag">900 world units</span></div>
+<div class="scroll" id="afterScroll"><canvas id="afterCanvas" aria-label="Two mountain spires separated by exactly ten times the standard gap"></canvas></div>
+<div class="caption">Scroll horizontally to cross the entire chasm. The apparent distance is not shortened by scaling each panel to fit.</div></section>
+<p class="note"><strong>Important:</strong> Original walking, pole physics and landing rules are untouched. These gaps are deliberately too large for the current vault. The existing five-spire playable prototype is unchanged; this is a separate accurate spacing preview to choose future level distances.</p>
+</main>
+<script src="/game/scripts/physics.js"></script>
+<script src="/game/scripts/spire-kit-v10.js"></script>
+<script src="/game/scripts/spire-assembly-v10.js"></script>
+<script src="/game/scripts/spire-render-v10.js"></script>
+<script src="/game/scripts/spire-phase2-playtest.js"></script>
+<script src="/game/scripts/spire-course-v11.js"></script>
+<script src="/game/scripts/spire-gap-scale-v17.js"></script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const chosen=$('preset'),crossing=$('crossing'),seed=$('seed');
+for(const [i,g] of SpireGapScaleV17.BASE_GAPS.entries()){
+ const o=document.createElement('option');o.value=String(i+1);
+ o.textContent=(i+1)+' · '+g+' → '+(g*10)+' units';chosen.appendChild(o);
+}
+const params=new URLSearchParams(location.search),requested=Number(params.get('gap')||1);
+chosen.value=String(requested>=1&&requested<=10?requested:1);
+let currentSeed=42,source=null;
+const SCALE=.43,PADDING=55;
+function makeSource(){
+ source=SpireCourseV11.build(currentSeed,{count:5,preset:1,varyGaps:true,maxCourseAttempts:15},{
+  assemble:SpireAssemblyV10.assemble,physics:PolePhysicsEngine,config:SpirePhase2.CONFIG
+ });
+}
+function paint(id,layout,which){
+ const c=$(id),ctx=c.getContext('2d'),a=layout.peaks[which],b=layout.peaks[which+1];
+ const minX=Math.min(a.worldX+a.bounds.left,b.worldX+b.bounds.left);
+ const maxX=Math.max(a.worldX+a.bounds.right,b.worldX+b.bounds.right);
+ const minY=Math.min(a.worldY+a.bounds.top,b.worldY+b.bounds.top)-65;
+ const maxY=Math.max(a.worldY+a.bounds.bottom,b.worldY+b.bounds.bottom)+55;
+ c.width=Math.max(800,Math.ceil((maxX-minX)*SCALE+2*PADDING));
+ c.height=Math.max(390,Math.ceil((maxY-minY)*SCALE+2*PADDING));
+ const sky=ctx.createLinearGradient(0,0,0,c.height);
+ sky.addColorStop(0,'#536779');sky.addColorStop(.38,'#283d4c');sky.addColorStop(1,'#142634');
+ ctx.fillStyle=sky;ctx.fillRect(0,0,c.width,c.height);
+ // Distinct distant silhouettes and falling snow haze behind actual meshes.
+ ctx.save();ctx.globalAlpha=.15;
+ for(let j=0;j<c.width+450;j+=310){
+  ctx.beginPath();ctx.moveTo(j-250,c.height);
+  ctx.lineTo(j+80,c.height-105-(j%4)*12);
+  ctx.lineTo(j+440,c.height);ctx.closePath();
+  ctx.fillStyle='#b2c6ce';ctx.fill();
+ }ctx.restore();
+ ctx.save();ctx.translate(PADDING-minX*SCALE,PADDING-minY*SCALE);ctx.scale(SCALE,SCALE);
+ for(const q of [a,b]){
+  ctx.save();ctx.translate(q.worldX,q.worldY);
+  SpireRenderV10.draw(ctx,q,{clear:false});ctx.restore();
+ }
+ // Exact rock-envelope range, not a scaffold or visual-illusion measurement.
+ const rockEdge=a.worldX+a.bounds.right,otherEdge=b.worldX+b.bounds.left;
+ const guideY=Math.min(a.worldY+a.departure.y,b.worldY+b.departure.y)-240;
+ ctx.strokeStyle='#efdbb0';ctx.lineWidth=3/SCALE;
+ ctx.beginPath();ctx.moveTo(rockEdge,guideY);ctx.lineTo(otherEdge,guideY);ctx.stroke();
+ for(const x of [rockEdge,otherEdge]){
+  ctx.beginPath();ctx.moveTo(x,guideY-24);ctx.lineTo(x,guideY+24);ctx.stroke();
+ }
+ ctx.fillStyle='#fff1cb';ctx.font='bold 27px system-ui';
+ ctx.textAlign='center';ctx.fillText((otherEdge-rockEdge).toLocaleString()+' units',(rockEdge+otherEdge)/2,guideY-24);
+ ctx.restore();
+}
+function render(){
+ try{
+  $('loading').textContent='Rendering both physical mountain layouts…';
+  const id=Number(chosen.value),idx=Number(crossing.value);
+  const before=SpireGapScaleV17.layout(source,id,1);
+  const after=SpireGapScaleV17.layout(source,id,10);
+  $('originalValue').textContent=before.desiredGap.toLocaleString()+' units';
+  $('expandedValue').textContent=after.desiredGap.toLocaleString()+' units';
+  $('deltaValue').textContent='+'+(after.desiredGap-before.desiredGap).toLocaleString()+' units';
+  $('totalValue').textContent='4 × '+after.desiredGap.toLocaleString()+' units';
+  $('beforeTag').textContent=before.desiredGap.toLocaleString()+' units';
+  $('afterTag').textContent=after.desiredGap.toLocaleString()+' units';
+  paint('beforeCanvas',before,idx);paint('afterCanvas',after,idx);
+  $('beforeScroll').scrollLeft=0;$('afterScroll').scrollLeft=0;
+  $('loading').textContent='Both views rendered from the same genuine modular mountain meshes.';
+  window.__SummitSpacingTest={source,original:before,expanded:after,
+   getSummary:()=>({preset:id,standardGap:before.desiredGap,tenfoldGap:after.desiredGap,
+    crossings:after.crossings.length,valid:SpireGapScaleV17.audit(after).valid,
+    beforeWidth:$('beforeCanvas').width,afterWidth:$('afterCanvas').width})};
+ }catch(e){
+  $('loading').textContent='This seed could not be generated: '+e.message;
+  console.error(e);
+ }
+}
+chosen.addEventListener('change',render);
+crossing.addEventListener('change',render);
+seed.addEventListener('change',()=>{currentSeed=Number(seed.value);makeSource();render()});
+$('reroll').addEventListener('click',()=>{currentSeed++;makeSource();render()});
+makeSource();render();
+})();
+</script>
+</body></html>
