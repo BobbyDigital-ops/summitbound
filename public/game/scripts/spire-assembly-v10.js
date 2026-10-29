@@ -70,6 +70,16 @@ function insideRockRect(pieces,left,right,top,bottom,margin=1){
  }
  return true;
 }
+// A rock ledge must fit INSIDE the exact prefab block owning its mount.
+// The neighbouring module or combined spire silhouette cannot excuse a
+// protrusion through this block's own face or either connector seam.
+function rockLedgeInsideOwner(assembled,ledge,margin=.5){
+ const owner=assembled?.pieces?.find(piece=>piece.id===ledge?.owner);
+ if(!owner||ledge?.kind!=='rock'||!Array.isArray(ledge.vertices)||ledge.vertices.length<3)return false;
+ const xs=ledge.vertices.map(v=>v[0]),ys=ledge.vertices.map(v=>v[1]);
+ if(xs.some(x=>!Number.isFinite(x))||ys.some(y=>!Number.isFinite(y)))return false;
+ return insideRockRect([owner],Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),margin);
+}
 function inspect(assembled){
  const errors=[],p=assembled.pieces;
  if(p.length<3||p.length>7)errors.push('requires 3–7 pieces');
@@ -109,11 +119,8 @@ function inspect(assembled){
  if(assembled.departure?.width<MIN_LAUNCH_DECK)errors.push('short takeoff');
  for(const plat of assembled.platforms){
   if(plat.width<MIN_LANDING_SPAN)errors.push('landing too narrow '+plat.id);
-  if(plat.kind==='rock'){
-   const xs=plat.vertices.map(v=>v[0]),ys=plat.vertices.map(v=>v[1]);
-   if(!insideRockRect(p,Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys),.5))
-    errors.push('rock ledge breaches mountain outline: '+plat.id);
-  }
+  if(plat.kind==='rock'&&!rockLedgeInsideOwner(assembled,plat))
+   errors.push('rock ledge breaches parent mountain block: '+plat.id);
   let target=plat.id;const seen=new Set();
   while(target!=='departure'){
    if(seen.has(target)){errors.push('cyclic route from '+plat.id);break}
@@ -170,10 +177,12 @@ function assembleOnce(seed,options={}){
     const lipRight=Math.max(...pref.vertices.map(v=>v[0]));
     const depth=Math.max(...pref.vertices.map(v=>v[1]));
     const levels=[m.y,m.y+depth],allowed=[];
-    for(const part of pieces)for(const v of part.vertices)
+    // The original mount's own parent block is the ONLY allowable rock
+    // footprint, including the slab thickness and its projecting lip.
+    for(const v of piece.vertices)
      if(v[1]>m.y&&v[1]<m.y+depth)levels.push(v[1]);
     for(const yy of levels){
-     const sec=rockSection(pieces,yy);
+     const sec=edgeAt(piece,yy);
      if(!sec){allowed.length=0;break}
      allowed.push(sec);
     }
@@ -247,11 +256,11 @@ function assemble(seed,options={}){
    assembled.seed=seed;assembled.generationAttempts=attempt+1;
    return assembled;
   }catch(error){
-   if(!/Insufficient reachable platform mounts|No usable departure deck/.test(String(error))||attempt===19)throw error;
+   if(!/Insufficient reachable platform mounts|No usable departure deck|Invalid spire: rock ledge breaches parent mountain block/.test(String(error))||attempt===19)throw error;
   }
  }
  throw Error('No valid vertical spire could be produced');
 }
-const API=Object.freeze({assemble,inspect,edgeAt,strictOverlap});
+const API=Object.freeze({assemble,inspect,edgeAt,strictOverlap,rockLedgeInsideOwner});
 if(typeof module==='object'&&module.exports)module.exports=API;else root.SpireAssemblyV10=API;
 })(typeof globalThis!=='undefined'?globalThis:this);
