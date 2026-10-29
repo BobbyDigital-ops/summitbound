@@ -104,13 +104,35 @@ function inspect(assembled){
   for(let j=0;j<i-1;j++)if(strictOverlap(p[j].vertices,part.vertices))errors.push('nonadjacent overlap');
  }
  const platformIds=new Set(assembled.platforms.map(x=>x.id));
- for(const c of assembled.colliders)if(!platformIds.has(c.id)||c.right<=c.left)errors.push('orphan platform collider');
+ if(platformIds.size!==assembled.platforms.length)errors.push('duplicate landing IDs');
+ if(assembled.colliders.length!==assembled.platforms.length)errors.push('missing platform collider');
+ for(const c of assembled.colliders){
+  const pl=assembled.platforms.find(q=>q.id===c.id);
+  if(!pl||c.right<=c.left)errors.push('orphan platform collider');
+  else if(Math.abs(pl.left-c.left)>1e-6||Math.abs(pl.right-c.right)>1e-6||
+          Math.abs(pl.y-c.top)>1e-6||pl.kind!==c.kind)
+   errors.push('platform art/collider mismatch: '+c.id);
+ }
+ if(new Set(assembled.routes.map(r=>r.source)).size!==assembled.routes.length)
+  errors.push('more than one climb exit from a platform');
  for(const route of assembled.routes){
   const from=assembled.platforms.find(q=>q.id===route.source);
   const receiving=route.target==='departure'?assembled.departure:assembled.platforms.find(q=>q.id===route.target);
-  if(!from||!receiving||route.x<from.left+2||route.x>from.right-2||
-     route.finishX<receiving.left+2||route.finishX>receiving.right-2)
-   errors.push('climb route does not terminate on a genuine platform: '+route.id);
+  const half=route.width/2;
+  if(!from||!receiving||!Number.isFinite(route.x)||!Number.isFinite(half)||half<=0)
+   errors.push('missing climb source or exit: '+route.id);
+  else {
+   // Both complete rails or full ice strip must terminate ON the shelves,
+   // rather than only the centre line appearing to connect.
+   if(route.x-half<from.left+3||route.x+half>from.right-3||
+      route.finishX-half<receiving.left+3||route.finishX+half>receiving.right-3)
+    errors.push('climb width breaches landing: '+route.id);
+   if(Math.abs(route.fromY-from.y)>1e-6||Math.abs(route.toY-receiving.y)>1e-6)
+    errors.push('climb height disconnect: '+route.id);
+   if(assembled.platforms.some(q=>q.id!==from.id&&q.id!==route.target&&
+        q.y>route.toY&&q.y<route.fromY&&route.x>=q.left-1&&route.x<=q.right+1))
+    errors.push('climb crosses intermediate platform: '+route.id);
+  }
   if(route.kind==='ice'&&!insideRockRect(p,route.collider.left,route.collider.right,route.toY,route.fromY,1))
    errors.push('icefall breaches mountain outline: '+route.id);
   if(route.fromY<=route.toY||route.x!==route.finishX)errors.push('nonvertical climb route');
